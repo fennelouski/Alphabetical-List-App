@@ -256,6 +256,24 @@ static CGFloat const borderWidth = 10.0f;
 		[titleAlertController addAction:disableListModeAction];
 	}
 	
+	if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
+		UIAlertAction *hideImageAction = [UIAlertAction actionWithTitle:@"Hide Icon in List"
+																  style:UIAlertActionStyleDefault
+																handler:^(UIAlertAction *action) {
+																	[[ALUDataManager sharedDataManager] setShowImage:NO
+																										forListTitle:_detailItem];
+																}];
+		[titleAlertController addAction:hideImageAction];
+	} else {
+		UIAlertAction *showImageAction = [UIAlertAction actionWithTitle:@"Show Icon in List"
+																  style:UIAlertActionStyleDefault
+																handler:^(UIAlertAction *action) {
+																	[[ALUDataManager sharedDataManager] setShowImage:YES
+																										forListTitle:_detailItem];
+																}];
+		[titleAlertController addAction:showImageAction];
+	}
+	
 	UIAlertAction *renameAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Rename List", @"change the title of the list/note")
 														   style:UIAlertActionStyleDestructive
 														 handler:^(UIAlertAction *action) {

@@ -29,6 +29,10 @@
 
 - (BOOL)listModeForListTitle:(NSString *)title;
 
+- (void)setShowImage:(BOOL)showImage forListTitle:(NSString *)title;
+
+- (BOOL)showImageForListTitle:(NSString *)title;
+
 @property (nonatomic) BOOL currentColorIsDark;
 
 @end

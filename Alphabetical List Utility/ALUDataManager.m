@@ -18,6 +18,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	NSMutableDictionary *_companyLogos;
 	NSMutableArray *_failedDomains;
 	NSMutableDictionary *_listModes;
+	NSMutableDictionary *_showListImages;
 }
 
 + (instancetype)sharedDataManager {
@@ -41,6 +42,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 		_companyLogos = [[NSMutableDictionary alloc] init];
 		_failedDomains = [[NSMutableArray alloc] init];
 		_listModes = [[NSMutableDictionary alloc] init];
+		_showListImages = [[NSMutableDictionary alloc] init];
 		
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
 //		[_lists addObjectsFromArray:@[@"Belk", @"Sears", @"Tiffany", @"JC Penney", @"Victorias Secret", @"Macys", @"Engadget", @"T-Mobile", @"Facebook", @"Aetna", @"Volcano", @"Kohl's"]];
@@ -441,6 +443,37 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 			BOOL listModeEnabled = [defaults boolForKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
 			[_listModes setObject:@(listModeEnabled) forKey:title];
+			return listModeEnabled;
+		}
+	} else {
+		NSLog(@"List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+	}
+	
+	return NO;
+}
+
+#pragma mark - Show Image
+
+// This is actually backwards in storage. A NO in storage results in a YES when pulled out so the default value is interpreted as YES
+
+- (void)setShowImage:(BOOL)showImage forListTitle:(NSString *)title {
+	if ([_lists containsObject:title]) {
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setBool:!showImage forKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+		[_showListImages setObject:@(showImage) forKey:title];
+	} else {
+		NSLog(@"List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
+	}
+}
+
+- (BOOL)showImageForListTitle:(NSString *)title {
+	if ([_lists containsObject:title]) {
+		if ([_showListImages objectForKey:title]) {
+			return [[_showListImages objectForKey:title] boolValue];
+		} else {
+			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+			BOOL listModeEnabled = ![defaults boolForKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+			[_showListImages setObject:@(listModeEnabled) forKey:title];
 			return listModeEnabled;
 		}
 	} else {

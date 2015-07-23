@@ -184,13 +184,13 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
-
+	
 	NSString *object = self.objects[indexPath.row];
 	cell.textLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
 	cell.textLabel.attributedText = [NKFColor attributedStringForCompanyName:[object description]];
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
 	
-	if (companyLogoImage && [NKFColor strictColorForCompanyName:cell.textLabel.text]) {
+	if (companyLogoImage && [NKFColor strictColorForCompanyName:cell.textLabel.text] && [[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]) {
         cell.accessoryView.hidden = NO;
 		if (cell.accessoryView && [cell.accessoryView respondsToSelector:@selector(setImage:)]) {
 			UIImageView *accessoryView = (UIImageView *)cell.accessoryView;
