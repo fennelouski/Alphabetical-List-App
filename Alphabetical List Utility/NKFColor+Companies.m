@@ -328,6 +328,11 @@
 }
 
 
++ (NKFColor *)adidas {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)advancedautoparts {
 	return [NKFColor colorWithRed:235.0f/255.0f green:27.0f/255.0f blue:42.0f/255.0f alpha:1.0f];
 }
@@ -384,6 +389,15 @@
 
 + (NKFColor *)aetna6{
 	return [NKFColor colorWithHexString:@"#7d3f98"];
+}
+
+
++ (NKFColor *)afnetworking {
+	return [NKFColor colorWithRed:233.0f/255.0f green:85.0f/255.0f blue:44.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)afnetworking2 {
+	return [NKFColor black];
 }
 
 
@@ -621,6 +635,28 @@
 }
 
 
++ (NKFColor *)applebees {
+	return [NKFColor colorWithRed:77.0f/255.0f green:112.0f/255.0f blue:23.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)applebees2 {
+	return [NKFColor colorWithRed:230.0f/255.0f green:17.0f/255.0f blue:43.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)apu {
+	return [NKFColor colorWithRed:128.0f/255.0f green:40.0f/255.0f blue:43.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)apu2 {
+	return [NKFColor white];
+}
+
++ (NKFColor *)apu3 {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)archlinux{
 	return [NKFColor colorWithHexString:@"#1793d1"];
 }
@@ -641,6 +677,11 @@
 
 + (NKFColor *)associatedpress{
 	return [NKFColor colorWithHexString:@"#ff322e"];
+}
+
+
++ (NKFColor *)astonmartin {
+	return [NKFColor colorWithRed:40.0f/255.0f green:122.0f/255.0f blue:78.0f/255.0f alpha:1.0f];
 }
 
 
@@ -730,6 +771,23 @@
 
 + (NKFColor *)bandcamp{
 	return [NKFColor colorWithHexString:@"#629aa9"];
+}
+
+
++ (NKFColor *)bankofamerica {
+	return [NKFColor colorWithRed:37.0f/255.0f green:99.0f/255.0f blue:176.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)bankofamerica2 {
+	return [NKFColor colorWithRed:219.0f/255.0f green:0.0f/255.0f blue:59.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)bofa {
+	return [NKFColor bankofamerica];
+}
+
++ (NKFColor *)bofa2 {
+	return [NKFColor bankofamerica2];
 }
 
 
@@ -881,6 +939,19 @@
 }
 
 
++ (NKFColor *)bmw {
+	return [NKFColor colorWithRed:70.0f/255.0f green:149.0f/255.0f blue:199.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)bmw2 {
+	return [NKFColor white];
+}
+
++ (NKFColor *)bmw3 {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)boeing{
 	return [NKFColor colorWithHexString:@"#0039a6"];
 }
@@ -1003,6 +1074,19 @@
 }
 
 
++ (NKFColor *)bugatti {
+	return [NKFColor colorWithRed:184.0f/255.0f green:0.0f/255.0f blue:52.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)bugatti2 {
+	return [NKFColor black];
+}
+
++ (NKFColor *)bugatti3 {
+	return [NKFColor colorWithWhite:170.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)burgerking{
 	return [NKFColor colorWithHexString:@"#ec1c24"];
 }
@@ -1047,6 +1131,19 @@
 }
 
 
++ (NKFColor *)cadillac {
+	return [NKFColor colorWithRed:191.0f/255.0f green:172.0f/255.0f blue:99.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)cadillac2 {
+	return [NKFColor colorWithRed:165.0f/255.0f green:0.0f/255.0f blue:35.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)cadillac3 {
+	return [NKFColor colorWithRed:29.0f/255.0f green:36.0f/255.0f blue:137.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)canon{
 	return [NKFColor colorWithHexString:@"#bc0024"];
 }
@@ -1075,6 +1172,15 @@
 
 + (NKFColor *)carrefour4{
 	return [NKFColor colorWithHexString:@"#237f52"];
+}
+
+
++ (NKFColor *)carrs {
+	return [NKFColor safeway];
+}
+
++ (NKFColor *)carrssafeway {
+	return [NKFColor safeway];
 }
 
 
@@ -1128,6 +1234,38 @@
 
 + (NKFColor *)cheddar{
 	return [NKFColor colorWithHexString:@"#ff7243"];
+}
+
+
++ (NKFColor *)chevy {
+	return [NKFColor colorWithRed:203.0f/255.0f green:171.0f/255.0f blue:91.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)chevrolet {
+	return [NKFColor chevy];
+}
+
+
++ (NKFColor *)chickfila {
+	return [NKFColor colorWithRed:222.0f/255.0f green:0.0f/255.0f blue:59.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)chipotle {
+	return [NKFColor colorWithRed:162.0f/255.0f green:6.0f/255.0f blue:25.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)chipotle2 {
+	return [NKFColor colorWithRed:67.0f/255.0f green:19.0f/255.0f blue:2.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)chipotle3 {
+	return [NKFColor white];
+}
+
+
++ (NKFColor *)chrysler {
+	return [NKFColor colorWithRed:101.0f/255.0f green:132.0f/255.0f blue:217.0f/255.0f alpha:1.0f];
 }
 
 
@@ -1244,6 +1382,23 @@
 
 + (NKFColor *)dannon3 {
 	return [NKFColor colorWithRed:66.0f/255.0f green:183.0f/255.0f blue:224.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)darntough {
+	return [NKFColor colorWithRed:131.0f/255.0f green:26.0f/255.0f blue:11.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)darntough2 {
+	return [NKFColor colorWithRed:49.0f/255.0f green:47.0f/255.0f blue:48.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)darntoughsocks {
+	return [NKFColor darntough];
+}
+
++ (NKFColor *)darntoughsocks2 {
+	return [NKFColor darntough2];
 }
 
 
@@ -1433,7 +1588,7 @@
 
 
 + (NKFColor *)digg{
-	return [NKFColor colorWithHexString:@"#000000"];
+	return [NKFColor colorWithWhite:55.0f/255.0f alpha:1.0f];
 }
 
 
@@ -1816,6 +1971,11 @@
 }
 
 
++ (NKFColor *)ferrari {
+	return [NKFColor ferrariRed];
+}
+
+
 + (NKFColor *)fiat{
 	return [NKFColor colorWithHexString:@"#96172e"];
 }
@@ -1970,6 +2130,15 @@
 }
 
 
++ (NKFColor *)ford {
+	return [NKFColor colorWithRed:49.0f/255.0f green:122.0f/255.0f blue:180.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fordmotorcompany {
+	return [NKFColor ford];
+}
+
+
 + (NKFColor *)forever21 {
 	return [NKFColor colorWithRed:255.0f/255.0f green:233.0f/255.0f blue:26.0f/255.0f alpha:1.0f];
 }
@@ -2018,6 +2187,11 @@
 
 + (NKFColor *)garmin{
 	return [NKFColor colorWithHexString:@"#007cc3"];
+}
+
+
++ (NKFColor *)generalmotors {
+	return [NKFColor colorWithRed:19.0f/255.0f green:0.0f/255.0f blue:127.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2162,6 +2336,11 @@
 }
 
 
++ (NKFColor *)greatclips {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)grocery{
 	return [NKFColor forestGreenTraditional];
 }
@@ -2287,6 +2466,19 @@
 }
 
 
++ (NKFColor *)hotdogonastick {
+	return [NKFColor colorWithRed:232.0f/255.0f green:0.0f/255.0f blue:47.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)hotdogonastick2 {
+	return [NKFColor colorWithRed:252.0f/255.0f green:255.0f/255.0f blue:34.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)hotdogonastick3 {
+	return [NKFColor colorWithRed:48.0f/255.0f green:73.0f/255.0f blue:238.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)homedepot{
 	return [NKFColor colorWithHexString:@"#f96305"];
 }
@@ -2377,6 +2569,19 @@
 
 + (NKFColor *)hulu2{
 	return [NKFColor colorWithHexString:@"#6bb03e"];
+}
+
+
++ (NKFColor *)hyundai {
+	return [NKFColor colorWithRed:32.0f/255.0f green:72.0f/255.0f blue:161.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)hyundai2 {
+	return [NKFColor colorWithRed:37.0f/255.0f green:170.0f/255.0f blue:81.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)hyundai3 {
+	return [NKFColor colorWithRed:248.0f/255.0f green:187.0f/255.0f blue:37.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2502,6 +2707,11 @@
 }
 
 
++ (NKFColor *)jambajuice {
+	return [NKFColor colorWithRed:96.0f/255.0f green:44.0f/255.0f blue:6.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)jawbone{
 	return [NKFColor colorWithHexString:@"#000000"];
 }
@@ -2525,6 +2735,11 @@
 }
 
 
++ (NKFColor *)jeep {
+	return [NKFColor colorWithRed:73.0f/255.0f green:97.0f/255.0f blue:44.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)joann {
 	return [NKFColor colorWithRed:11.0f/255.0f green:59.0f/255.0f blue:49.0f/255.0f alpha:1.0f];
 }
@@ -2535,6 +2750,15 @@
 
 + (NKFColor *)joannfabrics {
 	return [NKFColor joann];
+}
+
+
++ (NKFColor *)jordans {
+	return [NKFColor colorWithRed:49.0f/255.0f green:49.0f/255.0f blue:47.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)jordansfurniture {
+	return [NKFColor jordans];
 }
 
 
@@ -2629,6 +2853,15 @@
 
 + (NKFColor *)lastfm{
 	return [NKFColor colorWithHexString:@"#d51007"];
+}
+
+
++ (NKFColor *)lasvegas {
+	return [NKFColor nevada];
+}
+
++ (NKFColor *)lasvegas2 {
+	return [NKFColor nevada2];
 }
 
 
@@ -2744,6 +2977,15 @@
 }
 
 
++ (NKFColor *)losangeles {
+	return [NKFColor california];
+}
+
++ (NKFColor *)losangeles2 {
+	return [NKFColor california2];
+}
+
+
 + (NKFColor *)lowes {
 	return [NKFColor colorWithRed:0.0f green:72.0f/255.0f blue:144.0f/255.0f alpha:1.0f];
 }
@@ -2832,6 +3074,11 @@
 }
 
 
++ (NKFColor *)marykay {
+	return [NKFColor colorWithRed:248.0f/255.0f green:31.0f/255.0f blue:105.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)massygroup{
 	return [NKFColor colorWithHexString:@"#004a77"];
 }
@@ -2881,6 +3128,20 @@
 }
 
 
++ (NKFColor *)mercedes {
+	return [NKFColor black];
+}
+
++ (NKFColor *)mercedesbenz {
+	return [NKFColor mercedes];
+}
+
+
++ (NKFColor *)miami {
+	return [NKFColor florida];
+}
+
+
 + (NKFColor *)microsoft{
 	return [NKFColor colorWithHexString:@"#f65314"];
 }
@@ -2908,8 +3169,22 @@
 }
 
 
++ (NKFColor *)momofuku {
+	return [NKFColor colorWithRed:241.0f/255.0f green:181.0f/255.0f blue:60.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)momofuku2 {
+	return [NKFColor colorWithRed:102.0f/255.0f green:172.0f/255.0f blue:78.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)motorola{
 	return [NKFColor colorWithHexString:@"#5c92fa"];
+}
+
+
++ (NKFColor *)music {
+	return [NKFColor colorWithRed:201.0f/255.0f green:223.0f/255.0f blue:58.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2923,7 +3198,7 @@
 
 
 + (NKFColor *)myspace{
-	return [NKFColor colorWithHexString:@"#000000"];
+	return [NKFColor black];
 }
 
 
@@ -3083,6 +3358,11 @@
 }
 
 
++ (NKFColor *)nshipster {
+	return [NKFColor colorWithRed:238.0f/255.0f green:127.0f/255.0f blue:43.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)nvidia{
 	return [NKFColor colorWithHexString:@"#76b900"];
 }
@@ -3170,6 +3450,11 @@
 }
 
 
++ (NKFColor *)pamperedchef {
+	return [NKFColor colorWithRed:49.0f/255.0f green:45.0f/255.0f blue:95.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)panasonic{
 	return [NKFColor colorWithHexString:@"#0f58a8"];
 }
@@ -3184,12 +3469,26 @@
 }
 
 
++ (NKFColor *)paris {
+	return [NKFColor colorWithRed:26.0f/255.0f green:19.0f/255.0f blue:148.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)paris2 {
+	return [NKFColor colorWithRed:229.0f/255.0f green:21.0f/255.0f blue:62.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)partycity {
 	return [NKFColor colorWithHexString:@"6c76be"];
 }
 
 + (NKFColor *)path{
 	return [NKFColor colorWithHexString:@"#ee3423"];
+}
+
+
++ (NKFColor *)pavilions {
+	return [NKFColor safeway];
 }
 
 
@@ -3540,6 +3839,15 @@
 }
 
 
++ (NKFColor *)randalls {
+	return [NKFColor colorWithRed:35.0f/255.0f green:68.0f/255.0f blue:154.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)randalls2 {
+	return [NKFColor safeway];
+}
+
+
 + (NKFColor *)razer{
 	return [NKFColor colorWithHexString:@"#00ff00"];
 }
@@ -3793,6 +4101,15 @@
 }
 
 
++ (NKFColor *)serta {
+	return [NKFColor colorWithRed:14.0f/255.0f green:40.0f/255.0f blue:91.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)serta2 {
+	return [NKFColor colorWithRed:252.0f/255.0f green:246.0f/255.0f blue:34.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)shaws {
 	return [NKFColor colorWithRed:236.0f/255.0f green:141.0f/255.0f blue:61.0f/255.0f alpha:1.0f];
 }
@@ -3875,6 +4192,19 @@
 
 + (NKFColor *)shoprite2 {
 	return [NKFColor colorWithRed:252.0f/255.0f green:183.0f/255.0f blue:18.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)sizzler {
+	return [NKFColor colorWithRed:230.0f/255.0f green:0.0f/255.0f blue:52.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)sizzler2 {
+	return [NKFColor white];
+}
+
++ (NKFColor *)sizzler3 {
+	return [NKFColor black];
 }
 
 
@@ -3972,6 +4302,15 @@
 }
 
 
++ (NKFColor *)specialized {
+	return [NKFColor colorWithRed:162.0f/255.0f green:19.0f/255.0f blue:45.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)specialized2 {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)spoken{
 	return [NKFColor colorWithHexString:@"#fc00c1"];
 }
@@ -4048,6 +4387,11 @@
 
 + (NKFColor *)statuschart{
 	return [NKFColor colorWithHexString:@"#d7584f"];
+}
+
+
++ (NKFColor *)steinway {
+	return [NKFColor black];
 }
 
 
@@ -4172,6 +4516,11 @@
 }
 
 
++ (NKFColor *)supercuts {
+	return [NKFColor colorWithRed:38.0f/255.0f green:52.0f/255.0f blue:90.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)supervalu {
 	return [NKFColor colorWithRed:219.0f/255.0f green:37.0f/255.0f blue:28.0f/255.0f alpha:1.0f];
 }
@@ -4195,6 +4544,24 @@
 }
 
 
++ (NKFColor *)tcby {
+	return [NKFColor colorWithRed:229.0f/255.0f green:0.0f/255.0f blue:140.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)tgifridays {
+	return [NKFColor colorWithRed:210.0f/255.0f green:0.0f/255.0f blue:65.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)tgifridays2 {
+	return [NKFColor black];
+}
+
++ (NKFColor *)tgifridays3 {
+	return [NKFColor white];
+}
+
+
 + (NKFColor *)tjmaxx {
 	return [NKFColor colorWithRed:171.0f/255.0f green:25.0f/255.0f blue:44.0f/255.0f alpha:1.0f];
 }
@@ -4206,6 +4573,20 @@
 
 + (NKFColor *)tmobile{
 	return [NKFColor colorWithHexString:@"#e20074"];
+}
+
+
++ (NKFColor *)tomthumb {
+	return [NKFColor randalls];
+}
+
++ (NKFColor *)tomthumb2 {
+	return [NKFColor randalls2];
+}
+
+
++ (NKFColor *)toyota {
+	return [NKFColor colorWithRed:247.0f/255.0f green:0.0f/255.0f blue:25.0f/255.0f alpha:1.0f];
 }
 
 
@@ -4881,6 +5262,23 @@
 
 + (NKFColor *)whoosnapdesigner2{
 	return [NKFColor colorWithHexString:@"#b52f2c"];
+}
+
+
++ (NKFColor *)wienerschnitzel {
+	return [NKFColor colorWithRed:227.0f/255.0f green:0.0f/255.0f blue:42.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)wienerschnitzel2 {
+	return [NKFColor colorWithRed:234.0f/255.0f green:103.0f/255.0f blue:54.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)wienerschnitzel3 {
+	return [NKFColor colorWithRed:241.0f/255.0f green:183.0f/255.0f blue:37.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)wienerschnitzel4 {
+	return [NKFColor colorWithRed:227.0f/255.0f green:0.0f/255.0f blue:103.0f/255.0f alpha:1.0f];
 }
 
 
