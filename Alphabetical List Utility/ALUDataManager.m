@@ -17,6 +17,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	NSMutableDictionary *_dictionaryOfLists;
 	NSMutableDictionary *_companyLogos;
 	NSMutableArray *_failedDomains;
+	NSMutableDictionary *_listModes;
 }
 
 + (instancetype)sharedDataManager {
@@ -39,6 +40,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 		NSArray *listTitles = [stringOfListTitles componentsSeparatedByString:separator];
 		_companyLogos = [[NSMutableDictionary alloc] init];
 		_failedDomains = [[NSMutableArray alloc] init];
+		_listModes = [[NSMutableDictionary alloc] init];
 		
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
 //		[_lists addObjectsFromArray:@[@"Belk", @"Sears", @"Tiffany", @"JC Penney", @"Victorias Secret", @"Macys", @"Engadget", @"T-Mobile", @"Facebook", @"Aetna", @"Volcano", @"Kohl's"]];
@@ -86,16 +88,19 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	}
 }
 
-- (void)addList:(NSString *)listTitle {
+- (BOOL)addList:(NSString *)listTitle {
     NSString *cleanedTitle = [listTitle stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     
 	if (![_lists containsObject:cleanedTitle]) {
 		[_lists addObject:cleanedTitle];
 		[self saveList:@"" withTitle:cleanedTitle];
 		[self updateListsInStorage];
+		return NO;
 	} else {
 		NSLog(@"All List titles: %@", _lists);
 	}
+	
+	return YES;
 }
 
 - (void)removeList:(NSString *)listTitle {
@@ -233,13 +238,13 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
                                       @"harvard"            : @"harvard.edu",
                                       @"apu"                : @"apu.edu",
                                       @"calpoly"            : @"calpoly.edu",
-                                      @"mit"                : @"mit.edu"};
+                                      @"mit"                : @"mit.edu",
+									  @"darntoughsocks"		: @"darntough.com"};
 	
 	BOOL replacementFound = NO;
 	for (NSString *forwardingWord in forwardingWords.allKeys) {
 		if ([companyNameURLString rangeOfString:forwardingWord].location != NSNotFound && !replacementFound && forwardingWord.length * 2 > companyName.length && !replacementFound) {
 			companyNameURLString = [forwardingWords objectForKey:forwardingWord];
-            NSLog(@"Found a replacement for %@\t\t%@", companyName, companyNameURLString);
 			replacementFound = YES;
 			break;
 		}
@@ -271,7 +276,6 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	
 	NSString *baseURLString = @"https://logo.clearbit.com/";
 	NSString *urlString = [NSString stringWithFormat:@"%@%@", baseURLString, companyNameURLString];
-	NSLog(@"%@", urlString);
 	// Create the image URL from some known string.
 	NSURL *imageURL = [NSURL URLWithString:urlString];
 	// Create a request object for the given URL.
@@ -296,7 +300,6 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 			if (image) {
 				if (companyNameURLString) {
 					[_companyLogos setObject:image forKey:companyNameURLString];
-					NSLog(@"Found %@'s logo in storage", companyNameURLString);
 					return image;
 				} else {
 					NSLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
@@ -415,6 +418,36 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	}
 	
 	return url;
+}
+
+
+#pragma mark - List Mode
+
+- (void)setListMode:(BOOL)listMode forListTitle:(NSString *)title {
+	if ([_lists containsObject:title]) {
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+		[_listModes setObject:@(listMode) forKey:title];
+	} else {
+		NSLog(@"List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
+	}
+}
+
+- (BOOL)listModeForListTitle:(NSString *)title {
+	if ([_lists containsObject:title]) {
+		if ([_listModes objectForKey:title]) {
+			return [[_listModes objectForKey:title] boolValue];
+		} else {
+			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+			BOOL listModeEnabled = [defaults boolForKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+			[_listModes setObject:@(listModeEnabled) forKey:title];
+			return listModeEnabled;
+		}
+	} else {
+		NSLog(@"List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+	}
+	
+	return NO;
 }
 
 

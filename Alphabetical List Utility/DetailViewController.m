@@ -27,15 +27,20 @@ static CGFloat const maxFontSize = 60.0f;
 
 static CGFloat const minFontSize = 6.0f;
 
+static NSString * const numericDelimeter = @".) ";
+
 @interface DetailViewController ()
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
+
+@property (nonatomic, strong) UIButton *titleViewButton;
 
 @end
 
 @implementation DetailViewController {
 	CGFloat _tempFontSize, _currentFontSize;
 	BOOL _isKeyboardShowing;
+	UITextField *_alertTextField;
 }
 
 static CGFloat const borderWidth = 10.0f;
@@ -63,10 +68,17 @@ static CGFloat const borderWidth = 10.0f;
 			[self.actionButton setEnabled:NO];
 		}
 		
-		[self updateTextWithLineNumbersRange:NSMakeRange(0, 0) replacementText:@""];
+		if ([[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+			[self updateTextWithLineNumbersRange:NSMakeRange(0, 0) replacementText:@""];
+		}
 	}
 	
 	self.navigationItem.rightBarButtonItem = self.actionButton;
+	
+	[self.navigationItem setTitleView:self.titleViewButton];
+	[self.titleViewButton setTitleColor:[[NKFColor colorForCompanyName:_detailItem] oppositeBlackOrWhite] forState:UIControlStateNormal];
+	[self.titleViewButton setTitle:_detailItem forState:UIControlStateNormal];
+	self.navigationController.title = @"";
 }
 
 - (void)viewDidLoad {
@@ -144,6 +156,7 @@ static CGFloat const borderWidth = 10.0f;
 		_listItemTextView.tintColor = [NKFColor appColor];
 		_listItemTextView.clipsToBounds = NO;
 		_listItemTextView.delegate = self;
+		_listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(0.0f, -borderWidth * 2.0f, 0.0f, -borderWidth);
 		
 		if (_currentFontSize == 0 || _tempFontSize == 0) {
 			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -183,6 +196,159 @@ static CGFloat const borderWidth = 10.0f;
 	return _actionButton;
 }
 
+- (UIButton *)titleViewButton {
+	if (!_titleViewButton) {
+		_titleViewButton = [[UIButton alloc] initWithFrame:self.navigationController.navigationBar.bounds];
+		[_titleViewButton addTarget:self action:@selector(titleTapped:) forControlEvents:UIControlEventTouchUpInside];
+	}
+	
+	return _titleViewButton;
+}
+
+#pragma mark - Button Actions
+
+- (void)titleTapped:(id)sender {
+	UIAlertController *titleAlertController = [UIAlertController alertControllerWithTitle:_detailItem
+																				  message:nil
+																		   preferredStyle:UIAlertControllerStyleActionSheet];
+	
+	titleAlertController.popoverPresentationController.sourceView = self.titleViewButton;
+	UIButton *button = (UIButton *)sender;
+	if ([button isKindOfClass:[UIButton class]]) {
+		titleAlertController.popoverPresentationController.sourceRect = CGRectMake(self.view.frame.size.width * 0.2f,
+																				   self.navigationController.navigationBar.frame.size.height * 0.85f,
+																				   0.0f,
+																				   0.0f);
+	}
+	
+	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil)
+														   style:UIAlertActionStyleCancel
+														 handler:^(UIAlertAction *action) {
+															 
+														 }];
+	[titleAlertController addAction:cancelAction];
+	
+	if (![[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+		UIAlertAction *enableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Enable List Mode", @"Add a number at the beginning of each line to keep track of items in the list/note")
+																	   style:UIAlertActionStyleDefault
+																	 handler:^(UIAlertAction *action) {
+																		 [[ALUDataManager sharedDataManager] setListMode:YES
+																											forListTitle:_detailItem];
+																		 [self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+																		 [self performSelector:@selector(delayedUpdateOfText) withObject:self afterDelay:0.1f];
+																	 }];
+		[titleAlertController addAction:enableListModeAction];
+		
+		UIAlertAction *removeListModeNumbersAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Remove List Numbers", @"If present, remove the numbers at the beginning of each line")
+																			  style:UIAlertActionStyleDefault
+																			handler:^(UIAlertAction *action) {
+																				[self removeListModeNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+																			}];
+		[titleAlertController addAction:removeListModeNumbersAction];
+	} else {
+		UIAlertAction *disableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Disable List Mode", @"Disable adding numbers at the beginning of each line")
+																	   style:UIAlertActionStyleDefault
+																	 handler:^(UIAlertAction *action) {
+																		 [[ALUDataManager sharedDataManager] setListMode:NO
+																											forListTitle:_detailItem];
+																		 [self performSelector:@selector(delayedUpdateOfText) withObject:self afterDelay:0.1f];
+																	 }];
+		[titleAlertController addAction:disableListModeAction];
+	}
+	
+	UIAlertAction *renameAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Rename List", @"change the title of the list/note")
+														   style:UIAlertActionStyleDestructive
+														 handler:^(UIAlertAction *action) {
+															 [self performSelector:@selector(renameList) withObject:self afterDelay:0.1f];
+														 }];
+	[titleAlertController addAction:renameAction];
+	
+	[self presentViewController:titleAlertController
+					   animated:YES
+					 completion:^{
+						   
+					   }];
+}
+
+- (void)delayedUpdateOfText {
+	if (!self.listItemTextView) {
+		NSLog(@"What is wrong with this?");
+	}
+	
+	if ([[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+		[self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+	} else {
+//		[self removeListModeNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+	}
+}
+
+- (void)renameList {
+	UIAlertController *titleController = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Change Note Title",nil)
+																			 message:NSLocalizedString(@"Please give your Note a title", nil)
+																	  preferredStyle:UIAlertControllerStyleAlert];
+	[titleController addTextFieldWithConfigurationHandler:^(UITextField * __nonnull textField) {
+		textField.placeholder = NSLocalizedString(@"Note Title", nil);
+		textField.keyboardAppearance = UIKeyboardAppearanceLight;
+		textField.keyboardType = UIKeyboardTypeDefault;
+		textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
+		textField.autocorrectionType = UITextAutocorrectionTypeYes;
+		textField.text = _detailItem;
+		_alertTextField = textField;
+	}];
+	
+	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil)
+														   style:UIAlertActionStyleCancel
+														 handler:^(UIAlertAction * __nonnull action) {
+															 
+														 }];
+	[titleController addAction:cancelAction];
+	
+	UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Change Name", nil)
+													   style:UIAlertActionStyleDestructive
+													 handler:^(UIAlertAction * __nonnull action) {
+														 if (_alertTextField.text.length > 0) {
+															 if ([[ALUDataManager sharedDataManager] addList:_alertTextField.text]) {
+																 [self performSelector:@selector(listAlreadyExistsWarning:) withObject:_alertTextField.text afterDelay:0.1f];
+															 } else {
+																 [[ALUDataManager sharedDataManager] removeList:_detailItem];
+																 _detailItem = _alertTextField.text;
+																 [[ALUDataManager sharedDataManager] saveList:self.listItemTextView.text
+																									withTitle:_detailItem];
+																 [self configureView];
+																 
+																 if ([self.delegate respondsToSelector:@selector(reloadList)]) {
+																	 [self.delegate reloadList];
+																 }
+															 }
+														 }
+													 }];
+	[titleController addAction:okAction];
+	
+	[self presentViewController:titleController animated:YES completion:^{
+		
+	}];
+}
+
+- (void)listAlreadyExistsWarning:(NSString *)warningMessage {
+	NSLog(@"%@", warningMessage);
+	
+	UIAlertController *warningController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ \"%@\"", NSLocalizedString(@"Note already exists with the title", nil), warningMessage]
+																			   message:NSLocalizedString(@"Each list title needs to be unique.", nil)
+																		preferredStyle:UIAlertControllerStyleAlert];
+	UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
+													   style:UIAlertActionStyleDefault
+													 handler:^(UIAlertAction *action) {
+														 
+													 }];
+	[warningController addAction:okAction];
+	
+	[self presentViewController:warningController
+					   animated:YES
+					 completion:^{
+						 
+					 }];
+}
+
 #pragma mark - Memory warning
 
 - (void)didReceiveMemoryWarning {
@@ -199,7 +365,7 @@ static CGFloat const borderWidth = 10.0f;
 	
 	UIEdgeInsets contentInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0, kbSize.height, 0.0);
 	self.listItemTextView.contentInset = contentInsets;
-	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, -borderWidth, kbSize.height, -borderWidth);
+	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight, -borderWidth * 2.0f, -borderWidth, -borderWidth);
 	
 	// If active text field is hidden by keyboard, scroll it so it's visible
 	// Your app might not need or want this behavior.
@@ -214,9 +380,9 @@ static CGFloat const borderWidth = 10.0f;
 
 // Called when the UIKeyboardWillHideNotification is sent
 - (void)keyboardWasHidden:(NSNotification*)aNotification {
-	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - borderWidth);
 	self.listItemTextView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0f, borderWidth, 0.0f);
-	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, -borderWidth * 2.0f, -borderWidth, -borderWidth);
+	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight, -borderWidth * 2.0f, -borderWidth, -borderWidth);
 	
 	_isKeyboardShowing = YES;
 }
@@ -272,7 +438,7 @@ static CGFloat const borderWidth = 10.0f;
 		self.listItemTextView = textView;
 	}
     
-    if ([text isEqualToString:@"\n"]) {
+    if ([text isEqualToString:@"\n"] && [[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
         [self updateTextWithLineNumbersRange:range replacementText:text];
 		return NO;
     }
@@ -323,17 +489,14 @@ static CGFloat const borderWidth = 10.0f;
 			[filteredLines addObject:line];
 		} else if (lineNumber <= cursorLine) {
 			skippedLineCount++;
-		} else {
-			NSLog(@"Skipping: %zd\t\t%zd", lineNumber, cursorLine);
 		}
+		
 		lineNumber++;
 	}
 	
-	NSLog(@"SLC %zd", skippedLineCount);
-	
     lineNumber = 1;
     for (NSString *line in filteredLines) {
-        NSInteger breakLocation = [line rangeOfString:@".) "].location;
+        NSInteger breakLocation = [line rangeOfString:numericDelimeter].location;
 		
 		BOOL skipLine = NO;
 		
@@ -344,14 +507,13 @@ static CGFloat const borderWidth = 10.0f;
 			
             NSString *numericSubstring = [line substringToIndex:breakLocation];
             if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
-				if (line.length <= breakLocation + 3) {
+				if (line.length <= breakLocation + numericDelimeter.length) {
 					NSLog(@"This will cause a problem if left without checking.");
 				} else {
-					if ([line substringFromIndex:breakLocation + 3].length > 0) {
-						[finalString appendFormat:@"%d.) %@", lineNumber, [line substringFromIndex:breakLocation + 3]];
+					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
+						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
 					} else {
 						skipLine = YES;
-						NSLog(@"Not doing it here for %zd", lineNumber);
 						
 						if (lineNumber < cursorLine) {
 							skippedLineCount++;
@@ -359,14 +521,13 @@ static CGFloat const borderWidth = 10.0f;
 					}
 				}
             } else {
-				if (line.length < breakLocation + 3) {
+				if (line.length < breakLocation + numericDelimeter.length) {
 					NSLog(@"This will cause a problem if left without checking.");
 				} else {
-					if ([line substringFromIndex:breakLocation + 3].length > 0) {
-						[finalString appendFormat:@"%d.) %@", lineNumber, [line substringFromIndex:breakLocation + 3]];
+					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
+						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
 					} else {
 						skipLine = YES;
-						NSLog(@"Not doing it for %zd\t\t%zd", lineNumber, skippedLineCount);
 						
 						if (lineNumber < cursorLine) {
 							skippedLineCount++;
@@ -376,9 +537,7 @@ static CGFloat const borderWidth = 10.0f;
             }
         } else {
 			if (line.length > 0 || lineNumber == cursorLine + 1 || lineNumber == cursorLine) {
-				[finalString appendFormat:@"%d.) %@", lineNumber, line];
-			} else {
-				NSLog(@"Skipping for line %zd \t\t%zd", lineNumber, cursorLine);
+				[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, line];
 			}
         }
 		
@@ -397,6 +556,97 @@ static CGFloat const borderWidth = 10.0f;
 		self.listItemTextView.text = finalString;
 		
 		NSRange textRange = NSMakeRange(range.location + 4 + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * (4 + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
+		
+		if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
+			textRange.location += 1;
+		}
+		
+		self.listItemTextView.selectedRange = textRange;
+	}
+}
+
+- (void)removeListModeNumbersRange:(NSRange)range replacementText:(NSString *)text {
+	NSInteger cursorLine = [[self.listItemTextView.text substringToIndex:range.location] componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]].count;
+	NSString *updatedText = [self.listItemTextView.text stringByReplacingCharactersInRange:range withString:text];
+	NSArray *lines = [updatedText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+	NSMutableArray *filteredLines = [[NSMutableArray alloc] init];
+	NSMutableString *finalString = [[NSMutableString alloc] initWithCapacity:updatedText.length + lines.count * 5];
+	
+	NSInteger skippedLineCount = 0;
+	
+	int lineNumber = 0;
+	for (NSString *line in lines) {
+		if (line.length > 0 || cursorLine == lineNumber) {
+			[filteredLines addObject:line];
+		} else if (lineNumber <= cursorLine) {
+			skippedLineCount++;
+		}
+		
+		lineNumber++;
+	}
+	
+	lineNumber = 1;
+	for (NSString *line in filteredLines) {
+		NSInteger breakLocation = [line rangeOfString:numericDelimeter].location;
+		
+		BOOL skipLine = NO;
+		
+		if (breakLocation < 4 && breakLocation != NSNotFound) {
+			if (breakLocation > line.length) {
+				breakLocation = line.length;
+			}
+			
+			NSString *numericSubstring = [line substringToIndex:breakLocation];
+			if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
+				if (line.length <= breakLocation + numericDelimeter.length) {
+					NSLog(@"This will cause a problem if left without checking.");
+				} else {
+					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
+						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
+					} else {
+						skipLine = YES;
+						
+						if (lineNumber < cursorLine) {
+							skippedLineCount++;
+						}
+					}
+				}
+			} else {
+				if (line.length < breakLocation + numericDelimeter.length) {
+					NSLog(@"This will cause a problem if left without checking.");
+				} else {
+					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
+						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
+					} else {
+						skipLine = YES;
+						
+						if (lineNumber < cursorLine) {
+							skippedLineCount++;
+						}
+					}
+				}
+			}
+		} else {
+			if (line.length > 0 || lineNumber == cursorLine + 1 || lineNumber == cursorLine) {
+				[finalString appendFormat:@"%@", line];
+			}
+		}
+		
+		if (!skipLine) {
+			[finalString appendString:@"\n"];
+			
+			lineNumber++;
+		}
+	}
+	
+	if (range.location + 2 > self.listItemTextView.text.length) {
+		self.listItemTextView.text = finalString;
+		
+		self.listItemTextView.selectedRange = NSMakeRange(self.listItemTextView.text.length - 1, 0);
+	} else {
+		self.listItemTextView.text = finalString;
+		
+		NSRange textRange = NSMakeRange(range.location + (numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * ((numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
 		
 		if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
 			textRange.location += 1;

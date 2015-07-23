@@ -13,7 +13,7 @@
 
 + (instancetype)sharedDataManager;
 
-- (void)addList:(NSString *)listTitle;
+- (BOOL)addList:(NSString *)listTitle;
 
 - (void)removeList:(NSString *)listTitle;
 
@@ -24,6 +24,10 @@
 - (void)saveList:(NSString *)list withTitle:(NSString *)title;
 
 - (UIImage *)imageForCompanyName:(NSString *)companyName;
+
+- (void)setListMode:(BOOL)listMode forListTitle:(NSString *)title;
+
+- (BOOL)listModeForListTitle:(NSString *)title;
 
 @property (nonatomic) BOOL currentColorIsDark;
 

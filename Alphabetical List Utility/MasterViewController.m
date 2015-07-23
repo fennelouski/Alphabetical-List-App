@@ -22,7 +22,7 @@
 #define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define DEFAULT_FONT_SIZE ((((kScreenHeight + kScreenWidth) * 0.02f) < 18.0f) ? 18.0f : (((kScreenHeight + kScreenWidth) * 0.02f) > 25.0f) ? 25.0f : ((kScreenHeight + kScreenWidth) * 0.02f))
 
-@interface MasterViewController ()
+@interface MasterViewController () <DetailViewControllerDelegate>
 
 @property NSArray *objects;
 @end
@@ -69,11 +69,11 @@
 }
 
 - (void)createNewListButtonTouched:(id)sender {
-	UIAlertController *titleController = [UIAlertController alertControllerWithTitle:@"New Note"
-																			 message:@"Please give your Note a title"
+	UIAlertController *titleController = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"New Note", nil)
+																			 message:NSLocalizedString(@"Please give your Note a title", nil)
 																	  preferredStyle:UIAlertControllerStyleAlert];
 	[titleController addTextFieldWithConfigurationHandler:^(UITextField * __nonnull textField) {
-		textField.placeholder = @"Note Title";
+		textField.placeholder = NSLocalizedString(@"Note Title", nil);
 		textField.keyboardAppearance = UIKeyboardAppearanceLight;
 		textField.keyboardType = UIKeyboardTypeDefault;
 		textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
@@ -81,14 +81,14 @@
 		_alertTextField = textField;
 	}];
 	
-	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil)
 														   style:UIAlertActionStyleCancel
 														 handler:^(UIAlertAction * __nonnull action) {
 															 
 														 }];
 	[titleController addAction:cancelAction];
 	
-	UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+	UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
 													   style:UIAlertActionStyleDefault
 													 handler:^(UIAlertAction * __nonnull action) {
 														 if (_alertTextField.text.length > 0) {
@@ -116,6 +116,10 @@
 		self.objects = [[ALUDataManager sharedDataManager] lists];
 	}
 	[[ALUDataManager sharedDataManager] addList:listTitle];
+	[self reloadList];
+}
+
+- (void)reloadList {
 	self.objects = [[ALUDataManager sharedDataManager] lists];
 	[self.tableView reloadData];
 }
@@ -127,6 +131,7 @@
 	    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
 	    NSString *object = self.objects[indexPath.row];
 	    DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
+		[controller setDelegate:self];
 	    [controller setDetailItem:object];
 	    controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
 	    controller.navigationItem.leftItemsSupplementBackButton = YES;
@@ -185,7 +190,7 @@
 	cell.textLabel.attributedText = [NKFColor attributedStringForCompanyName:[object description]];
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
 	
-	if (companyLogoImage /*&& [NKFColor strictColorForCompanyName:cell.textLabel.text]*/) {
+	if (companyLogoImage && [NKFColor strictColorForCompanyName:cell.textLabel.text]) {
         cell.accessoryView.hidden = NO;
 		if (cell.accessoryView && [cell.accessoryView respondsToSelector:@selector(setImage:)]) {
 			UIImageView *accessoryView = (UIImageView *)cell.accessoryView;
