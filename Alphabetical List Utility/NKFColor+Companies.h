@@ -10,4 +10,9 @@
 
 @interface NKFColor (Companies)
 
+// Company colors
++ (NKFColor *)colorForCompanyName:(NSString *)companyName;
++ (NKFColor *)strictColorForCompanyName:(NSString *)companyName;
++ (NSAttributedString *)attributedStringForCompanyName:(NSString *)companyName;
+
 @end

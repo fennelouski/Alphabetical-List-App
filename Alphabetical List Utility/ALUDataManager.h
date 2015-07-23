@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface ALUDataManager : NSObject
 
@@ -21,5 +22,9 @@
 - (NSString *)listWithTitle:(NSString *)listTitle;
 
 - (void)saveList:(NSString *)list withTitle:(NSString *)title;
+
+- (UIImage *)imageForCompanyName:(NSString *)companyName;
+
+@property (nonatomic) BOOL currentColorIsDark;
 
 @end

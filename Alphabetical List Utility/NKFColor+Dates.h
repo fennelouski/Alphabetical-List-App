@@ -10,4 +10,14 @@
 
 @interface NKFColor (Dates)
 
+// Holiday Colors
++ (NSArray *)holidayColorsForToday;
++ (NSArray *)holidayColorsForDate:(NSDate *)date;
++ (NSArray *)strictHolidayColorsForToday;
++ (NSArray *)strictHolidayColorsForDate:(NSDate *)date;
+
+// color for time of day
++ (NKFColor *)colorForTimeOfDay:(NSDate *)date;
++ (NKFColor *)colorForCurrentTime;
+
 @end

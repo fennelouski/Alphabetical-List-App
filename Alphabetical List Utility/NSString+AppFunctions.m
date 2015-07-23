@@ -109,4 +109,41 @@
     return [input piIfy];
 }
 
+
++ (NSString *)stringWithoutNumbersInTheBeginning:(NSString *)originalString {
+	return [originalString stringWithoutNumbersInTheBeginning];
+}
+
+- (NSString *)stringWithoutNumbersInTheBeginning {
+	int firstNonNumericCharacterIndex = [self firstAlphabeticalCharacterIndex];
+	NSString *numberString = [self substringToIndex:firstNonNumericCharacterIndex];
+	
+	if (firstNonNumericCharacterIndex < 1) {
+		return self;
+	}
+	
+	NSString *wordString = [self substringFromIndex:firstNonNumericCharacterIndex-1];
+	
+	NSNumber *numberValue = [NSNumber numberWithInteger:[numberString integerValue]];
+	NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+	[numberFormatter setNumberStyle:NSNumberFormatterSpellOutStyle];
+	NSString *wordNumberString = [numberFormatter stringFromNumber:numberValue];
+	return [NSString stringWithFormat:@"%@%@", wordNumberString, wordString];
+}
+
++ (int)firstAlphabeticalCharacterIndex:(NSString *)originalString {
+	return [originalString firstAlphabeticalCharacterIndex];
+}
+
+- (int)firstAlphabeticalCharacterIndex {
+	NSCharacterSet *charactersInBrandNames = [NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz"];
+	char c = [self characterAtIndex:0];
+	int firstNonNumericCharacterIndex = 0;
+	for (; ![charactersInBrandNames characterIsMember:c] && firstNonNumericCharacterIndex < self.length; firstNonNumericCharacterIndex++) {
+		c = [self characterAtIndex:firstNonNumericCharacterIndex];
+	}
+	
+	return firstNonNumericCharacterIndex;
+}
+
 @end

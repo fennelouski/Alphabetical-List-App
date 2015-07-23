@@ -12,17 +12,10 @@
 #define SHOW_LOGS NO
 #define DESELECTED_BRIGHTNESS 0.4f
 #define SELECTED_BRIGHTNESS 0.75f
+#define USER_COLORS_KEY @"namesOfUserColorsSeparatedByCommas"
+#define SHOW_LOGS NO
 
 @implementation UIColor (AppColors)
-
-+ (UIColor *)colorWithHexString:(NSString *)hexString {
-	unsigned rgbValue = 0;
-	NSScanner *scanner = [NSScanner scannerWithString:hexString];
-	[scanner setScanLocation:1]; // bypass '#' character
-	[scanner scanHexInt:&rgbValue];
-	
-	return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
-}
 
 + (UIColor *)appColor {
     UIColor *specialTintColor = [self specialTintColor];
@@ -2009,6 +2002,29 @@
 }
 
 #pragma mark - Colors that should have been there from the beginning
+
++ (UIColor *)colorWithName:(NSString *)name {
+	NSDictionary *colorNameDictionary = [UIColor allColorsDictionary];
+	
+	NSArray *partsOfName = [name componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"( )[]"]];
+	NSMutableString *formattedName = [[NSMutableString alloc] init];
+	for (int i = 0; i < partsOfName.count; i++) {
+		NSString *string = [partsOfName objectAtIndex:i];
+		if (i == 0) {
+			string = [string lowercaseString];
+		}
+		
+		[formattedName appendString:string];
+	}
+	
+	if ([colorNameDictionary objectForKey:[formattedName lowercaseString]]) {
+		return [colorNameDictionary objectForKey:[formattedName lowercaseString]];
+	}
+	
+	NSLog(@"Dumb %@\t\t%@", name, formattedName);
+	
+	return nil;
+}
 
 + (NSArray *)allColorsArray {
     return @[[UIColor acidGreen],
@@ -6746,6 +6762,240 @@
              @"clearColor" : @"Clear",
              @"clearcolor" : @"Clear"};
 }
+
+
+
+#pragma mark - Hex Values
+
+- (NSString *)hexValue {
+	float redValue = [[self valueForKey:@"redComponent"] floatValue];
+	float greenValue = [[self valueForKey:@"greenComponent"] floatValue];
+	float blueValue = [[self valueForKey:@"blueComponent"] floatValue];
+	
+	int redInt = redValue * 255.0f;
+	int greenInt = greenValue * 255.0f;
+	int blueInt = blueValue * 255.0f;
+	
+	NSString *hexString = [NSString stringWithFormat:@"%02x%02x%02x", redInt, greenInt, blueInt];
+	if (!hexString) {
+		NSLog(@"What is wrong here?");
+	}
+	return [hexString uppercaseString];
+}
+
++ (NSString *)hexValue:(UIColor *)color {
+	return [color hexValue];
+}
+
+#pragma mark - Opposite Text Color
+
+- (UIColor *)oppositeTextColor {
+	float red = [[self valueForKey:@"redComponent"] floatValue];
+	float green = [[self valueForKey:@"greenComponent"] floatValue];
+	float blue = [[self valueForKey:@"blueComponent"] floatValue];
+	
+	float totalBrightnessCoefficient = (2.0f - red - green)*(2.0f - green - blue)*(2.0f - red - blue);
+	if ((green > 0.8f && red + blue < 0.05f)) {
+		totalBrightnessCoefficient *= 1.0f - green;
+	}
+	
+	else {
+		totalBrightnessCoefficient *= 1.0f - green - ((0.8f - green)*(0.8f - green)*(0.8f - green));
+	}
+	float maxColorRange = 255.0f;
+	totalBrightnessCoefficient *= totalBrightnessCoefficient;
+	float redTextColor = red*maxColorRange-maxColorRange/2.0f;
+	redTextColor = (float)fabsf(redTextColor);
+	redTextColor /= maxColorRange/2.0f;
+	redTextColor *= totalBrightnessCoefficient;
+	float blueTextColor = blue*maxColorRange-maxColorRange/2.0f;
+	blueTextColor = (float)fabsf(blueTextColor);
+	blueTextColor /= maxColorRange/2.0f;
+	blueTextColor *= totalBrightnessCoefficient;
+	float greenTextColor = green*maxColorRange-maxColorRange/2.0f;
+	greenTextColor = (float)fabsf(greenTextColor);
+	greenTextColor /= maxColorRange/2.0f;
+	greenTextColor *= totalBrightnessCoefficient;
+	
+	float similarityThreshold = 0.1f;
+	while (redTextColor - red >= -similarityThreshold && redTextColor - red < similarityThreshold &&
+		   greenTextColor - green >= -similarityThreshold && greenTextColor - green < similarityThreshold &&
+		   blueTextColor - blue >= -similarityThreshold && blueTextColor - blue < similarityThreshold) {
+		redTextColor += similarityThreshold/10.0f;
+		greenTextColor += similarityThreshold/10.0f;
+		blueTextColor += similarityThreshold/10.0f;
+		similarityThreshold /= 1.1f;
+		//        NSLog(@"r: %f:%f\t\tg: %f:%f\t\tb: %f:%f", red, redTextColor, green, greenTextColor, blue, blueTextColor);
+	}
+	
+	UIColor *textColor = [UIColor colorWithRed:redTextColor
+										 green:greenTextColor
+										  blue:blueTextColor
+										 alpha:1.0f];
+	
+	return textColor;
+}
+
++ (UIColor *)oppositeTextColor:(UIColor *)color {
+	return [color oppositeTextColor];
+}
+
+- (UIColor *)oppositeBlackOrWhite {
+	return [self oppositeBlackOrWhite:0.667f];
+}
+
++ (UIColor *)oppositeBlackOrWhite:(UIColor *)color {
+	return [color oppositeBlackOrWhite];
+}
+
+- (UIColor *)oppositeBlackOrWhite:(float)weighting {
+	float red = [[self valueForKey:@"redComponent"] floatValue];
+	float green = [[self valueForKey:@"greenComponent"] floatValue];
+	float blue = [[self valueForKey:@"blueComponent"] floatValue];
+	
+	float greenWeighting = 1.7f;
+	float totalBrightness = (red + green * greenWeighting + blue) / 3.7f;
+	if (totalBrightness > weighting) {
+		return [UIColor black];
+	}
+	
+	return [UIColor white];
+}
+
++ (UIColor *)oppositeBlackOrWhite:(UIColor *)color weighting:(float)weighting {
+	return [color oppositeBlackOrWhite:weighting];
+}
+
+- (BOOL)isDark {
+	return ![self isLighterThan:0.667f];
+}
+
++ (BOOL)colorIsDark:(UIColor *)color {
+	return [color isDark];
+}
+
+- (BOOL)isLight {
+	return [self isLighterThan:0.667f];
+}
+
++ (BOOL)colorIsLight:(UIColor *)color {
+	return [color isLight];
+}
+
+- (BOOL)isLighterThan:(float)threshold {
+	float red = [[self valueForKey:@"redComponent"] floatValue];
+	float green = [[self valueForKey:@"greenComponent"] floatValue];
+	float blue = [[self valueForKey:@"blueComponent"] floatValue];
+	
+	float totalBrightness = (red + green + blue) / 3.0f;
+	return (totalBrightness > threshold);
+}
+
++ (BOOL)color:(UIColor *)color isLighterThan:(float)threshold {
+	return [color isLighterThan:threshold];
+}
+
+#pragma mark - User Colors
+
+- (void)saveColorNamed:(NSString *)name {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	
+	NSString *userColorKeysString = [defaults objectForKey:USER_COLORS_KEY];
+	
+	if (userColorKeysString) {
+		NSString *newColorKeysString = [NSString stringWithFormat:@"%@,,,%@", userColorKeysString, name];
+		NSString *colorHexString = [self hexValue];
+		
+		[defaults setObject:colorHexString forKey:name];
+		[defaults setObject:newColorKeysString forKey:USER_COLORS_KEY];
+	}
+	
+	else {
+		NSString *newColorKeysString = [NSString stringWithFormat:@"%@", name];
+		NSString *colorHexString = [self hexValue];
+		
+		[defaults setObject:colorHexString forKey:name];
+		[defaults setObject:newColorKeysString forKey:USER_COLORS_KEY];
+	}
+}
+
++ (void)saveColor:(UIColor *)color named:(NSString *)name {
+	[color saveColorNamed:name];
+}
+
++ (NSDictionary *)userColors {
+	NSMutableDictionary *userColors = [[NSMutableDictionary alloc] init];
+	
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	
+	NSString *userColorKeysString = [defaults objectForKey:USER_COLORS_KEY];
+	BOOL alteredColorString = NO;
+	if (userColorKeysString) {
+		NSArray *userColorKeys = [userColorKeysString componentsSeparatedByString:@",,,"];
+		
+		for (NSString *colorKey in userColorKeys) {
+			NSString *hexValue = [defaults objectForKey:colorKey];
+			
+			if (hexValue.length == 6) {
+				UIColor *color = [UIColor colorWithHexString:[NSString stringWithFormat:@"#%@", hexValue]];
+				
+				[userColors setObject:color forKey:colorKey];
+			}
+			
+			else {
+				alteredColorString = YES;
+			}
+		}
+		
+		if (alteredColorString) {
+			NSString *firstString = [userColorKeys firstObject];
+			int index = 0;
+			while (![defaults objectForKey:firstString] && userColorKeys.count > index) {
+				firstString = [userColorKeys objectAtIndex:index];
+				index++;
+			}
+			
+			if ([defaults objectForKey:firstString]) {
+				NSMutableString *newColorKeysString = [[NSMutableString alloc] initWithString:firstString];
+				
+				for (int i = index + 1; i < userColorKeys.count; i++) {
+					NSString *nextColorName = [userColorKeys objectAtIndex:i];
+					NSString *nextColorHex = [defaults objectForKey:nextColorName];
+					if (nextColorHex && nextColorHex.length == 6) {
+						[newColorKeysString appendFormat:@",,,%@", nextColorName];
+					}
+				}
+				
+				[defaults setObject:newColorKeysString forKey:USER_COLORS_KEY];
+			}
+			
+			else {
+				[defaults removeObjectForKey:USER_COLORS_KEY];
+			}
+		}
+	}
+	
+	if (SHOW_LOGS) NSLog(@"User Colors: %@", userColors);
+	
+	return userColors;
+}
+
++ (UIColor *)colorWithHexString:(NSString *)hexString {
+	unsigned rgbValue = 0;
+	NSScanner *scanner = [NSScanner scannerWithString:hexString];
+	[scanner setScanLocation:1]; // bypass '#' character
+	[scanner scanHexInt:&rgbValue];
+	
+	return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
+}
+
++ (void)deleteColorWithName:(NSString *)name {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	
+	[defaults removeObjectForKey:name];
+}
+
+#pragma mark - Colors
 
 + (UIColor *)acidGreen {
     UIColor *acidGreen = [UIColor colorWithRed:69.0f/100.0f green:0.75f blue:1.0f/10.0f alpha:1.0f];

@@ -7,7 +7,16 @@
 //
 
 #import "ALUNavigationController.h"
+#import "NKFColor.h"
 
 @implementation ALUNavigationController
+
+- (void)viewDidLoad {
+	[super viewDidLoad];
+	
+	self.navigationBar.barStyle = UIBarStyleDefault;
+	self.navigationBar.tintColor = [UIColor whiteColor];
+	self.navigationBar.barTintColor = [UIColor whiteColor];
+}
 
 @end

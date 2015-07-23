@@ -9,9 +9,13 @@
 #import "MasterViewController.h"
 #import "DetailViewController.h"
 #import "ALUDataManager.h"
-#import "UIColor+AppColors.h"
 #import "UIFont+AppFonts.h"
-#import "UIColor+BrandColors.h"
+#import "NKFColor.h"
+#import "NKFColor+Companies.h"
+#import "NKFColor+Dates.h"
+#import "NKFColor+WikipediaColors.h"
+#import "NKFColor+AppColors.h"
+
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
@@ -25,6 +29,7 @@
 
 @implementation MasterViewController {
 	UITextField *_alertTextField;
+	NSDate *_lastReloadDate;
 }
 
 - (void)viewDidLoad {
@@ -38,12 +43,23 @@
 	self.navigationItem.rightBarButtonItem = addButton;
 	self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 	self.navigationItem.title = @"";
-	self.view.backgroundColor = [UIColor white];
-	self.navigationController.navigationBar.tintColor = [UIColor appColor];
+	self.view.backgroundColor = [NKFColor white];
+	self.navigationController.navigationBar.tintColor = [NKFColor appColor];
+	
+	if (self.objects.count > 0) {
+		[self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] animated:YES scrollPosition:UITableViewScrollPositionTop];
+	}
 }
 
 - (void)viewWillAppear:(BOOL)animated {
 	self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
+	self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
+	self.navigationController.navigationBar.translucent = YES;
+	self.navigationController.navigationBar.barTintColor = nil;
+	self.navigationController.navigationBar.tintColor = [NKFColor appColor];
+	[ALUDataManager sharedDataManager].currentColorIsDark = NO;
+	[self.splitViewController setNeedsStatusBarAppearanceUpdate];
+	[self.tableView reloadData];
 	[super viewWillAppear:animated];
 }
 
@@ -58,7 +74,7 @@
 																	  preferredStyle:UIAlertControllerStyleAlert];
 	[titleController addTextFieldWithConfigurationHandler:^(UITextField * __nonnull textField) {
 		textField.placeholder = @"Note Title";
-		textField.keyboardAppearance = UIKeyboardAppearanceAlert;
+		textField.keyboardAppearance = UIKeyboardAppearanceLight;
 		textField.keyboardType = UIKeyboardTypeDefault;
 		textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
 		textField.autocorrectionType = UITextAutocorrectionTypeYes;
@@ -109,12 +125,46 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
 	if ([[segue identifier] isEqualToString:@"showDetail"]) {
 	    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-	    NSDate *object = self.objects[indexPath.row];
+	    NSString *object = self.objects[indexPath.row];
 	    DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
 	    [controller setDetailItem:object];
 	    controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
 	    controller.navigationItem.leftItemsSupplementBackButton = YES;
+		self.navigationController.navigationBar.barTintColor = [NKFColor colorForCompanyName:object];
+		self.navigationController.navigationBar.tintColor = [(NKFColor *)self.navigationController.navigationBar.barTintColor oppositeBlackOrWhite];
+		controller.navigationController.navigationBar.barTintColor = [NKFColor colorForCompanyName:object];
+		controller.navigationController.navigationBar.tintColor = [(NKFColor *)self.navigationController.navigationBar.barTintColor oppositeBlackOrWhite];
+		[self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName : self.navigationController.navigationBar.tintColor}];
+		if ([(NKFColor *)self.navigationController.navigationBar.barTintColor isDark]) {
+			[ALUDataManager sharedDataManager].currentColorIsDark = YES;
+		} else {
+			[ALUDataManager sharedDataManager].currentColorIsDark = NO;
+		}
+	} else {
+		NSLog(@"Prepare Segue for \"%@\" won't do anything", sender);
 	}
+}
+
+#pragma mark - Status Bar
+
+- (UIViewController *)childViewControllerForStatusBarStyle {
+	return self.navigationController.visibleViewController;
+}
+
+- (UIViewController *)childViewControllerForStatusBarHidden {
+	return self.navigationController.visibleViewController;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+	if ([(NKFColor *)self.navigationController.navigationBar.barTintColor isDark]) {
+		return UIStatusBarStyleLightContent;
+	}
+	
+	return UIStatusBarStyleLightContent;
+}
+
+- (BOOL)prefersStatusBarHidden {
+	return NO;
 }
 
 #pragma mark - Table View
@@ -131,9 +181,32 @@
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
 
 	NSString *object = self.objects[indexPath.row];
-	cell.textLabel.text = [object description];
 	cell.textLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
-	cell.textLabel.textColor = [[UIColor black] colorForCompanyName:cell.textLabel.text];
+	cell.textLabel.attributedText = [NKFColor attributedStringForCompanyName:[object description]];
+	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
+	
+	if (companyLogoImage /*&& [NKFColor strictColorForCompanyName:cell.textLabel.text]*/) {
+        cell.accessoryView.hidden = NO;
+		if (cell.accessoryView && [cell.accessoryView respondsToSelector:@selector(setImage:)]) {
+			UIImageView *accessoryView = (UIImageView *)cell.accessoryView;
+			accessoryView.image = companyLogoImage;
+		} else {
+			UIImageView *imageView = [[UIImageView alloc] initWithImage:companyLogoImage];
+			imageView.contentMode = UIViewContentModeScaleAspectFit;
+			CGFloat scale = 0.925f;
+			CGRect frame = imageView.frame;
+			frame.size.height = cell.frame.size.height * scale;
+            frame.size.width = frame.size.height * scale;
+            frame.origin.x = cell.frame.size.width - frame.size.width;
+			imageView.frame = frame;
+			imageView.clipsToBounds = YES;
+			imageView.layer.cornerRadius = 2.0f;
+			cell.accessoryView = imageView;
+		}
+	} else {
+		cell.accessoryView.hidden = YES;
+	}
+	
 	return cell;
 }
 
@@ -147,8 +220,21 @@
 	    [[ALUDataManager sharedDataManager] removeList:self.objects[indexPath.row]];
 		self.objects = [[ALUDataManager sharedDataManager] lists];
 	    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+		[self performSelector:@selector(reloadAfterDeleting) withObject:self afterDelay:0.35f];
 	} else if (editingStyle == UITableViewCellEditingStyleInsert) {
 	    // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
+	}
+}
+
+- (void)tableView:(UITableView *)tableView didEndEditingRowAtIndexPath:(NSIndexPath *)indexPath {
+	[self reloadAfterDeleting];
+}
+
+- (void)reloadAfterDeleting {
+	if (!_lastReloadDate || [_lastReloadDate timeIntervalSinceNow] < -1) {
+		self.objects = [[ALUDataManager sharedDataManager] lists];
+		[self.tableView reloadData];
+		_lastReloadDate = [NSDate date];
 	}
 }
 

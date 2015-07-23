@@ -8,8 +8,9 @@
 
 #import "DetailViewController.h"
 #import "ALUDataManager.h"
-#import "UIColor+AppColors.h"
-#import "UIColor+BrandColors.h"
+#import "NKFColor.h"
+#import "NKFColor+Companies.h"
+#import "NKFColor+AppColors.h"
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
@@ -21,7 +22,14 @@
 #define kViewControllerHeight self.view.frame.size.height
 
 static NSString * const fontSizeKey = @"This is my font size Key and don't forget that I like Tacos";
+
+static CGFloat const maxFontSize = 60.0f;
+
+static CGFloat const minFontSize = 6.0f;
+
 @interface DetailViewController ()
+
+@property (nonatomic, strong) UIBarButtonItem *actionButton;
 
 @end
 
@@ -48,19 +56,31 @@ static CGFloat const borderWidth = 10.0f;
 	if (self.detailItem) {
 	    self.detailDescriptionLabel.text = [self.detailItem description];
 		self.navigationItem.title = self.detailItem;
+		
+		if (self.listItemTextView.text.length > 0 && _detailItem && [[ALUDataManager sharedDataManager] listWithTitle:_detailItem]) {
+			[self.actionButton setEnabled:YES];
+		} else {
+			[self.actionButton setEnabled:NO];
+		}
+		
+		[self updateTextWithLineNumbersRange:NSMakeRange(0, 0) replacementText:@""];
 	}
 	
-	UIBarButtonItem *actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTouched:)];
-	self.navigationItem.rightBarButtonItem = actionButton;
+	self.navigationItem.rightBarButtonItem = self.actionButton;
 }
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+	if (!_detailItem) {
+		[self setDetailItem:[[[ALUDataManager sharedDataManager] lists] firstObject]];
+	}
+	
 	[self configureView];
 	
 	[self.view addSubview:self.listItemTextView];
-	self.navigationController.navigationBar.tintColor = [[UIColor black] colorForCompanyName:_detailItem];
+	self.navigationController.navigationBar.tintColor = [NKFColor colorForCompanyName:_detailItem];
+	self.navigationController.navigationController.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(keyboardWasShown:)
@@ -74,6 +94,19 @@ static CGFloat const borderWidth = 10.0f;
 											 selector:@selector(saveList)
 												 name:UIApplicationWillResignActiveNotification object:nil];
 	_isKeyboardShowing = NO;
+	
+	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.5f];
+	[self findTextView];
+	
+	[self checkForActionButtonAbility];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+	[super viewWillAppear:animated];
+	
+	[self setNeedsStatusBarAppearanceUpdate];
+	
+	[self.splitViewController setNeedsStatusBarAppearanceUpdate];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -82,26 +115,35 @@ static CGFloat const borderWidth = 10.0f;
 	[self saveList];
 }
 
+- (void)findTextView {
+	for (UIView *subview in self.view.subviews) {
+		if ([subview isEqual:self.listItemTextView]) {
+			[self updateViewConstraints];
+		}
+	}
+}
+
 - (void)saveList {
-	[[ALUDataManager sharedDataManager] saveList:self.listItemTextView.text withTitle:_detailItem];
+	NSString *list = self.listItemTextView.text;
+	[[ALUDataManager sharedDataManager] saveList:list withTitle:_detailItem];
 }
 
 - (void)updateViewConstraints {
 	[super updateViewConstraints];
 	
-	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - borderWidth * 2.0f);
-	self.listItemTextView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0f, borderWidth, 0.0f);
-	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, -borderWidth * 2.0f, -borderWidth, -borderWidth);
+	self.listItemTextView.frame = CGRectMake(10.0f, self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
 }
 
 - (UITextView *)listItemTextView {
 	if (!_listItemTextView) {
 		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, kViewControllerWidth, kViewControllerHeight)];
+		_listItemTextView.tag = 17;
 		_listItemTextView.keyboardAppearance = UIKeyboardAppearanceDefault;
 		_listItemTextView.keyboardType = UIKeyboardTypeAlphabet;
 		_listItemTextView.text = [[ALUDataManager sharedDataManager] listWithTitle:_detailItem];
-		_listItemTextView.tintColor = [UIColor appColor];
+		_listItemTextView.tintColor = [NKFColor appColor];
 		_listItemTextView.clipsToBounds = NO;
+		_listItemTextView.delegate = self;
 		
 		if (_currentFontSize == 0 || _tempFontSize == 0) {
 			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -132,12 +174,26 @@ static CGFloat const borderWidth = 10.0f;
 	return _listItemTextView;
 }
 
+- (UIBarButtonItem *)actionButton {
+	if (!_actionButton) {
+		_actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTouched:)];
+		_actionButton.enabled = NO;
+	}
+	
+	return _actionButton;
+}
+
+#pragma mark - Memory warning
+
 - (void)didReceiveMemoryWarning {
 	[super didReceiveMemoryWarning];
 	// Dispose of any resources that can be recreated.
 }
 
+#pragma mark - Keyboard Notifications
+
 - (void)keyboardWasShown:(NSNotification*)aNotification {
+	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
 	NSDictionary *info = [aNotification userInfo];
 	CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
 	
@@ -158,6 +214,7 @@ static CGFloat const borderWidth = 10.0f;
 
 // Called when the UIKeyboardWillHideNotification is sent
 - (void)keyboardWasHidden:(NSNotification*)aNotification {
+	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
 	self.listItemTextView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0f, borderWidth, 0.0f);
 	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, -borderWidth * 2.0f, -borderWidth, -borderWidth);
 	
@@ -169,11 +226,17 @@ static CGFloat const borderWidth = 10.0f;
 - (void)pinch:(UIPinchGestureRecognizer *)sender {
 	if (sender.scale > 1) {
 		_tempFontSize = _currentFontSize + sender.scale;
-		[self.listItemTextView setFont:[UIFont systemFontOfSize:_tempFontSize]];
-	} else if (sender.scale < 1) {
+    } else if (sender.scale < 1) {
 		_tempFontSize = _currentFontSize - (1/sender.scale);
-		[self.listItemTextView setFont:[UIFont systemFontOfSize:_tempFontSize]];
 	}
+    
+    if (_tempFontSize > maxFontSize) {
+        _tempFontSize = maxFontSize;
+    } else if (_tempFontSize < minFontSize) {
+        _tempFontSize = minFontSize;
+    }
+    
+    [self.listItemTextView setFont:[UIFont systemFontOfSize:_tempFontSize]];
 	
 	if (sender.state == UIGestureRecognizerStateEnded) {
 		_currentFontSize = _tempFontSize;
@@ -185,10 +248,190 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Action Button
 
 - (void)actionButtonTouched:(id)sender {
-	UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[self.listItemTextView.text] applicationActivities:nil];
-	activityVC.excludedActivityTypes = @[]; //Exclude whichever aren't relevant
-	[self presentViewController:activityVC animated:YES completion:nil];
+	if (self.listItemTextView.text.length > 0) {
+		UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[self.listItemTextView.text] applicationActivities:nil];
+		activityVC.popoverPresentationController.barButtonItem = self.actionButton;
+		activityVC.excludedActivityTypes = @[UIActivityTypePostToFlickr,
+                                             UIActivityTypePostToTwitter,
+                                             UIActivityTypePostToVimeo,
+                                             UIActivityTypePostToWeibo,
+                                             UIActivityTypeSaveToCameraRoll]; //Exclude whichever activities aren't relevant
+		
+		[self presentViewController:activityVC animated:YES completion:nil];
+	}
 }
 
+
+#pragma mark - Text View Delegate
+
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+	if (![textView isEqual:self.listItemTextView]) {
+		self.listItemTextView.backgroundColor = [NKFColor randomColor];
+		[self.listItemTextView removeFromSuperview];
+		self.listItemTextView = textView;
+	}
+    
+    if ([text isEqualToString:@"\n"]) {
+        [self updateTextWithLineNumbersRange:range replacementText:text];
+		return NO;
+    }
+	
+	return YES;
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+	if (textView.text.length > 0) {
+		if (![textView isEqual:self.listItemTextView]) {
+			self.listItemTextView.backgroundColor = [NKFColor randomColor];
+			[self.listItemTextView removeFromSuperview];
+			self.listItemTextView = textView;
+		}
+		
+		[self.actionButton setEnabled:YES];
+	}
+}
+
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+	if (![textView isEqual:self.listItemTextView]) {
+		self.listItemTextView.backgroundColor = [NKFColor randomColor];
+		[self.listItemTextView removeFromSuperview];
+		self.listItemTextView = textView;
+		[self updateViewConstraints];
+	}
+}
+
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
+    return YES;
+}
+
+
+#pragma mark - Line Numbers
+
+- (void)updateTextWithLineNumbersRange:(NSRange)range replacementText:(NSString *)text {
+	NSInteger cursorLine = [[self.listItemTextView.text substringToIndex:range.location] componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]].count;
+	NSString *updatedText = [self.listItemTextView.text stringByReplacingCharactersInRange:range withString:text];
+    NSArray *lines = [updatedText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+	NSMutableArray *filteredLines = [[NSMutableArray alloc] init];
+    NSMutableString *finalString = [[NSMutableString alloc] initWithCapacity:updatedText.length + lines.count * 5];
+	
+	NSInteger skippedLineCount = 0;
+	
+	int lineNumber = 0;
+	for (NSString *line in lines) {
+		if (line.length > 0 || cursorLine == lineNumber) {
+			[filteredLines addObject:line];
+		} else if (lineNumber <= cursorLine) {
+			skippedLineCount++;
+		} else {
+			NSLog(@"Skipping: %zd\t\t%zd", lineNumber, cursorLine);
+		}
+		lineNumber++;
+	}
+	
+	NSLog(@"SLC %zd", skippedLineCount);
+	
+    lineNumber = 1;
+    for (NSString *line in filteredLines) {
+        NSInteger breakLocation = [line rangeOfString:@".) "].location;
+		
+		BOOL skipLine = NO;
+		
+        if (breakLocation < 4 && breakLocation != NSNotFound) {
+			if (breakLocation > line.length) {
+				breakLocation = line.length;
+			}
+			
+            NSString *numericSubstring = [line substringToIndex:breakLocation];
+            if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
+				if (line.length <= breakLocation + 3) {
+					NSLog(@"This will cause a problem if left without checking.");
+				} else {
+					if ([line substringFromIndex:breakLocation + 3].length > 0) {
+						[finalString appendFormat:@"%d.) %@", lineNumber, [line substringFromIndex:breakLocation + 3]];
+					} else {
+						skipLine = YES;
+						NSLog(@"Not doing it here for %zd", lineNumber);
+						
+						if (lineNumber < cursorLine) {
+							skippedLineCount++;
+						}
+					}
+				}
+            } else {
+				if (line.length < breakLocation + 3) {
+					NSLog(@"This will cause a problem if left without checking.");
+				} else {
+					if ([line substringFromIndex:breakLocation + 3].length > 0) {
+						[finalString appendFormat:@"%d.) %@", lineNumber, [line substringFromIndex:breakLocation + 3]];
+					} else {
+						skipLine = YES;
+						NSLog(@"Not doing it for %zd\t\t%zd", lineNumber, skippedLineCount);
+						
+						if (lineNumber < cursorLine) {
+							skippedLineCount++;
+						}
+					}
+				}
+            }
+        } else {
+			if (line.length > 0 || lineNumber == cursorLine + 1 || lineNumber == cursorLine) {
+				[finalString appendFormat:@"%d.) %@", lineNumber, line];
+			} else {
+				NSLog(@"Skipping for line %zd \t\t%zd", lineNumber, cursorLine);
+			}
+        }
+		
+		if (!skipLine) {
+			[finalString appendString:@"\n"];
+			
+			lineNumber++;
+		}
+    }
+	
+	if (range.location + 2 > self.listItemTextView.text.length) {
+		self.listItemTextView.text = finalString;
+		
+		self.listItemTextView.selectedRange = NSMakeRange(self.listItemTextView.text.length - 1, 0);
+	} else {
+		self.listItemTextView.text = finalString;
+		
+		NSRange textRange = NSMakeRange(range.location + 4 + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * (4 + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
+		
+		if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
+			textRange.location += 1;
+		}
+		
+		self.listItemTextView.selectedRange = textRange;
+	}
+}
+
+#pragma mark - Check For Button Validation
+
+- (void)checkForActionButtonAbility {
+	if (self.listItemTextView.text.length > 0 && _detailItem && [[ALUDataManager sharedDataManager] listWithTitle:_detailItem]) {
+		[self.actionButton setEnabled:YES];
+	} else {
+		if (!_detailItem) {
+			[self.actionButton setEnabled:NO];
+		} else if (![[ALUDataManager sharedDataManager] listWithTitle:_detailItem]) {
+			[[ALUDataManager sharedDataManager] saveList:self.listItemTextView.text withTitle:_detailItem];
+		} else {
+			[self.actionButton setEnabled:NO];
+		}
+	}
+	
+	[self performSelector:@selector(checkForActionButtonAbility) withObject:self afterDelay:0.1f];
+}
+
+#pragma mark - Status Bar
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+	if ([(NKFColor *)self.navigationController.navigationBar.barTintColor isDark]) {
+		return UIStatusBarStyleLightContent;
+	}
+	
+	return UIStatusBarStyleLightContent;
+}
 
 @end

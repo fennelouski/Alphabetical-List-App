@@ -16,5 +16,9 @@
 + (NSString *)areOrIs:(NSString *)input;
 - (NSString *)piIfy;
 + (NSString *)piIfy:(NSString *)input;
++ (NSString *)stringWithoutNumbersInTheBeginning:(NSString *)originalString;
+- (NSString *)stringWithoutNumbersInTheBeginning;
++ (int)firstAlphabeticalCharacterIndex:(NSString *)originalString;
+- (int)firstAlphabeticalCharacterIndex;
 
 @end

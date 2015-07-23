@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ALUDataManager.h"
 
 @interface ALUSplitViewController : UISplitViewController
 

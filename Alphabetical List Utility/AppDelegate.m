@@ -18,6 +18,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	// Override point for customization after application launch.
+//	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent
+//												animated:YES];
 	UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
 	UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
 	navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;

@@ -11,7 +11,6 @@
 
 @interface UIColor (AppColors)
 
-+ (UIColor *)colorWithHexString:(NSString *)hexString;
 
 // used to parse through and create .m and .h documentation for colors
 + (void)parseColors;
@@ -75,9 +74,36 @@
 + (UIColor *)uiSwitchGreen;
 
 // a list of usable colors
++ (UIColor *)colorWithName:(NSString *)name;
 + (NSArray *)allColorsArray;
 + (NSDictionary *)allColorsDictionary;
 + (NSDictionary *)allColorsProperNamesDictionary;
+
+// hex value
+- (NSString *)hexValue;
++ (NSString *)hexValue:(UIColor *)color;
+
+// opposite color
+- (UIColor *)oppositeTextColor;
++ (UIColor *)oppositeTextColor:(UIColor *)color;
+- (UIColor *)oppositeBlackOrWhite;
++ (UIColor *)oppositeBlackOrWhite:(UIColor *)color;
+- (UIColor *)oppositeBlackOrWhite:(float)weighting;
++ (UIColor *)oppositeBlackOrWhite:(UIColor *)color weighting:(float)weighting;
+- (BOOL)isDark;
++ (BOOL)colorIsDark:(UIColor *)color;
+- (BOOL)isLight;
++ (BOOL)colorIsLight:(UIColor *)color;
+- (BOOL)isLighterThan:(float)threshold;
++ (BOOL)color:(UIColor *)color isLighterThan:(float)threshold;
+
+// user colors
+
+- (void)saveColorNamed:(NSString *)name;
++ (void)saveColor:(UIColor *)color named:(NSString *)name;
++ (NSDictionary *)userColors;
++ (UIColor *)colorWithHexString:(NSString *)hexString;
++ (void)deleteColorWithName:(NSString *)name;
 
 //Basic Colors that should have been there in the beginning
 + (UIColor *)acidGreen;

@@ -13,17 +13,81 @@
 
 
 - (UIColor *)colorForCompanyName:(NSString *)companyName {
-	NSString *formattedCompanyName = [[[[companyName stringByReplacingOccurrencesOfString:@"&" withString:@"and"] componentsSeparatedByCharactersInSet :[[NSCharacterSet alphanumericCharacterSet] invertedSet]] componentsJoinedByString:@""] lowercaseString];
+	NSString *lowerCaseCompanyName = [companyName lowercaseString];
+	NSString *formattedCompanyName = [[[lowerCaseCompanyName stringByReplacingOccurrencesOfString:@"&" withString:@"and"] componentsSeparatedByCharactersInSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]] componentsJoinedByString:@""];
 	
 	if ([self respondsToSelector:NSSelectorFromString(formattedCompanyName)]) {
 		return [self performSelector:NSSelectorFromString(formattedCompanyName) withObject:nil];
+	} else if ([self firstAlphabeticalCharacterIndex:lowerCaseCompanyName]) {
+		return [self colorForCompanyName:[self stringWithoutNumbersInTheBeginning:lowerCaseCompanyName]];
+	} else {
+		NSArray *words = [lowerCaseCompanyName componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		for (NSString *word in words) {
+			NSString *keyword = [[word componentsSeparatedByCharactersInSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]] componentsJoinedByString:@""];
+			UIColor *keywordColor = [self colorForKeyword:keyword];
+			if (keywordColor) {
+				return keywordColor;
+			}
+		}
 	}
 	
-	return [UIColor darkTextColor];
+	return [UIColor randomDarkColorFromString:companyName];
+}
+
+- (NSString *)stringWithoutNumbersInTheBeginning:(NSString *)originalString {
+	int firstNonNumericCharacterIndex = [self firstAlphabeticalCharacterIndex:originalString];
+	NSString *numberString = [originalString substringToIndex:firstNonNumericCharacterIndex];
+	
+	if (firstNonNumericCharacterIndex < 1) {
+		return originalString;
+	}
+	
+	NSString *wordString = [originalString substringFromIndex:firstNonNumericCharacterIndex-1];
+	
+	NSNumber *numberValue = [NSNumber numberWithInteger:[numberString integerValue]];
+	NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+	[numberFormatter setNumberStyle:NSNumberFormatterSpellOutStyle];
+	NSString *wordNumberString = [numberFormatter stringFromNumber:numberValue];
+	return [NSString stringWithFormat:@"%@%@", wordNumberString, wordString];
+}
+
+- (int)firstAlphabeticalCharacterIndex:(NSString *)originalString {
+	NSCharacterSet *charactersInBrandNames = [NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz"];
+	char c = [originalString characterAtIndex:0];
+	int firstNonNumericCharacterIndex = 0;
+	for (; ![charactersInBrandNames characterIsMember:c] && firstNonNumericCharacterIndex < originalString.length; firstNonNumericCharacterIndex++) {
+		c = [originalString characterAtIndex:firstNonNumericCharacterIndex];
+	}
+	
+	return firstNonNumericCharacterIndex;
+}
+
+- (UIColor *)colorForKeyword:(NSString *)keyword {
+	NSDictionary *keywordColors = @{@"tv" : [self hulu],
+									@"movies" : [self netflix],
+									@"auto" : [self autozone],
+									@"autoparts" : [self autozone2],
+									@"rx" : [self cvs],
+									@"rxs" : [self cvs],
+									@"prescription" : [self walgreens],
+									@"prescriptions" : [self volcano],
+									@"dr" : [self philips],
+									@"doctor" : [self philips],
+									@"welcome" : [UIColor appColor]};
+	if ([keywordColors objectForKey:keyword]) {
+		return [keywordColors objectForKey:keyword];
+	}
+	
+	return nil;
 }
 
 - (UIColor *)fourormat{
 	return [UIColor colorWithHexString:@"#fb0a2a"];
+}
+
+
+- (UIColor *)fivehundredpix {
+	return [self fivehundredpx];
 }
 
 
@@ -151,6 +215,15 @@
 }
 
 
+- (UIColor *)ahold {
+	return [UIColor colorWithRed:6.0f/255.0f green:98.0f/255.0f blue:168.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)aholdusa {
+	return [self ahold];
+}
+
+
 - (UIColor *)aim{
 	return [UIColor colorWithHexString:@"#ffd900"];
 }
@@ -197,6 +270,23 @@
 
 - (UIColor *)alcon4{
 	return [UIColor colorWithHexString:@"#49a942"];
+}
+
+
+- (UIColor *)aldi {
+	return [UIColor colorWithRed:0.0f/255.0f green:36.0f/255.0f blue:120.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)aldi2 {
+	return [UIColor colorWithRed:242.0f/255.0f green:54.0f/255.0f blue:0.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)aldi3 {
+	return [UIColor colorWithRed:250.0f/255.0f green:137.0f/255.0f blue:1.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)aldi4 {
+	return [UIColor colorWithRed:0.0f/255.0f green:148.0f/255.0f blue:219.0f/255.0f alpha:1.0f];
 }
 
 
@@ -348,6 +438,11 @@
 }
 
 
+- (UIColor *)apple {
+	return [UIColor colorWithRed:145.0f/255.0f green:156.0f/255.0f blue:178.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)archlinux{
 	return [UIColor colorWithHexString:@"#1793d1"];
 }
@@ -400,6 +495,14 @@
 	return [UIColor colorWithHexString:@"#a5acaf"];
 }
 
+
+- (UIColor *)atlanticcoast{
+	return [UIColor colorWithHexString:@"#013ca6"];
+}
+
+- (UIColor *)atlanticcoastconference{
+	return [UIColor colorWithHexString:@"#013ca6"];
+}
 
 - (UIColor *)atlanticcoastconferenceacc{
 	return [UIColor colorWithHexString:@"#013ca6"];
@@ -502,6 +605,19 @@
 }
 
 
+- (UIColor *)big5{
+	return [UIColor colorWithRed:51.0f/255.0f green:57.0f/255.0f blue:145.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)big5sportinggoods {
+	return [self big5];
+}
+
+- (UIColor *)big5sports {
+	return [self big5];
+}
+
+
 - (UIColor *)bigcartel{
 	return [UIColor colorWithHexString:@"#a0ac48"];
 }
@@ -513,6 +629,15 @@
 
 - (UIColor *)biglots {
 	return [UIColor colorWithRed:255.0f/255.0f green:121.0f/255.0f blue:0.0f alpha:1.0f];
+}
+
+
+- (UIColor *)bilo {
+	return [UIColor colorWithRed:254.0f/255.0f green:51.0f/255.0f blue:0.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)bilo2 {
+	return [UIColor colorWithRed:3.0f/255.0f green:151.0f/255.0f blue:63.0f/255.0f alpha:1.0f];
 }
 
 
@@ -540,6 +665,11 @@
 
 - (UIColor *)bitly2{
 	return [UIColor colorWithHexString:@"#61b3de"];
+}
+
+
+- (UIColor *)bjs {
+	return [UIColor colorWithRed:218.0f/255.0f green:38.0f/255.0f blue:29.0f/255.0f alpha:1.0f];
 }
 
 
@@ -591,11 +721,27 @@
 }
 
 
+- (UIColor *)scouts{
+	return [UIColor colorWithHexString:@"#ce1126"];
+}
+
+- (UIColor *)boyscouts{
+	return [UIColor colorWithHexString:@"#ce1126"];
+}
+
 - (UIColor *)boyscoutsofamerica{
 	return [UIColor colorWithHexString:@"#ce1126"];
 }
 
 - (UIColor *)boyscoutsofamerica2{
+	return [UIColor colorWithHexString:@"#003f87"];
+}
+
+- (UIColor *)scouts2{
+	return [UIColor colorWithHexString:@"#003f87"];
+}
+
+- (UIColor *)boyscouts2{
 	return [UIColor colorWithHexString:@"#003f87"];
 }
 
@@ -722,6 +868,15 @@
 }
 
 
+- (UIColor *)cabot {
+	return [UIColor colorWithRed:236.0f/255.0f green:28.0f/255.0f blue:45.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)cabot2 {
+	return [UIColor colorWithRed:6.0f/255.0f green:151.0f/255.0f blue:102.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)canon{
 	return [UIColor colorWithHexString:@"#bc0024"];
 }
@@ -770,6 +925,15 @@
 }
 
 
+- (UIColor *)champs {
+	return [UIColor colorWithRed:0.0f green:58.0f/255.0f blue:128.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)champssports {
+	return [self champs];
+}
+
+
 - (UIColor *)charitywater{
 	return [UIColor colorWithHexString:@"#ffc907"];
 }
@@ -780,6 +944,15 @@
 
 - (UIColor *)charitywater3{
 	return [UIColor colorWithHexString:@"#231f20"];
+}
+
+
+- (UIColor *)chilis {
+	return [UIColor colorWithRed:14.0f/255.0f green:136.0f/255.0f blue:102.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)chilis2 {
+	return [UIColor colorWithRed:238.0f/255.0f green:54.0f/255.0f blue:37.0f/255.0f alpha:1.0f];
 }
 
 
@@ -876,6 +1049,24 @@
 }
 
 
+- (UIColor *)dairyqueen {
+	return [UIColor colorWithRed:222.0f/255.0f green:60.0f/255.0f blue:73.0f/255.0f alpha:1.0f];
+}
+
+
+- (UIColor *)dannon {
+	return [UIColor colorWithRed:38.0f/255.0f green:58.0f/255.0f blue:119.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)dannon2 {
+	return [UIColor colorWithRed:202.0f/255.0f green:30.0f/255.0f blue:42.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)dannon3 {
+	return [UIColor colorWithRed:66.0f/255.0f green:183.0f/255.0f blue:224.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)delectable{
 	return [UIColor colorWithHexString:@"#334858"];
 }
@@ -902,6 +1093,15 @@
 
 - (UIColor *)delectable7{
 	return [UIColor colorWithHexString:@"#f9ebdf"];
+}
+
+
+- (UIColor *)delhaize {
+	return [UIColor colorWithRed:244.0f/255.0f green:7.0f/255.0f blue:9.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)delhaze {
+	return [self delhaize];
 }
 
 
@@ -1026,10 +1226,23 @@
 }
 
 
+- (UIColor *)dicks {
+	return [UIColor colorWithRed:37.0f/255.0f green:120.0f/255.0f blue:100.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)dickssportinggoods {
+	return [self dicks];
+}
+
+
 - (UIColor *)digg{
 	return [UIColor colorWithHexString:@"#000000"];
 }
 
+
+- (UIColor *)directtv{
+	return [UIColor colorWithHexString:@"#00a6d6"];
+}
 
 - (UIColor *)directv{
 	return [UIColor colorWithHexString:@"#00a6d6"];
@@ -1172,6 +1385,31 @@
 
 - (UIColor *)dunked2{
 	return [UIColor colorWithHexString:@"#212a3e"];
+}
+
+
+- (UIColor *)dunkindonuts {
+	return [UIColor colorWithHexString:@"#D81860"];
+}
+
+- (UIColor *)dunkindonuts2 {
+	return [UIColor colorWithHexString:@"#FC772A"];
+}
+
+- (UIColor *)dunkindonuts3 {
+	return [UIColor colorWithHexString:@"#8D6E51"];
+}
+
+- (UIColor *)dunkindonuts4 {
+	return [UIColor colorWithHexString:@"#483030"];
+}
+
+- (UIColor *)dunkingdonuts {
+	return [self dunkindonuts];
+}
+
+- (UIColor *)donuts {
+	return [self dunkindonuts];
 }
 
 
@@ -1504,11 +1742,18 @@
 }
 
 
-- (UIColor *)gap {
-	return [UIColor colorWithRed:0.0f green:42.0f/255.0f blue:95.0f/255.0f alpha:1.0f];
+- (UIColor *)fredmeyers {
+	return [UIColor colorWithRed:237.0f/255.0f green:28.0f/255.0f blue:36.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)fredmeyer {
+	return [self fredmeyers];
 }
 
 
+- (UIColor *)gap {
+	return [UIColor colorWithRed:0.0f green:42.0f/255.0f blue:95.0f/255.0f alpha:1.0f];
+}
 
 
 - (UIColor *)garmin{
@@ -1684,6 +1929,15 @@
 }
 
 
+- (UIColor *)heb {
+	return [UIColor colorWithRed:254.0f/255.0f green:0.0f/255.0f blue:2.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)hebplus {
+	return [UIColor colorWithRed:2.0f/255.0f green:146.0f/255.0f blue:208.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)heineken{
 	return [UIColor colorWithHexString:@"#00a100"];
 }
@@ -1775,6 +2029,14 @@
 
 - (UIColor *)hp2{
 	return [UIColor colorWithHexString:@"#d7410b"];
+}
+
+- (UIColor *)hewlettpackard {
+	return [self hp];
+}
+
+- (UIColor *)hewlettpackard2 {
+	return [self hp2];
 }
 
 
@@ -1999,6 +2261,20 @@
 
 - (UIColor *)kiwipay{
 	return [UIColor colorWithHexString:@"#00b0df"];
+}
+
+
+- (UIColor *)kmart {
+	return [UIColor colorWithRed:227.0f/255.0f green:25.0f/255.0f blue:55.0f/255.0f alpha:1.0f];
+}
+
+
+- (UIColor *)kroger {
+	return [UIColor colorWithRed:36.0f/255.0f green:96.0f/255.0f blue:166.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)kroger2 {
+	return [UIColor colorWithRed:216.0f/255.0f green:34.0f/255.0f blue:38.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2233,6 +2509,11 @@
 }
 
 
+- (UIColor *)mcdonalds {
+	return [UIColor colorWithHexString:@"#FCC910"];
+}
+
+
 - (UIColor *)meetup{
 	return [UIColor colorWithHexString:@"#e0393e"];
 }
@@ -2374,6 +2655,11 @@
 }
 
 
+- (UIColor *)nike {
+	return [self nikefootball];
+}
+
+
 - (UIColor *)nikefootball{
 	return [UIColor colorWithHexString:@"#504847"];
 }
@@ -2440,8 +2726,8 @@
 }
 
 
-- (UIColor *)odnoklassniki{
-	return [UIColor colorWithHexString:@"#ed812b"];
+- (UIColor *)officedepot{
+	return [UIColor colorWithRed:243.0f/255.0f green:21.0f/255.0f blue:60.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2487,6 +2773,16 @@
 
 - (UIColor *)oreilly {
 	return [UIColor colorWithRed:1.0f/255.0f green:173.0f/255.0f blue:107.0f/255.0f alpha:1.0f];
+}
+
+
+- (UIColor *)oxford {
+	return [self oxforduniversitypress];
+}
+
+
+- (UIColor *)oxforduniversity {
+	return [self oxford];
 }
 
 
@@ -2758,6 +3054,23 @@
 }
 
 
+- (UIColor *)pricerite {
+	return [UIColor colorWithRed:36.0f/255.0f green:91.0f/255.0f blue:173.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)priceright {
+	return [self pricerite];
+}
+
+- (UIColor *)pricerite2 {
+	return [UIColor colorWithRed:246.0f/255.0f green:35.0f/255.0f blue:32.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)priceright2 {
+	return [self pricerite2];
+}
+
+
 - (UIColor *)producthunt{
 	return [UIColor colorWithHexString:@"#da552f"];
 }
@@ -2775,6 +3088,15 @@
 }
 
 
+- (UIColor *)publix {
+	return [UIColor colorWithRed:62.0f/255.0f green:144.0f/255.0f blue:45.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)publics {
+	return [self publix];
+}
+
+
 - (UIColor *)quora{
 	return [UIColor colorWithHexString:@"#a82400"];
 }
@@ -2787,6 +3109,11 @@
 
 - (UIColor *)ralphlauren {
 	return [UIColor colorWithRed:28.0f/255.0f green:28.0f/255.0f blue:28.0f/255.0f alpha:1.0f];
+}
+
+
+- (UIColor *)ralphs {
+	return [UIColor colorWithRed:246.0f/255.0f green:27.0f/255.0f blue:49.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2825,6 +3152,15 @@
 
 - (UIColor *)redfin{
 	return [UIColor colorWithHexString:@"#a02021"];
+}
+
+
+- (UIColor *)rei {
+	return [UIColor colorWithRed:78.0f/255.0f green:92.0f/255.0f blue:56.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)rei2 {
+	return [UIColor colorWithRed:197.0f/255.0f green:193.0f/255.0f blue:32.0f/255.0f alpha:1.0f];
 }
 
 
@@ -2892,6 +3228,15 @@
 	return [UIColor colorWithHexString:@"#fdd800"];
 }
 
+
+- (UIColor *)royalahold {
+	return [self ahold];
+}
+
+
+- (UIColor *)rss{
+	return [UIColor colorWithHexString:@"#f26522"];
+}
 
 - (UIColor *)rss2{
 	return [UIColor colorWithHexString:@"#f26522"];
@@ -2997,6 +3342,11 @@
 }
 
 
+- (UIColor *)shell {
+	return [UIColor colorWithRed:251.0f/255.0f green:217.0f/255.0f blue:24.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)sherwinwilliams{
 	return [UIColor colorWithHexString:@"#0168b3"];
 }
@@ -3028,6 +3378,15 @@
 
 - (UIColor *)shopify6{
 	return [UIColor colorWithHexString:@"#666666"];
+}
+
+
+- (UIColor *)shoprite {
+	return [UIColor colorWithRed:239.0f/255.0f green:45.0f/255.0f blue:36.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)shoprite2 {
+	return [UIColor colorWithRed:252.0f/255.0f green:183.0f/255.0f blue:18.0f/255.0f alpha:1.0f];
 }
 
 
@@ -3311,6 +3670,15 @@
 }
 
 
+- (UIColor *)supervalu {
+	return [UIColor colorWithRed:219.0f/255.0f green:37.0f/255.0f blue:28.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)supervalue {
+	return [self supervalu];
+}
+
+
 - (UIColor *)swarm{
 	return [UIColor colorWithHexString:@"#f06d1f"];
 }
@@ -3551,6 +3919,19 @@
 }
 
 
+- (UIColor *)tsc {
+	return [UIColor colorWithRed:252.0f/255.0f green:25.0f/255.0f blue:34.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)tractorsupplyco {
+	return [self tsc];
+}
+
+- (UIColor *)tractorsupplycompany {
+	return [self tsc];
+}
+
+
 - (UIColor *)tumblr{
 	return [UIColor colorWithHexString:@"#35465c"];
 }
@@ -3716,6 +4097,16 @@
 	return [UIColor colorWithHexString:@"#3388ff"];
 }
 
+
+- (UIColor *)valero{
+	return [UIColor colorWithRed:1.0f/255.0f green:107.0f/255.0f blue:138.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)valero2{
+	return [UIColor colorWithRed:255.0f/255.0f green:177.0f/255.0f blue:41.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)vons {
 	return [self safeway];
 }
@@ -3814,6 +4205,15 @@
 }
 
 
+- (UIColor *)wakefern {
+	return [UIColor colorWithRed:249.0f/255.0f green:60.0f/255.0f blue:48.0f/255.0f alpha:1.0f];
+}
+
+- (UIColor *)wakefern2 {
+	return [UIColor colorWithRed:34.0f/255.0f green:32.0f/255.0f blue:33.0f/255.0f alpha:1.0f];
+}
+
+
 - (UIColor *)walgreens{
 	return [UIColor colorWithHexString:@"#e31837"];
 }
@@ -3866,6 +4266,11 @@
 
 - (UIColor *)wechat{
 	return [UIColor colorWithHexString:@"#7bb32e"];
+}
+
+
+- (UIColor *)wegmans {
+	return [UIColor colorWithRed:62.0f/255.0f green:150.0f/255.0f blue:63.0f/255.0f alpha:1.0f];
 }
 
 
@@ -4137,6 +4542,11 @@
 
 - (UIColor *)zillow{
 	return [UIColor colorWithHexString:@"#1277e1"];
+}
+
+
+- (UIColor *)zootool {
+	return [UIColor colorWithHexString:@"5e8b1d"];
 }
 
 

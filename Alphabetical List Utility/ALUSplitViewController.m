@@ -10,4 +10,19 @@
 
 @implementation ALUSplitViewController
 
+
+- (void)viewDidLoad {
+	[super viewDidLoad];
+	// Do any additional setup after loading the view, typically from a nib.
+	[self setNeedsStatusBarAppearanceUpdate];
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+	if ([ALUDataManager sharedDataManager].currentColorIsDark) {
+		return UIStatusBarStyleLightContent;
+	}
+	
+	return UIStatusBarStyleDefault;
+}
+
 @end
