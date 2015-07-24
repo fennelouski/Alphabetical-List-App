@@ -25,13 +25,32 @@
 
 - (UIImage *)imageForCompanyName:(NSString *)companyName;
 
+
 - (void)setListMode:(BOOL)listMode forListTitle:(NSString *)title;
 
 - (BOOL)listModeForListTitle:(NSString *)title;
 
+- (void)setAlphabetize:(BOOL)listMode forListTitle:(NSString *)title;
+
+- (BOOL)alphabetizeForListTitle:(NSString *)title;
+
+
+
 - (void)setShowImage:(BOOL)showImage forListTitle:(NSString *)title;
 
 - (BOOL)showImageForListTitle:(NSString *)title;
+
+
+- (void)setUseWebIcon:(BOOL)useWebIcon forListTitle:(NSString *)title;
+
+- (BOOL)useWebIconForListTitle:(NSString *)title;
+
+
+- (void)saveImage:(UIImage *)image forCompanyName:(NSString *)companyName;
+
+- (void)removeImageForCompanyName:(NSString *)companyName;
+
+- (BOOL)imageSavedLocallyForCompanyName:(NSString *)companyName;
 
 @property (nonatomic) BOOL currentColorIsDark;
 

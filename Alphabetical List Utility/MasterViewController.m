@@ -190,7 +190,7 @@
 	cell.textLabel.attributedText = [NKFColor attributedStringForCompanyName:[object description]];
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
 	
-	if (companyLogoImage && [NKFColor strictColorForCompanyName:cell.textLabel.text] && [[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]) {
+	if (companyLogoImage && ([NKFColor strictColorForCompanyName:cell.textLabel.text] || [[ALUDataManager sharedDataManager] imageSavedLocallyForCompanyName:cell.textLabel.text]) && [[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]) {
         cell.accessoryView.hidden = NO;
 		if (cell.accessoryView && [cell.accessoryView respondsToSelector:@selector(setImage:)]) {
 			UIImageView *accessoryView = (UIImageView *)cell.accessoryView;

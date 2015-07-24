@@ -19,6 +19,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	NSMutableArray *_failedDomains;
 	NSMutableDictionary *_listModes;
 	NSMutableDictionary *_showListImages;
+    NSMutableDictionary *_useWebIcon;
 }
 
 + (instancetype)sharedDataManager {
@@ -167,110 +168,21 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	if ([_companyLogos objectForKey:companyName]) {
 		return [_companyLogos objectForKey:companyName];
 	}
+    
+	NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
+    
+    if (!companyNameURLString) {
+        return nil;
+    }
+	
+    if ([_companyLogos objectForKey:companyNameURLString]) {
+        return [_companyLogos objectForKey:companyNameURLString];
+    }
+    
+    if (companyNameURLString.length < 7) {
+        return nil;
+    }
 
-	NSArray *validTLDs = @[@".com", @".org", @".net", @".edu"];
-	NSString *companyNameURLString;
-	for (NSString *validTLD in validTLDs) {
-		if ([companyName hasSuffix:validTLD]) {
-			companyNameURLString = [[[companyName componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] componentsJoinedByString:@""] lowercaseString];
-			break;
-		}
-	}
-	
-	if (!companyNameURLString) {
-		companyNameURLString = [NSString stringWithFormat:@"%@.com",[[[companyName lowercaseString] componentsSeparatedByCharactersInSet:[[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz0123456789"] invertedSet]] componentsJoinedByString:@""]];
-	}
-	
-	NSDictionary *forwardingWords = @{@"volcano"			: @"volcanocorp.com",
-                                      @"pavilions"          : @"pavilions.com",
-									  @"welcome"			: @"nathanfennel.com",
-                                      @"massachusetts"		: @"mass.gov",
-                                      @"arizona"			: @"az.gov",
-									  @"jets"				: @"newyorkjets.com",
-									  @"astonvilla"			: @"avfc.co.uk/",
-									  @"atlantahawks"		: @"hawks.com",
-									  @"vikings"			: @"vikings",
-									  @"bostonceltics"		: @"celtics.com",
-									  @"sacramentokings"	: @"kings.com",
-									  @"kings"				: @"lakings.com",
-									  @"seattleseahawks"	: @"seahawks.com",
-									  @"ravens"				: @"baltimoreravens.com",
-									  @"carolinapanthers"	: @"panthers.com",
-									  @"houstontexans"		: @"texans.com",
-									  @"indianapoliscolts"	: @"colts.com",
-									  @"greenbaypackers"	: @"packers.com",
-									  @"newenglandpatriots"	: @"patriots.com",
-									  @"minnesotavikings"	: @"vikings.com",
-									  @"saints"				: @"neworleanssaints.com",
-									  @"oaklandraiders"		: @"raiders.com",
-									  @"pittsburgsteelers"	: @"steelers.com",
-									  @"sandiegochargers"	: @"chargers.com",
-									  @"sdchargers"			: @"chargers.com",
-									  @"mexico"				: @"presidencia.gob.mx/",
-									  @"california"			: @"ca.gov",
-									  @"sanfrancisco49ers"	: @"49ers.com",
-									  @"49ers"				: @"49ers.com",
-									  @"rams"				: @"stlouisrams.com",
-									  @"tampabaybuccaneers"	: @"buccaneers.com",
-									  @"anaheimducks"		: @"ducks.nhl.com",
-									  @"bruins"				: @"bostonbruins.com",
-									  @"oilers"				: @"edmontonoilers.com",
-									  @"minnesotawild"		: @"wild.com",
-									  @"mapleleafs"			: @"torontomapleleafs.com",
-									  @"neworleanspelicans"	: @"pelicans.com",
-									  @"goldenstatewarriors": @"warriors.com",
-									  @"laclippers"			: @"clippers.com",
-									  @"losangelesclippers"	: @"clippers.com",
-									  @"mets"				: @"newyork.mets.mlb.com",
-									  @"padres"				: @"padres.com",
-									  @"sandiegopadres"		: @"padres.com",
-									  @"oaklandas"			: @"oaklandathletics.com",
-									  @"anaheimangels"		: @"angels.com",
-									  @"miamimarlins"		: @"marlins.com",
-									  @"chicagocubs"		: @"cubs.com",
-									  @"coloradorockies"	: @"coloradorockies.com",
-									  @"baltimoreorioles"	: @"orioles.com",
-									  @"hotspur"			: @"tottenhamhotspur.com",
-									  @"meh"				: @"meh.com",
-									  @"amazon"				: @"amazon.com",
-									  @"amazonbook"			: @"amazon.com",
-                                      @"windows"            : @"microsoft.com",
-                                      @"ace"                : @"acehardware.com",
-                                      @"luckys"             : @"luckysmarket.com",
-                                      @"harvard"            : @"harvard.edu",
-                                      @"apu"                : @"apu.edu",
-                                      @"calpoly"            : @"calpoly.edu",
-                                      @"mit"                : @"mit.edu",
-									  @"darntoughsocks"		: @"darntough.com"};
-	
-	BOOL replacementFound = NO;
-	for (NSString *forwardingWord in forwardingWords.allKeys) {
-		if ([companyNameURLString rangeOfString:forwardingWord].location != NSNotFound && !replacementFound && forwardingWord.length * 2 > companyName.length && !replacementFound) {
-			companyNameURLString = [forwardingWords objectForKey:forwardingWord];
-			replacementFound = YES;
-			break;
-		}
-	}
-	
-	if ([_failedDomains containsObject:companyNameURLString]) {
-		return nil;
-	}
-	
-	NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city"];
-	for (NSString *invalidWord in invalidWords) {
-		if ([companyNameURLString rangeOfString:invalidWord].location != NSNotFound && invalidWord.length * 2 >= companyNameURLString.length && !replacementFound) {
-			return nil;
-		}
-	}
-	
-	if ([_companyLogos objectForKey:companyNameURLString]) {
-		return [_companyLogos objectForKey:companyNameURLString];
-	}
-	
-	if (companyNameURLString.length < 7) {
-		return nil;
-	}
-	
 	// Use the default session configuration for the manager (background downloads must use the delegate APIs)
 	NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
 	// Use AFNetworking's NSURLSessionManager to manage a NSURLSession.
@@ -285,8 +197,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	// Create a pointer for a NSProgress object to be used to determining download progress.
 	NSProgress *progress = nil;
 	
-    NSURL *documentsDirectoryURL = [self documentsDirectoryURL];
-    NSURL *saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
+    NSURL *saveLocation = [self saveLocationForCompanyNameURLString:companyNameURLString];
     
     
     
@@ -326,10 +237,8 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 			// Append the desired file name to the documents directory path.
 			saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
 		}
+        
         saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
-		
-		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		[defaults setObject:[saveLocation description] forKey:companyNameURLString];
 		
 		return saveLocation;
 	};
@@ -422,6 +331,141 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 	return url;
 }
 
+- (NSString *)companyNameURLStringForCompanyName:(NSString *)companyName {
+    NSString *companyNameURLString;
+    
+    NSArray *validTLDs = @[@".com", @".org", @".net", @".edu"];
+    
+    for (NSString *validTLD in validTLDs) {
+        if ([companyName hasSuffix:validTLD]) {
+            companyNameURLString = [[[companyName componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] componentsJoinedByString:@""] lowercaseString];
+            break;
+        }
+    }
+    
+    if (!companyNameURLString) {
+        companyNameURLString = [NSString stringWithFormat:@"%@.com",[[[companyName lowercaseString] componentsSeparatedByCharactersInSet:[[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz0123456789"] invertedSet]] componentsJoinedByString:@""]];
+    }
+    
+    NSDictionary *forwardingWords = @{@"volcano"			: @"volcanocorp.com",
+                                      @"pavilions"          : @"pavilions.com",
+                                      @"welcome"			: @"nathanfennel.com",
+                                      @"massachusetts"		: @"mass.gov",
+                                      @"arizona"			: @"az.gov",
+                                      @"jets"				: @"newyorkjets.com",
+                                      @"astonvilla"			: @"avfc.co.uk/",
+                                      @"atlantahawks"		: @"hawks.com",
+                                      @"vikings"			: @"vikings",
+                                      @"bostonceltics"		: @"celtics.com",
+                                      @"sacramentokings"	: @"kings.com",
+                                      @"kings"				: @"lakings.com",
+                                      @"seattleseahawks"	: @"seahawks.com",
+                                      @"ravens"				: @"baltimoreravens.com",
+                                      @"carolinapanthers"	: @"panthers.com",
+                                      @"houstontexans"		: @"texans.com",
+                                      @"indianapoliscolts"	: @"colts.com",
+                                      @"greenbaypackers"	: @"packers.com",
+                                      @"newenglandpatriots"	: @"patriots.com",
+                                      @"minnesotavikings"	: @"vikings.com",
+                                      @"saints"				: @"neworleanssaints.com",
+                                      @"oaklandraiders"		: @"raiders.com",
+                                      @"pittsburgsteelers"	: @"steelers.com",
+                                      @"sandiegochargers"	: @"chargers.com",
+                                      @"sdchargers"			: @"chargers.com",
+                                      @"mexico"				: @"presidencia.gob.mx/",
+                                      @"california"			: @"ca.gov",
+                                      @"sanfrancisco49ers"	: @"49ers.com",
+                                      @"49ers"				: @"49ers.com",
+                                      @"rams"				: @"stlouisrams.com",
+                                      @"tampabaybuccaneers"	: @"buccaneers.com",
+                                      @"anaheimducks"		: @"ducks.nhl.com",
+                                      @"bruins"				: @"bostonbruins.com",
+                                      @"oilers"				: @"edmontonoilers.com",
+                                      @"minnesotawild"		: @"wild.com",
+                                      @"mapleleafs"			: @"torontomapleleafs.com",
+                                      @"neworleanspelicans"	: @"pelicans.com",
+                                      @"goldenstatewarriors": @"warriors.com",
+                                      @"laclippers"			: @"clippers.com",
+                                      @"losangelesclippers"	: @"clippers.com",
+                                      @"mets"				: @"newyork.mets.mlb.com",
+                                      @"padres"				: @"padres.com",
+                                      @"sandiegopadres"		: @"padres.com",
+                                      @"oaklandas"			: @"oaklandathletics.com",
+                                      @"anaheimangels"		: @"angels.com",
+                                      @"miamimarlins"		: @"marlins.com",
+                                      @"chicagocubs"		: @"cubs.com",
+                                      @"coloradorockies"	: @"coloradorockies.com",
+                                      @"baltimoreorioles"	: @"orioles.com",
+                                      @"hotspur"			: @"tottenhamhotspur.com",
+                                      @"meh"				: @"meh.com",
+                                      @"amazon"				: @"amazon.com",
+                                      @"amazonbook"			: @"amazon.com",
+                                      @"windows"            : @"microsoft.com",
+                                      @"ace"                : @"acehardware.com",
+                                      @"luckys"             : @"luckysmarket.com",
+                                      @"harvard"            : @"harvard.edu",
+                                      @"apu"                : @"apu.edu",
+                                      @"calpoly"            : @"calpoly.edu",
+                                      @"mit"                : @"mit.edu",
+                                      @"darntoughsocks"		: @"darntough.com"};
+    
+    BOOL replacementFound = NO;
+    for (NSString *forwardingWord in forwardingWords.allKeys) {
+        if ([companyNameURLString rangeOfString:forwardingWord].location != NSNotFound && !replacementFound && forwardingWord.length * 2 > companyName.length && !replacementFound) {
+            companyNameURLString = [forwardingWords objectForKey:forwardingWord];
+            replacementFound = YES;
+            break;
+        }
+    }
+    
+    if ([_failedDomains containsObject:companyNameURLString]) {
+        return nil;
+    }
+    
+    NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city"];
+    for (NSString *invalidWord in invalidWords) {
+        if ([companyNameURLString rangeOfString:invalidWord].location != NSNotFound && invalidWord.length * 2 >= companyNameURLString.length && !replacementFound) {
+            return nil;
+        }
+    }
+    
+    return companyNameURLString;
+}
+
+- (NSURL *)saveLocationForCompanyNameURLString:(NSString *)companyNameURLString {
+    NSURL *documentsDirectoryURL = [self documentsDirectoryURL];
+    return [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
+}
+
+- (void)saveImage:(UIImage *)image forCompanyName:(NSString *)companyName {
+    NSURL *filePath = [self saveLocationForCompanyNameURLString:[self companyNameURLStringForCompanyName:companyName]];
+    [UIImagePNGRepresentation(image) writeToURL:filePath atomically:YES];
+    [_companyLogos setObject:image forKey:companyName];
+}
+
+- (void)removeImageForCompanyName:(NSString *)companyName {
+    [_companyLogos removeObjectForKey:companyName];
+    NSFileManager *manager = [NSFileManager defaultManager];
+    NSError *error;
+    NSURL *filePath = [self saveLocationForCompanyNameURLString:[self companyNameURLStringForCompanyName:companyName]];
+    [manager removeItemAtURL:filePath error:&error];
+    
+    if (error) {
+        NSLog(@"%@", error.localizedDescription);
+    }
+}
+
+- (BOOL)imageSavedLocallyForCompanyName:(NSString *)companyName {
+    NSURL *filePath = [self saveLocationForCompanyNameURLString:[self companyNameURLStringForCompanyName:companyName]];
+    NSData *imageData = [NSData dataWithContentsOfURL:filePath];
+    
+    if (imageData) {
+        return YES;
+    }
+    
+    return NO;
+}
+
 
 #pragma mark - List Mode
 
@@ -431,7 +475,7 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 		[defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
 		[_listModes setObject:@(listMode) forKey:title];
 	} else {
-		NSLog(@"List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
+		NSLog(@"sL: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 }
 
@@ -446,23 +490,50 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 			return listModeEnabled;
 		}
 	} else {
-		NSLog(@"List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+		NSLog(@"lM: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 	
 	return NO;
 }
 
-#pragma mark - Show Image
+- (void)setAlphabetize:(BOOL)listMode forListTitle:(NSString *)title {
+    if ([_lists containsObject:title]) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
+        [_listModes setObject:@(listMode) forKey:title];
+    } else {
+        NSLog(@"sA: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
+    }
+}
+
+- (BOOL)alphabetizeForListTitle:(NSString *)title {
+    if ([_lists containsObject:title]) {
+        if ([_listModes objectForKey:title]) {
+            return [[_listModes objectForKey:title] boolValue];
+        } else {
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            BOOL listModeEnabled = [defaults boolForKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
+            [_listModes setObject:@(listModeEnabled) forKey:title];
+            return listModeEnabled;
+        }
+    } else {
+        NSLog(@"A: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+    }
+    
+    return NO;
+}
+
+#pragma mark - Image in List
 
 // This is actually backwards in storage. A NO in storage results in a YES when pulled out so the default value is interpreted as YES
 
 - (void)setShowImage:(BOOL)showImage forListTitle:(NSString *)title {
 	if ([_lists containsObject:title]) {
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		[defaults setBool:!showImage forKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+		[defaults setBool:!showImage forKey:[NSString stringWithFormat:@"%@showImageInList", title]];
 		[_showListImages setObject:@(showImage) forKey:title];
 	} else {
-		NSLog(@"List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
+		NSLog(@"sSI: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 }
 
@@ -472,16 +543,44 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 			return [[_showListImages objectForKey:title] boolValue];
 		} else {
 			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-			BOOL listModeEnabled = ![defaults boolForKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
+			BOOL listModeEnabled = ![defaults boolForKey:[NSString stringWithFormat:@"%@showImageInList", title]];
 			[_showListImages setObject:@(listModeEnabled) forKey:title];
 			return listModeEnabled;
 		}
 	} else {
-		NSLog(@"List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+		NSLog(@"sI: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 	
 	return NO;
 }
+
+- (void)setUseWebIcon:(BOOL)useWebIcon forListTitle:(NSString *)title {
+    if ([_lists containsObject:title]) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setBool:!useWebIcon forKey:[NSString stringWithFormat:@"%@useWebIcon", title]];
+        [_useWebIcon setObject:@(useWebIcon) forKey:title];
+    } else {
+        NSLog(@"sUWI: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
+    }
+}
+
+- (BOOL)useWebIconForListTitle:(NSString *)title {
+    if ([_lists containsObject:title]) {
+        if ([_useWebIcon objectForKey:title]) {
+            return [[_useWebIcon objectForKey:title] boolValue];
+        } else {
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            BOOL listModeEnabled = ![defaults boolForKey:[NSString stringWithFormat:@"%@useWebIcon", title]];
+            [_useWebIcon setObject:@(listModeEnabled) forKey:title];
+            return listModeEnabled;
+        }
+    } else {
+        NSLog(@"uWI: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+    }
+    
+    return NO;
+}
+
 
 
 @end

@@ -14,7 +14,7 @@
 
 @end
 
-@interface DetailViewController : UIViewController <UITextViewDelegate>
+@interface DetailViewController : UIViewController <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UITextView *detailDescriptionLabel;

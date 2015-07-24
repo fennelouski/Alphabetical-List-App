@@ -11,6 +11,7 @@
 #import "NKFColor.h"
 #import "NKFColor+Companies.h"
 #import "NKFColor+AppColors.h"
+#import <AVFoundation/AVFoundation.h>
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
@@ -111,6 +112,7 @@ static CGFloat const borderWidth = 10.0f;
 	[self findTextView];
 	
 	[self checkForActionButtonAbility];
+    [self cameraWarning];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -242,7 +244,7 @@ static CGFloat const borderWidth = 10.0f;
 		UIAlertAction *removeListModeNumbersAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Remove List Numbers", @"If present, remove the numbers at the beginning of each line")
 																			  style:UIAlertActionStyleDefault
 																			handler:^(UIAlertAction *action) {
-																				[self removeListModeNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+																				[self removeListModeNumbersCurrentSelectedTextRange:self.listItemTextView.selectedRange replacementText:@""];
 																			}];
 		[titleAlertController addAction:removeListModeNumbersAction];
 	} else {
@@ -254,6 +256,14 @@ static CGFloat const borderWidth = 10.0f;
 																		 [self performSelector:@selector(delayedUpdateOfText) withObject:self afterDelay:0.1f];
 																	 }];
 		[titleAlertController addAction:disableListModeAction];
+        
+        UIAlertAction *alphabetizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Alphabetize List", nil)
+                                                                    style:UIAlertActionStyleDefault
+                                                                  handler:^(UIAlertAction *action) {
+                                                                      [self alphabetizeList];
+                                                                      [[ALUDataManager sharedDataManager] setAlphabetize:YES forListTitle:_detailItem];
+                                                                  }];
+        [titleAlertController addAction:alphabetizeAction];
 	}
 	
 	if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
@@ -264,6 +274,27 @@ static CGFloat const borderWidth = 10.0f;
 																										forListTitle:_detailItem];
 																}];
 		[titleAlertController addAction:hideImageAction];
+        
+        
+        if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
+            UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Take Photo for Icon"
+                                                                       style:UIAlertActionStyleDefault
+                                                                     handler:^(UIAlertAction *action) {
+                                                                         [self takePhoto];
+                                                                     }];
+            [titleAlertController addAction:takePhotoForIcon];
+        } else {
+            UIAlertAction *useWebIconAction = [UIAlertAction actionWithTitle:@"Use Web Icon"
+                                                                       style:UIAlertActionStyleDefault
+                                                                     handler:^(UIAlertAction *action) {
+                                                                         [[ALUDataManager sharedDataManager] setUseWebIcon:YES forListTitle:_detailItem];
+                                                                         [[ALUDataManager sharedDataManager] removeImageForCompanyName:_detailItem];
+                                                                         if ([self.delegate respondsToSelector:@selector(reloadList)]) {
+                                                                             [self.delegate reloadList];
+                                                                         }
+                                                                     }];
+            [titleAlertController addAction:useWebIconAction];
+        }
 	} else {
 		UIAlertAction *showImageAction = [UIAlertAction actionWithTitle:@"Show Icon in List"
 																  style:UIAlertActionStyleDefault
@@ -583,7 +614,7 @@ static CGFloat const borderWidth = 10.0f;
 	}
 }
 
-- (void)removeListModeNumbersRange:(NSRange)range replacementText:(NSString *)text {
+- (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text {
 	NSInteger cursorLine = [[self.listItemTextView.text substringToIndex:range.location] componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]].count;
 	NSString *updatedText = [self.listItemTextView.text stringByReplacingCharactersInRange:range withString:text];
 	NSArray *lines = [updatedText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
@@ -674,6 +705,14 @@ static CGFloat const borderWidth = 10.0f;
 	}
 }
 
+- (void)alphabetizeList {
+    [self removeListModeNumbersCurrentSelectedTextRange:self.listItemTextView.selectedRange replacementText:@""];
+    NSArray *lines = [self.listItemTextView.text componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    NSArray *sortedLines = [lines sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    self.listItemTextView.text = [sortedLines componentsJoinedByString:@"\n"];
+    [self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+}
+
 #pragma mark - Check For Button Validation
 
 - (void)checkForActionButtonAbility {
@@ -701,5 +740,58 @@ static CGFloat const borderWidth = 10.0f;
 	
 	return UIStatusBarStyleLightContent;
 }
+
+#pragma mark - Camera
+
+- (void)cameraWarning {
+    if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+        UIAlertController *noCameraAlert = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                               message:@"Device has no camera"
+                                                                        preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction *action) {
+                                                             
+                                                         }];
+        [noCameraAlert addAction:okAction];
+        
+        noCameraAlert.popoverPresentationController.sourceView = self.view;
+        noCameraAlert.popoverPresentationController.sourceRect = CGRectMake(self.view.bounds.size.width / 2.0, self.view.bounds.size.height / 2.0, 1.0, 1.0);
+        [self presentViewController:noCameraAlert animated:YES completion:^{
+            
+        }];
+    }
+}
+
+#pragma mark - Photo Taking
+
+- (void)takePhoto {
+    NSLog(@"Take Photo");
+    
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.allowsEditing = YES;
+    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+    
+    [self presentViewController:picker animated:YES completion:NULL];
+}
+
+#pragma mark - Image Picker Delegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    
+    UIImage *chosenImage = info[UIImagePickerControllerEditedImage];
+    
+    [[ALUDataManager sharedDataManager] saveImage:chosenImage forCompanyName:_detailItem];
+    
+    [picker dismissViewControllerAnimated:YES completion:NULL];
+    
+    [[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:NULL];
+}
+
 
 @end
