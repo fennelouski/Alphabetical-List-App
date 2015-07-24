@@ -13,6 +13,8 @@
 #import "NKFColor+AppColors.h"
 #import <AVFoundation/AVFoundation.h>
 
+#import "ALUSettingsView.h"
+
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
 #define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
@@ -30,7 +32,7 @@ static CGFloat const minFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
-@interface DetailViewController ()
+@interface DetailViewController () <ALUSettingsViewDelegate>
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
 
@@ -42,6 +44,7 @@ static NSString * const numericDelimeter = @".) ";
 	CGFloat _tempFontSize, _currentFontSize;
 	BOOL _isKeyboardShowing;
 	UITextField *_alertTextField;
+	ALUSettingsView *_settingsView;
 }
 
 static CGFloat const borderWidth = 10.0f;
@@ -106,6 +109,12 @@ static CGFloat const borderWidth = 10.0f;
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(saveList)
 												 name:UIApplicationWillResignActiveNotification object:nil];
+	
+	[[NSNotificationCenter defaultCenter] addObserver:self // put here the view controller which has to be notified
+											 selector:@selector(orientationChanged:)
+												 name:@"UIDeviceOrientationDidChangeNotification"
+											   object:nil];
+	
 	_isKeyboardShowing = NO;
 	
 	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.5f];
@@ -147,6 +156,24 @@ static CGFloat const borderWidth = 10.0f;
 	
 	self.listItemTextView.frame = CGRectMake(10.0f, self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
 }
+
+- (void)orientationChanged:(NSNotification *)notification{
+//	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+	
+	_settingsView.frame = CGRectOffset(CGRectInset(self.view.bounds, kViewControllerWidth * 0.1f, kViewControllerHeight * 0.1f), 0.0f, kScreenHeight);
+	
+	[[self settingsView] hide];
+	
+	while (_settingsView.frame.size.height > 600.0f) {
+		_settingsView.frame = CGRectInset(_settingsView.frame, 0.0f, kViewControllerHeight * 0.1f);
+	}
+	while (_settingsView.frame.size.width > 450.0f) {
+		_settingsView.frame = CGRectInset(_settingsView.frame, kViewControllerWidth * 0.1f, 0.0f);
+	}
+}
+
+
+#pragma mark - Subviews
 
 - (UITextView *)listItemTextView {
 	if (!_listItemTextView) {
@@ -207,9 +234,26 @@ static CGFloat const borderWidth = 10.0f;
 	return _titleViewButton;
 }
 
+- (ALUSettingsView *)settingsView {
+	if (!_settingsView) {
+		_settingsView = [[ALUSettingsView alloc] initWithFrame:CGRectInset(self.view.bounds, kViewControllerWidth * 0.1f, kViewControllerHeight * 0.1f)];
+		_settingsView.listColor = self.navigationController.navigationBar.barTintColor;
+		_settingsView.delegateSettings = self;
+	}
+	
+	return _settingsView;
+}
+
 #pragma mark - Button Actions
 
 - (void)titleTapped:(id)sender {
+	if (![self settingsView].superview) {
+		[self.view addSubview:[self settingsView]];
+	}
+	
+	NSMutableDictionary *settingsTitles = [[NSMutableDictionary alloc] init];
+	
+	
 	UIAlertController *titleAlertController = [UIAlertController alertControllerWithTitle:_detailItem
 																				  message:nil
 																		   preferredStyle:UIAlertControllerStyleActionSheet];
@@ -231,6 +275,9 @@ static CGFloat const borderWidth = 10.0f;
 	[titleAlertController addAction:cancelAction];
 	
 	if (![[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+		NSArray *listModeOptions = @[@"List Mode", @"Remove List Mode Numbers"];
+		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
+		
 		UIAlertAction *enableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Enable List Mode", @"Add a number at the beginning of each line to keep track of items in the list/note")
 																	   style:UIAlertActionStyleDefault
 																	 handler:^(UIAlertAction *action) {
@@ -248,6 +295,9 @@ static CGFloat const borderWidth = 10.0f;
 																			}];
 		[titleAlertController addAction:removeListModeNumbersAction];
 	} else {
+		NSArray *listModeOptions = @[@"List Mode", @"Alphabetize List"];
+		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
+		
 		UIAlertAction *disableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Disable List Mode", @"Disable adding numbers at the beginning of each line")
 																	   style:UIAlertActionStyleDefault
 																	 handler:^(UIAlertAction *action) {
@@ -267,6 +317,8 @@ static CGFloat const borderWidth = 10.0f;
 	}
 	
 	if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
+		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
+		
 		UIAlertAction *hideImageAction = [UIAlertAction actionWithTitle:@"Hide Icon in List"
 																  style:UIAlertActionStyleDefault
 																handler:^(UIAlertAction *action) {
@@ -274,16 +326,30 @@ static CGFloat const borderWidth = 10.0f;
 																										forListTitle:_detailItem];
 																}];
 		[titleAlertController addAction:hideImageAction];
-        
-        
+		
+		
         if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
-            UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Take Photo for Icon"
-                                                                       style:UIAlertActionStyleDefault
-                                                                     handler:^(UIAlertAction *action) {
-                                                                         [self takePhoto];
-                                                                     }];
-            [titleAlertController addAction:takePhotoForIcon];
+			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+				[iconOptions addObject:@"Take Photo for Icon"];
+				UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Take Photo for Icon"
+																		   style:UIAlertActionStyleDefault
+																		 handler:^(UIAlertAction *action) {
+																			 [self takePhoto];
+																		 }];
+				[titleAlertController addAction:takePhotoForIcon];
+			}
+			
+			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
+				[iconOptions addObject:@"Choose Photo for Icon"];
+				UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Choose Photo for Icon"
+																		   style:UIAlertActionStyleDefault
+																		 handler:^(UIAlertAction *action) {
+																			 [self pickPhoto];
+																		 }];
+				[titleAlertController addAction:takePhotoForIcon];
+			}
         } else {
+			[iconOptions addObject:@"Use Web Icon"];
             UIAlertAction *useWebIconAction = [UIAlertAction actionWithTitle:@"Use Web Icon"
                                                                        style:UIAlertActionStyleDefault
                                                                      handler:^(UIAlertAction *action) {
@@ -295,7 +361,12 @@ static CGFloat const borderWidth = 10.0f;
                                                                      }];
             [titleAlertController addAction:useWebIconAction];
         }
+		
+		[settingsTitles setObject:iconOptions forKey:@"Icon"];
 	} else {
+		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
+		[settingsTitles setObject:iconOptions forKey:@"Icon"];
+		
 		UIAlertAction *showImageAction = [UIAlertAction actionWithTitle:@"Show Icon in List"
 																  style:UIAlertActionStyleDefault
 																handler:^(UIAlertAction *action) {
@@ -311,6 +382,16 @@ static CGFloat const borderWidth = 10.0f;
 															 [self performSelector:@selector(renameList) withObject:self afterDelay:0.1f];
 														 }];
 	[titleAlertController addAction:renameAction];
+	
+	NSMutableArray *renameOption = [[NSMutableArray alloc] initWithArray:@[@"Rename Note"]];
+	[settingsTitles setObject:renameOption forKey:@"Rename Note"];
+	
+	[self settingsView].listName = _detailItem;
+	[[self settingsView] setSettingsTitles:settingsTitles];
+	[[self settingsView] show];
+	[self.listItemTextView resignFirstResponder];
+	
+	return;
 	
 	[self presentViewController:titleAlertController
 					   animated:YES
@@ -485,9 +566,7 @@ static CGFloat const borderWidth = 10.0f;
 		self.listItemTextView.backgroundColor = [NKFColor randomColor];
 		[self.listItemTextView removeFromSuperview];
 		self.listItemTextView = textView;
-	}
-    
-    if ([text isEqualToString:@"\n"] && [[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+	} else if ([text isEqualToString:@"\n"] && [[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
         [self updateTextWithLineNumbersRange:range replacementText:text];
 		return NO;
     }
@@ -517,6 +596,7 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
+//	[self performSelector:@selector(delayedScroll:) withObject:@(YES) afterDelay:0.002f];
     return YES;
 }
 
@@ -606,12 +686,23 @@ static CGFloat const borderWidth = 10.0f;
 		
 		NSRange textRange = NSMakeRange(range.location + 4 + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * (4 + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
 		
-		if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
-			textRange.location += 1;
+		if (self.listItemTextView.text.length > textRange.location) {
+			if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
+				textRange.location += 1;
+			}
 		}
 		
 		self.listItemTextView.selectedRange = textRange;
 	}
+	
+	[self performSelector:@selector(delayedScroll:) withObject:@(NO) afterDelay:0.0f];
+}
+
+- (void)delayedScroll:(NSNumber *)animated {
+	CGRect rect = [self.listItemTextView caretRectForPosition:self.listItemTextView.selectedTextRange.end];
+	[self.listItemTextView scrollRectToVisible:rect
+									  animated:animated.boolValue];
+	NSLog(@"Scroll to %f", rect.origin.y);
 }
 
 - (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text {
@@ -697,8 +788,10 @@ static CGFloat const borderWidth = 10.0f;
 		
 		NSRange textRange = NSMakeRange(range.location + (numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * ((numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
 		
-		if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
-			textRange.location += 1;
+		if (self.listItemTextView.text.length > textRange.location) {
+			if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
+				textRange.location += 1;
+			}
 		}
 		
 		self.listItemTextView.selectedRange = textRange;
@@ -767,13 +860,34 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)takePhoto {
     NSLog(@"Take Photo");
-    
+	
+	if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+		return;
+	}
+	
+	[[self settingsView] hide];
+	
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
     picker.allowsEditing = YES;
     picker.sourceType = UIImagePickerControllerSourceTypeCamera;
     
     [self presentViewController:picker animated:YES completion:NULL];
+}
+
+- (void)pickPhoto {
+	if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
+		return;
+	}
+	
+	[[self settingsView] hide];
+	
+	UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+	picker.delegate = self;
+	picker.allowsEditing = YES;
+	picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+	
+	[self presentViewController:picker animated:YES completion:NULL];
 }
 
 #pragma mark - Image Picker Delegate
@@ -791,6 +905,25 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker dismissViewControllerAnimated:YES completion:NULL];
+}
+
+#pragma mark - Settings Delegate
+
+- (void)showListIconChanged {
+	NSLog(@"List icon changed");
+}
+
+- (void)listModeChanged {
+	[self configureView];
+}
+
+- (void)listRenameSelected {
+	[self performSelector:@selector(renameList) withObject:self afterDelay:0.1f];
+}
+
+- (void)alphabetize {
+	[self alphabetizeList];
+	[[ALUDataManager sharedDataManager] setAlphabetize:YES forListTitle:_detailItem];
 }
 
 

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255521B628BCA00309E6F /* ALUSettingsView.m */; };
+		278255561B62910100309E6F /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255551B62910100309E6F /* UIImage+ImageEffects.m */; };
+		278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255581B62A6F000309E6F /* ALUTableViewCell.m */; };
 		27A8C2291B4AD62800E5A3D9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2281B4AD62800E5A3D9 /* main.m */; };
 		27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */; };
 		27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */; };
@@ -60,6 +63,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		278255511B628BCA00309E6F /* ALUSettingsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUSettingsView.h; sourceTree = "<group>"; };
+		278255521B628BCA00309E6F /* ALUSettingsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUSettingsView.m; sourceTree = "<group>"; };
+		278255541B62910100309E6F /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
+		278255551B62910100309E6F /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
+		278255571B62A6F000309E6F /* ALUTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUTableViewCell.h; sourceTree = "<group>"; };
+		278255581B62A6F000309E6F /* ALUTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUTableViewCell.m; sourceTree = "<group>"; };
 		27A8C2241B4AD62800E5A3D9 /* Alphabetical List Utility.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Alphabetical List Utility.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		27A8C2281B4AD62800E5A3D9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -192,6 +201,10 @@
 				27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */,
 				27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */,
 				27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */,
+				278255511B628BCA00309E6F /* ALUSettingsView.h */,
+				278255521B628BCA00309E6F /* ALUSettingsView.m */,
+				278255571B62A6F000309E6F /* ALUTableViewCell.h */,
+				278255581B62A6F000309E6F /* ALUTableViewCell.m */,
 				27E6D7B31B5D579600D7CC19 /* ALUNavigationController.h */,
 				27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */,
 				27E6D7F11B5D785600D7CC19 /* ALUSplitViewController.h */,
@@ -264,6 +277,8 @@
 				27A8C2681B4AED2200E5A3D9 /* NGAParallaxMotion.m */,
 				27A8C2691B4AED2200E5A3D9 /* NSString+AppFunctions.h */,
 				27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */,
+				278255541B62910100309E6F /* UIImage+ImageEffects.h */,
+				278255551B62910100309E6F /* UIImage+ImageEffects.m */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -428,12 +443,15 @@
 				27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */,
 				27FF34B81B58011E005DD69E /* NKFColor.m in Sources */,
 				27E6D8381B6055EE00D7CC19 /* NKFColor+SportsTeams.m in Sources */,
+				278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */,
 				27E6D8171B5D9EB500D7CC19 /* AFURLResponseSerialization.m in Sources */,
 				27E6D8151B5D9EB500D7CC19 /* AFURLConnectionOperation.m in Sources */,
 				27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */,
+				278255561B62910100309E6F /* UIImage+ImageEffects.m in Sources */,
 				27A8C26F1B4AED2200E5A3D9 /* NSString+AppFunctions.m in Sources */,
 				27E6D8301B5D9ED000D7CC19 /* UIProgressView+AFNetworking.m in Sources */,
 				27E6D8111B5D9EB500D7CC19 /* AFHTTPRequestOperationManager.m in Sources */,
+				278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */,
 				27A8C25F1B4AD7BB00E5A3D9 /* ALUDataManager.m in Sources */,
 				27E6D8141B5D9EB500D7CC19 /* AFSecurityPolicy.m in Sources */,
 				27E6D7B51B5D579700D7CC19 /* ALUNavigationController.m in Sources */,
