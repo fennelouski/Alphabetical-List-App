@@ -8,6 +8,42 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ALUSettingsView : UIView
+@protocol ALUSettingsViewDelegate <NSObject>
+
+- (void)takePhoto;
+- (void)pickPhoto;
+- (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text;
+- (void)listModeChanged;
+- (void)showListIconChanged;
+- (void)listRenameSelected;
+- (void)alphabetize;
+
+@end
+
+@interface ALUSettingsView : UIToolbar <UITableViewDataSource, UITableViewDelegate>
+
+@property (nonatomic, strong) UIToolbar *headerToolbar;
+
+@property (nonatomic, strong) UIBarButtonItem *doneButton;
+
+@property (nonatomic, strong) UITableView *settingsTableView;
+
+@property (nonatomic, strong) NSString *listName;
+
+@property (nonatomic, strong) UIColor *listColor;
+
+- (void)setSettingsTitles:(NSDictionary *)settingsTitles;
+
+
+@property (nonatomic, strong) UISwitch *listModeSwitch;
+
+@property (nonatomic, strong) UISwitch *showListIconSwitch;
+
+@property (weak) id <ALUSettingsViewDelegate> delegateSettings;
+
+
+- (void)hide;
+- (void)show;
+- (BOOL)isShowing;
 
 @end
