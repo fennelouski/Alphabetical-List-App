@@ -6883,9 +6883,8 @@
 }
 
 - (BOOL)isLighterThan:(float)threshold {
-	float red = [[self valueForKey:@"redComponent"] floatValue];
-	float green = [[self valueForKey:@"greenComponent"] floatValue];
-	float blue = [[self valueForKey:@"blueComponent"] floatValue];
+    CGFloat red, green, blue;
+    [self getRed:&red green:&green blue:&blue alpha:nil];
 	
 	float totalBrightness = (red + green + blue) / 3.0f;
 	return (totalBrightness > threshold);
@@ -8619,6 +8618,10 @@
     [chineseViolet setValue:[NSNumber numberWithFloat:38.0f/100.0f] forKey:@"greenComponent"];
     [chineseViolet setValue:[NSNumber numberWithFloat:53.0f/100.0f] forKey:@"blueComponent"];
     return chineseViolet;
+}
+
++ (UIColor *)chocolate {
+    return [UIColor chocolateTraditional];
 }
 
 + (UIColor *)chocolateTraditional {
@@ -16464,11 +16467,11 @@
     }
     
     
-    NSLog(@"%@", implementationFileString);
-    NSLog(@"%@", headerFileMutableString);
-    NSLog(@"%@", allNamesInOneArrayString);
-    NSLog(@"%@", allColorsInADictionaryString);
-    NSLog(@"%@", properNameDictionaryMutableString);
+    NSLog(@"implementationFileString\n%@", implementationFileString);
+    NSLog(@"headerFileMutableString\n%@", headerFileMutableString);
+    NSLog(@"allNamesInOneArrayString\n%@", allNamesInOneArrayString);
+    NSLog(@"allColorsInADictionaryString\n%@", allColorsInADictionaryString);
+    NSLog(@"properNameDictionaryMutableString\n%@", properNameDictionaryMutableString);
 }
 
 

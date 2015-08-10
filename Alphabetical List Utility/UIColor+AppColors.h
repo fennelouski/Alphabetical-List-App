@@ -512,6 +512,8 @@
 
 + (UIColor *)chineseViolet;
 
++ (UIColor *)chocolate;
+
 + (UIColor *)chocolateTraditional;
 
 + (UIColor *)chocolateWeb;
