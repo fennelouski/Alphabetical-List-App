@@ -11,6 +11,8 @@
 #import "NKFColor.h"
 #import "NKFColor+Companies.h"
 #import "NKFColor+AppColors.h"
+#import "UIColor+AppColors.h"
+#import "ALUMapViewController.h"
 #import <AVFoundation/AVFoundation.h>
 
 #import "ALUSettingsView.h"
@@ -19,16 +21,12 @@
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
 #define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 
-#define DEFAULT_FONT_SIZE ((((kScreenHeight + kScreenWidth) * 0.02f) < 18.0f) ? 18.0f : (((kScreenHeight + kScreenWidth) * 0.02f) > 25.0f) ? 25.0f : ((kScreenHeight + kScreenWidth) * 0.02f))
-
 #define kViewControllerWidth self.view.frame.size.width
 #define kViewControllerHeight self.view.frame.size.height
 
-static NSString * const fontSizeKey = @"This is my font size Key and don't forget that I like Tacos";
+static CGFloat const ALUDetailViewControllerMaxFontSize = 60.0f;
 
-static CGFloat const maxFontSize = 60.0f;
-
-static CGFloat const minFontSize = 6.0f;
+static CGFloat const ALUDetailViewControllerMinFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
@@ -45,6 +43,9 @@ static NSString * const numericDelimeter = @".) ";
 	BOOL _isKeyboardShowing;
 	UITextField *_alertTextField;
 	ALUSettingsView *_settingsView;
+    CGSize _previousScreenSize;
+    NSDate *_lastOrientationChangeCheckDate;
+    UIDeviceOrientation _lastDeviceOrientation;
 }
 
 static CGFloat const borderWidth = 10.0f;
@@ -110,13 +111,16 @@ static CGFloat const borderWidth = 10.0f;
 											 selector:@selector(saveList)
 												 name:UIApplicationWillResignActiveNotification object:nil];
 	
-	[[NSNotificationCenter defaultCenter] addObserver:self // put here the view controller which has to be notified
+	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(orientationChanged:)
-												 name:@"UIDeviceOrientationDidChangeNotification"
+												 name:UIDeviceOrientationDidChangeNotification
 											   object:nil];
+    _previousScreenSize = CGSizeMake(kScreenWidth, kScreenHeight);
 	
 	_isKeyboardShowing = NO;
 	
+	[self updateViewConstraints];
+	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.0f];
 	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.5f];
 	[self findTextView];
 	
@@ -132,10 +136,21 @@ static CGFloat const borderWidth = 10.0f;
 	[self.splitViewController setNeedsStatusBarAppearanceUpdate];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    if (!self.navigationController.navigationBar.barTintColor) {
+        self.navigationController.navigationBar.barTintColor = [NKFColor appColor];
+    }
+}
+
 - (void)viewWillDisappear:(BOOL)animated {
 	[super viewWillDisappear:animated];
 	
 	[self saveList];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidBecomeActiveNotification object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationWillEnterForegroundNotification object:self];
 }
 
 - (void)findTextView {
@@ -153,23 +168,99 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)updateViewConstraints {
 	[super updateViewConstraints];
+    
+    if (!self.listItemTextView) {
+        NSLog(@"Missing text view");
+    }
+    
+    for (UITextView *textView in self.view.subviews) {
+        if ([textView respondsToSelector:@selector(text)] && [textView.text isEqualToString:[[ALUDataManager sharedDataManager] listWithTitle:_detailItem]]) {
+            if (textView.frame.size.width < self.view.frame.size.width) {
+                textView.frame = CGRectMake(textView.frame.origin.x,
+                                            textView.frame.origin.y,
+                                            self.view.frame.size.width,
+                                            self.view.frame.size.height);
+            }
+        }
+    }
 	
-	self.listItemTextView.frame = CGRectMake(10.0f, self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+	self.listItemTextView.frame = CGRectMake(borderWidth,
+											 self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth,
+											 kViewControllerWidth - borderWidth * 2.0f,
+											 kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+	
+	for (UITextView *subview in self.view.subviews) {
+		if ([subview isKindOfClass:[UITextView class]]) {
+			if (![subview isEqual:self.listItemTextView] && [subview respondsToSelector:@selector(text)]) {
+				subview.frame = CGRectMake(borderWidth,
+										   self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth,
+										   kViewControllerWidth - borderWidth * 2.0f,
+										   kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+			}
+		}
+	}
+	
+    [self checkForNavBarColor];
+    [self performSelector:@selector(checkForNavBarColor) withObject:self afterDelay:1.35f];
+}
+
+- (void)checkForNavBarColor {
+    if (!self.navigationController.navigationBar.barTintColor ||
+        !self.navigationController.navigationBar.tintColor) {
+        [self resetNavBarColors];
+    } else if ([self.navigationController.navigationBar.barTintColor isLight] &&
+               [self.navigationController.navigationBar.tintColor isLight]) {
+        [self resetNavBarColors];
+    }
+	
+	
+	if ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce]) {
+		return;
+	}
+}
+
+- (void)resetNavBarColors {
+    NSLog(@"Resetting nav bar colors");
+    self.navigationController.navigationBar.barTintColor = [NKFColor appColor];
+    self.navigationController.navigationBar.tintColor = [NKFColor whiteColor];
+    self.navigationController.navigationController.navigationBar.barTintColor = self.navigationController.navigationBar.barTintColor;
+    self.navigationController.navigationController.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
 }
 
 - (void)orientationChanged:(NSNotification *)notification{
-//	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-	
-	_settingsView.frame = CGRectOffset(CGRectInset(self.view.bounds, kViewControllerWidth * 0.1f, kViewControllerHeight * 0.1f), 0.0f, kScreenHeight);
-	
-	[[self settingsView] hide];
-	
-	while (_settingsView.frame.size.height > 600.0f) {
-		_settingsView.frame = CGRectInset(_settingsView.frame, 0.0f, kViewControllerHeight * 0.1f);
+	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+    
+    if ((((_lastDeviceOrientation == UIDeviceOrientationPortrait ||
+         _lastDeviceOrientation == UIDeviceOrientationPortraitUpsideDown) &&
+        (orientation == UIDeviceOrientationPortrait ||
+         orientation == UIDeviceOrientationPortraitUpsideDown)) ||
+        ((_lastDeviceOrientation == UIDeviceOrientationLandscapeLeft ||
+          _lastDeviceOrientation == UIDeviceOrientationLandscapeRight) &&
+         (orientation == UIDeviceOrientationLandscapeLeft ||
+          orientation == UIDeviceOrientationLandscapeRight))) ||
+        orientation == 0 ||
+        orientation == 6) {
+//        NSLog(@"Orientation: %zd\t\tLast Orientation: %zd", orientation, _lastDeviceOrientation);
+//        NSLog(@"Not actually rotating: %f\t\t%f", kScreenWidth - _previousScreenSize.width, kScreenHeight - _previousScreenSize.height);
+        return;
+    } else if (orientation == UIDeviceOrientationFaceDown ||
+			   orientation == UIDeviceOrientationFaceUp) {
+		NSLog(@"Orientation change is face up/down");
+		return;
 	}
-	while (_settingsView.frame.size.width > 450.0f) {
-		_settingsView.frame = CGRectInset(_settingsView.frame, kViewControllerWidth * 0.1f, 0.0f);
-	}
+    
+    if ([_lastOrientationChangeCheckDate timeIntervalSinceNow] < -3.0f) {
+        NSLog(@"Recent orientation check\t%f", [_lastOrientationChangeCheckDate timeIntervalSinceNow]);
+    }
+    
+    _lastDeviceOrientation = orientation;
+    _lastOrientationChangeCheckDate = [NSDate date];
+    
+    _previousScreenSize = CGSizeMake(kScreenWidth, kScreenHeight);
+	
+//	_settingsView.frame = CGRectOffset(CGRectInset(self.view.bounds, kScreenWidth * 0.01f, kScreenHeight * 0.15f), 0.0f, kScreenHeight);
+	
+    [self updateViewConstraints];
 }
 
 
@@ -177,7 +268,7 @@ static CGFloat const borderWidth = 10.0f;
 
 - (UITextView *)listItemTextView {
 	if (!_listItemTextView) {
-		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, kViewControllerWidth, kViewControllerHeight)];
+		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectInset(self.view.bounds, borderWidth, 0.0f)];
 		_listItemTextView.tag = 17;
 		_listItemTextView.keyboardAppearance = UIKeyboardAppearanceDefault;
 		_listItemTextView.keyboardType = UIKeyboardTypeAlphabet;
@@ -188,8 +279,7 @@ static CGFloat const borderWidth = 10.0f;
 		_listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(0.0f, -borderWidth * 2.0f, 0.0f, -borderWidth);
 		
 		if (_currentFontSize == 0 || _tempFontSize == 0) {
-			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-			_currentFontSize = [defaults floatForKey:fontSizeKey];
+			_currentFontSize = [[ALUDataManager sharedDataManager] currentFontSize];
 			_tempFontSize = _currentFontSize;
 			
 			if (_currentFontSize < 0 || _tempFontSize < 0) {
@@ -236,9 +326,13 @@ static CGFloat const borderWidth = 10.0f;
 
 - (ALUSettingsView *)settingsView {
 	if (!_settingsView) {
-		_settingsView = [[ALUSettingsView alloc] initWithFrame:CGRectInset(self.view.bounds, kViewControllerWidth * 0.1f, kViewControllerHeight * 0.1f)];
+		_settingsView = [[ALUSettingsView alloc] initWithFrame:CGRectInset(self.view.bounds, kViewControllerWidth * 0.05f, kViewControllerHeight * 0.05f)];
 		_settingsView.listColor = self.navigationController.navigationBar.barTintColor;
 		_settingsView.delegateSettings = self;
+        _settingsView.presentingViewController = self.parentViewController;
+        while (_settingsView.presentingViewController.parentViewController) {
+            _settingsView.presentingViewController = _settingsView.presentingViewController.parentViewController;
+        }
 	}
 	
 	return _settingsView;
@@ -247,157 +341,72 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Button Actions
 
 - (void)titleTapped:(id)sender {
+    if ([self settingsView].isShowing) {
+        return;
+    }
+    
 	if (![self settingsView].superview) {
 		[self.view addSubview:[self settingsView]];
 	}
 	
 	NSMutableDictionary *settingsTitles = [[NSMutableDictionary alloc] init];
 	
-	
-	UIAlertController *titleAlertController = [UIAlertController alertControllerWithTitle:_detailItem
-																				  message:nil
-																		   preferredStyle:UIAlertControllerStyleActionSheet];
-	
-	titleAlertController.popoverPresentationController.sourceView = self.titleViewButton;
-	UIButton *button = (UIButton *)sender;
-	if ([button isKindOfClass:[UIButton class]]) {
-		titleAlertController.popoverPresentationController.sourceRect = CGRectMake(self.view.frame.size.width * 0.2f,
-																				   self.navigationController.navigationBar.frame.size.height * 0.85f,
-																				   0.0f,
-																				   0.0f);
-	}
-	
-	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil)
-														   style:UIAlertActionStyleCancel
-														 handler:^(UIAlertAction *action) {
-															 
-														 }];
-	[titleAlertController addAction:cancelAction];
-	
+    
 	if (![[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
 		NSArray *listModeOptions = @[@"List Mode", @"Remove List Mode Numbers"];
 		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
-		
-		UIAlertAction *enableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Enable List Mode", @"Add a number at the beginning of each line to keep track of items in the list/note")
-																	   style:UIAlertActionStyleDefault
-																	 handler:^(UIAlertAction *action) {
-																		 [[ALUDataManager sharedDataManager] setListMode:YES
-																											forListTitle:_detailItem];
-																		 [self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
-																		 [self performSelector:@selector(delayedUpdateOfText) withObject:self afterDelay:0.1f];
-																	 }];
-		[titleAlertController addAction:enableListModeAction];
-		
-		UIAlertAction *removeListModeNumbersAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Remove List Numbers", @"If present, remove the numbers at the beginning of each line")
-																			  style:UIAlertActionStyleDefault
-																			handler:^(UIAlertAction *action) {
-																				[self removeListModeNumbersCurrentSelectedTextRange:self.listItemTextView.selectedRange replacementText:@""];
-																			}];
-		[titleAlertController addAction:removeListModeNumbersAction];
 	} else {
 		NSArray *listModeOptions = @[@"List Mode", @"Alphabetize List"];
 		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
-		
-		UIAlertAction *disableListModeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Disable List Mode", @"Disable adding numbers at the beginning of each line")
-																	   style:UIAlertActionStyleDefault
-																	 handler:^(UIAlertAction *action) {
-																		 [[ALUDataManager sharedDataManager] setListMode:NO
-																											forListTitle:_detailItem];
-																		 [self performSelector:@selector(delayedUpdateOfText) withObject:self afterDelay:0.1f];
-																	 }];
-		[titleAlertController addAction:disableListModeAction];
-        
-        UIAlertAction *alphabetizeAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Alphabetize List", nil)
-                                                                    style:UIAlertActionStyleDefault
-                                                                  handler:^(UIAlertAction *action) {
-                                                                      [self alphabetizeList];
-                                                                      [[ALUDataManager sharedDataManager] setAlphabetize:YES forListTitle:_detailItem];
-                                                                  }];
-        [titleAlertController addAction:alphabetizeAction];
 	}
 	
 	if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
 		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
 		
-		UIAlertAction *hideImageAction = [UIAlertAction actionWithTitle:@"Hide Icon in List"
-																  style:UIAlertActionStyleDefault
-																handler:^(UIAlertAction *action) {
-																	[[ALUDataManager sharedDataManager] setShowImage:NO
-																										forListTitle:_detailItem];
-																}];
-		[titleAlertController addAction:hideImageAction];
-		
-		
+        if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+            [iconOptions addObject:@"Take Photo for Icon"];
+        }
+        
+        if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
+            [iconOptions addObject:@"Choose Photo for Icon"];
+        }
+        
         if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
-			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-				[iconOptions addObject:@"Take Photo for Icon"];
-				UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Take Photo for Icon"
-																		   style:UIAlertActionStyleDefault
-																		 handler:^(UIAlertAction *action) {
-																			 [self takePhoto];
-																		 }];
-				[titleAlertController addAction:takePhotoForIcon];
-			}
-			
-			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
-				[iconOptions addObject:@"Choose Photo for Icon"];
-				UIAlertAction *takePhotoForIcon = [UIAlertAction actionWithTitle:@"Choose Photo for Icon"
-																		   style:UIAlertActionStyleDefault
-																		 handler:^(UIAlertAction *action) {
-																			 [self pickPhoto];
-																		 }];
-				[titleAlertController addAction:takePhotoForIcon];
-			}
+            NSLog(@"Use web icon added");
         } else {
-			[iconOptions addObject:@"Use Web Icon"];
-            UIAlertAction *useWebIconAction = [UIAlertAction actionWithTitle:@"Use Web Icon"
-                                                                       style:UIAlertActionStyleDefault
-                                                                     handler:^(UIAlertAction *action) {
-                                                                         [[ALUDataManager sharedDataManager] setUseWebIcon:YES forListTitle:_detailItem];
-                                                                         [[ALUDataManager sharedDataManager] removeImageForCompanyName:_detailItem];
-                                                                         if ([self.delegate respondsToSelector:@selector(reloadList)]) {
-                                                                             [self.delegate reloadList];
-                                                                         }
-                                                                     }];
-            [titleAlertController addAction:useWebIconAction];
+            [iconOptions addObject:@"Use Web Icon"];
         }
 		
 		[settingsTitles setObject:iconOptions forKey:@"Icon"];
 	} else {
 		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
 		[settingsTitles setObject:iconOptions forKey:@"Icon"];
-		
-		UIAlertAction *showImageAction = [UIAlertAction actionWithTitle:@"Show Icon in List"
-																  style:UIAlertActionStyleDefault
-																handler:^(UIAlertAction *action) {
-																	[[ALUDataManager sharedDataManager] setShowImage:YES
-																										forListTitle:_detailItem];
-																}];
-		[titleAlertController addAction:showImageAction];
 	}
-	
-	UIAlertAction *renameAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Rename List", @"change the title of the list/note")
-														   style:UIAlertActionStyleDestructive
-														 handler:^(UIAlertAction *action) {
-															 [self performSelector:@selector(renameList) withObject:self afterDelay:0.1f];
-														 }];
-	[titleAlertController addAction:renameAction];
 	
 	NSMutableArray *renameOption = [[NSMutableArray alloc] initWithArray:@[@"Rename Note"]];
 	[settingsTitles setObject:renameOption forKey:@"Rename Note"];
-	
+    
+    if ([self.listItemTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length > 0) {
+        [settingsTitles setObject:@[@"Send email"] forKey:@"Messaging"];
+    }
+    
+    if ([[ALUDataManager sharedDataManager] geolocationReminderExistsForTitle:_detailItem]) {
+        NSString *addressString = [[ALUDataManager sharedDataManager] geolocationNameForTitle:_detailItem];
+		if ([[addressString lowercaseString] rangeOfString:@"(null)"].location != NSNotFound) {
+			[settingsTitles setObject:@[@"Add Location Reminder"] forKey:@"Location"];
+		} else if ([[addressString lowercaseString] rangeOfString:@"add location"].location != NSNotFound){
+			[settingsTitles setObject:@[addressString] forKey:@"Location"];
+		} else {
+			[settingsTitles setObject:@[addressString, @"Remove Location Reminder"] forKey:@"Location"];
+		}
+    } else {
+        [settingsTitles setObject:@[@"Add Location Reminder"] forKey:@"Location"];
+    }
+    
 	[self settingsView].listName = _detailItem;
 	[[self settingsView] setSettingsTitles:settingsTitles];
 	[[self settingsView] show];
 	[self.listItemTextView resignFirstResponder];
-	
-	return;
-	
-	[self presentViewController:titleAlertController
-					   animated:YES
-					 completion:^{
-						   
-					   }];
 }
 
 - (void)delayedUpdateOfText {
@@ -440,8 +449,16 @@ static CGFloat const borderWidth = 10.0f;
 															 if ([[ALUDataManager sharedDataManager] addList:_alertTextField.text]) {
 																 [self performSelector:@selector(listAlreadyExistsWarning:) withObject:_alertTextField.text afterDelay:0.1f];
 															 } else {
+																 if ([[ALUDataManager sharedDataManager] geolocationReminderExistsForTitle:_detailItem]) {
+																	 ALUPointAnnotation *annotation = [[ALUDataManager sharedDataManager] annotationForTitle:_detailItem];
+																	 [[ALUDataManager sharedDataManager] removeReminderForListTitle:_detailItem];
+																	 [[ALUDataManager sharedDataManager] setCoordinate:annotation.coordinate
+																												radius:annotation.radius
+																										  forListTitle:[_alertTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
+																 }
+																 
 																 [[ALUDataManager sharedDataManager] removeList:_detailItem];
-																 _detailItem = _alertTextField.text;
+																 _detailItem = [_alertTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 																 [[ALUDataManager sharedDataManager] saveList:self.listItemTextView.text
 																									withTitle:_detailItem];
 																 [self configureView];
@@ -460,10 +477,10 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)listAlreadyExistsWarning:(NSString *)warningMessage {
-	NSLog(@"%@", warningMessage);
+	NSLog(@"- (void)listAlreadyExistsWarning:(NSString *)warningMessage: %@", warningMessage);
 	
 	UIAlertController *warningController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ \"%@\"", NSLocalizedString(@"Note already exists with the title", nil), warningMessage]
-																			   message:NSLocalizedString(@"Each list title needs to be unique.", nil)
+																			   message:NSLocalizedString(@"Each note title needs to be unique.", nil)
 																		preferredStyle:UIAlertControllerStyleAlert];
 	UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
 													   style:UIAlertActionStyleDefault
@@ -526,19 +543,31 @@ static CGFloat const borderWidth = 10.0f;
 		_tempFontSize = _currentFontSize - (1/sender.scale);
 	}
     
-    if (_tempFontSize > maxFontSize) {
-        _tempFontSize = maxFontSize;
-    } else if (_tempFontSize < minFontSize) {
-        _tempFontSize = minFontSize;
+    if (_tempFontSize > ALUDetailViewControllerMaxFontSize) {
+        _tempFontSize = ALUDetailViewControllerMaxFontSize;
+    } else if (_tempFontSize < ALUDetailViewControllerMinFontSize) {
+        _tempFontSize = ALUDetailViewControllerMinFontSize;
+    }
+    
+    if (!self.listItemTextView.superview) {
+        UIView *viewToShowTextOn = self.view;
+        
+        [viewToShowTextOn addSubview:self.listItemTextView];
+        
+        if (self.listItemTextView.contentInset.top > 0.0f) {
+            self.listItemTextView.contentInset = UIEdgeInsetsMake(0.0f,
+                                                                  self.listItemTextView.contentInset.left,
+                                                                  self.listItemTextView.contentInset.bottom,
+                                                                  self.listItemTextView.contentInset.right);
+        }
     }
     
     [self.listItemTextView setFont:[UIFont systemFontOfSize:_tempFontSize]];
 	
 	if (sender.state == UIGestureRecognizerStateEnded) {
 		_currentFontSize = _tempFontSize;
-		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		[defaults setFloat:_tempFontSize forKey:fontSizeKey];
-	}
+        [[ALUDataManager sharedDataManager] saveAdjustedFontSize:_currentFontSize];
+    }
 }
 
 #pragma mark - Action Button
@@ -596,7 +625,10 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
-//	[self performSelector:@selector(delayedScroll:) withObject:@(YES) afterDelay:0.002f];
+    if ([self settingsView].isShowing) {
+        return NO;
+    }
+    
     return YES;
 }
 
@@ -890,6 +922,14 @@ static CGFloat const borderWidth = 10.0f;
 	[self presentViewController:picker animated:YES completion:NULL];
 }
 
+- (void)useWebIcon {
+    [[ALUDataManager sharedDataManager] setUseWebIcon:YES forListTitle:_detailItem];
+    [[ALUDataManager sharedDataManager] removeImageForCompanyName:_detailItem];
+    if ([self.delegate respondsToSelector:@selector(reloadList)]) {
+        [self.delegate reloadList];
+    }
+}
+
 #pragma mark - Image Picker Delegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
@@ -924,6 +964,207 @@ static CGFloat const borderWidth = 10.0f;
 - (void)alphabetize {
 	[self alphabetizeList];
 	[[ALUDataManager sharedDataManager] setAlphabetize:YES forListTitle:_detailItem];
+}
+
+- (void)sendEmail {
+    [self showEmail:YES];
+}
+
+- (void)selectLocation {
+    [[self settingsView] hide];
+    
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) {
+        if ([[[ALUDataManager sharedDataManager] locationManager] respondsToSelector:@selector(requestAlwaysAuthorization)]) {
+            [[[ALUDataManager sharedDataManager] locationManager] requestAlwaysAuthorization];
+        }
+    } else if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
+        NSLog(@"Ask user to grant location permission");
+        return;
+    } else {
+        [[ALUDataManager sharedDataManager] locationManager];
+    }
+    
+    NSLog(@"Select Location");
+    
+    ALUMapViewController *mapViewController = [[ALUMapViewController alloc] init];
+    mapViewController.title = _detailItem;
+    [self.navigationController pushViewController:mapViewController animated:YES];
+}
+
+- (void)selectContact {
+    NSLog(@"Select Contact");
+    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    BOOL addressBookAccessRequested = [defaults boolForKey:@"addressBookAccessRequestedK£Y"];
+    
+    if (!addressBookAccessRequested) {
+        ABAddressBookRef _addressBook;
+        CFErrorRef error;
+        _addressBook = ABAddressBookCreateWithOptions(nil, &error);
+        
+        ABAddressBookRequestAccessWithCompletion(_addressBook, ^(bool granted, CFErrorRef error) {
+            if (granted) {
+                ABAddressBookRegisterExternalChangeCallback (_addressBook, nil, NULL);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    ABAddressBookRegisterExternalChangeCallback (_addressBook, nil, NULL);
+                    [self selectContact];
+                });
+            }
+        });
+        
+        [defaults setBool:YES forKey:@"addressBookAccessRequestedK£Y"];
+        return;
+    }
+    
+    ABPeoplePickerNavigationController *peoplePickerNavigationController = [[ABPeoplePickerNavigationController alloc] init];
+    [peoplePickerNavigationController setPeoplePickerDelegate:self];
+    [self presentViewController:peoplePickerNavigationController animated:YES completion:^{
+//        NSLog(@"Showing people picker");
+    }];
+}
+
+
+#pragma mark - Messaging Delegate
+
+- (void)showEmail:(BOOL)includeAttachments {
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+    NSString *nowDateString = [dateFormatter stringFromDate:[NSDate date]];
+    
+    // Email Subject
+    NSString *emailTitle = [NSString stringWithFormat:@"%@\t\t%@", _detailItem, nowDateString];
+    
+    // Email Content
+    NSMutableAttributedString *messageBody = [[NSMutableAttributedString alloc] initWithAttributedString:[self textViewAttributedString]];
+    
+    NSDictionary *documentAttributes = @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType};
+    NSData *htmlData = [messageBody dataFromRange:NSMakeRange(0, messageBody.length)
+                               documentAttributes:documentAttributes error:NULL];
+    NSString *htmlString = [[NSString alloc] initWithData:htmlData encoding:NSUTF8StringEncoding];
+    
+    MFMailComposeViewController *mc = [[MFMailComposeViewController alloc] init];
+    mc.mailComposeDelegate = self;
+    [mc setSubject:emailTitle];
+    [mc setMessageBody:htmlString isHTML:YES];
+    
+    UIImage *companyImage = [[ALUDataManager sharedDataManager] imageForCompanyName:_detailItem];
+    
+    if (includeAttachments && companyImage && [[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
+        CGFloat compressionAmount = (companyImage.size.width > 1600.0f) ? 16.0f : companyImage.size.width / 100.0f;
+        if (compressionAmount < 1.0f) {
+            compressionAmount = 1.0f;
+        }
+        
+        NSString *imageName = [[ALUDataManager sharedDataManager] companyNameURLStringForCompanyName:_detailItem];
+        if (![[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
+            imageName = [NSString stringWithFormat:@"%@ Icon", _detailItem];
+        }
+        
+        NSData *imageData = UIImageJPEGRepresentation(companyImage, compressionAmount);
+        [mc addAttachmentData:imageData
+                     mimeType:@"image/png"
+                     fileName:imageName];
+    }
+    
+    // Present mail view controller on screen
+    [self presentViewController:mc animated:YES completion:NULL];
+}
+
+- (NSAttributedString *)textViewAttributedString {
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[NKFColor attributedStringForCompanyName:_detailItem]];
+    [attributedText appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\n\n" attributes:@{}]];
+    [attributedText appendAttributedString:self.listItemTextView.attributedText];
+    [attributedText appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\n" attributes:@{}]];
+    return attributedText;
+}
+
+#pragma mark - Messaging Delegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
+    [controller dismissViewControllerAnimated:YES completion:^{
+        
+    }];
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
+    [controller dismissViewControllerAnimated:YES completion:^{
+        
+    }];
+}
+
+#pragma mark - Contact Delegate
+
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person {
+    
+    NSLog(@"Got a person %@", [self formattedNameForContact:person]);
+}
+
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
+    NSLog(@"Got a person with property and identifier");
+}
+
+- (void)peoplePickerNavigationControllerDidCancel:(ABPeoplePickerNavigationController *)peoplePicker {
+    [peoplePicker dismissViewControllerAnimated:YES
+                                     completion:^{
+                                         NSLog(@"Cancelled people picker");
+                                     }];
+}
+
+- (NSString *)formattedNameForContact:(ABRecordRef)person {
+    NSMutableString *formattedName = [[NSMutableString alloc] init];
+    
+    NSString *firstName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonFirstNameProperty);
+    [self conditionallyAppendString:firstName toMutableString:formattedName];
+    
+    NSString *nickName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonNicknameProperty);
+    [self conditionallyAppendString:nickName toMutableString:formattedName];
+    
+    NSString *lastName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonLastNameProperty);
+    [self conditionallyAppendString:lastName toMutableString:formattedName];
+    
+    NSArray *emails = (__bridge NSArray *)ABRecordCopyValue(person, kABPersonEmailProperty);
+    NSString *name = (__bridge NSString *)ABRecordCopyCompositeName(person);
+    NSLog(@"Name: %@", name);
+    
+    if (![emails respondsToSelector:@selector(count)]) {
+        NSLog(@"I don't even know...%@", [emails class]);
+    }
+    
+    if (emails) {
+        [formattedName appendString:@"\n"];
+        [self conditionallyAppendString:emails.description toMutableString:formattedName];
+    }
+    
+    NSInteger recordID  =  ABRecordGetRecordID(person);
+    NSString *personId = [NSString stringWithFormat:@"%zd", recordID];
+    [formattedName appendString:@"\n"];
+    [self conditionallyAppendString:personId toMutableString:formattedName];
+
+    
+    return formattedName;
+}
+
+- (void)conditionallyAppendString:(NSString *)string toMutableString:(NSMutableString *)mutableString {
+    if (![string respondsToSelector:@selector(length)]) {
+        NSLog(@"This isn't right...%@\t\t\"%@\"", [string class], string);
+        return;
+    }
+    
+    if (![mutableString respondsToSelector:@selector(length)]) {
+        NSLog(@"This isn't right...mutable...%@\t\t\"%@\"", [string class], mutableString);
+        return;
+    }
+    
+    if (!string || string.length == 0 || !mutableString) {
+        return;
+    }
+    
+    if ([mutableString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length == 0) {
+        [mutableString appendString:string];
+        return;
+    }
+    
+    [mutableString appendFormat:@" %@", string];
 }
 
 
