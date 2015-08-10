@@ -7,6 +7,7 @@
 //
 
 #import "ALUSplitViewController.h"
+#import "ALUDataManager.h"
 
 @implementation ALUSplitViewController
 
@@ -23,6 +24,22 @@
 	}
 	
 	return UIStatusBarStyleDefault;
+}
+
+- (BOOL)prefersStatusBarHidden {
+	return ![[ALUDataManager sharedDataManager] shouldShowStatusBar];
+}
+
+- (BOOL)shouldAutorotate {
+	for (UIViewController *viewController in self.childViewControllers) {
+		[viewController performSelector:@selector(updateViewConstraints) withObject:nil afterDelay:0.1f];
+		
+		for (UIViewController *subViewController in viewController.childViewControllers) {
+			[subViewController performSelector:@selector(updateViewConstraints) withObject:nil afterDelay:0.1f];
+		}
+	}
+	
+	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] && ![[ALUDataManager sharedDataManager] menuShowing]) && !USE_CARDS;
 }
 
 @end
