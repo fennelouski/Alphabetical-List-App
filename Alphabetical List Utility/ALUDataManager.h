@@ -107,6 +107,10 @@
 
 - (CGFloat)currentFontSize;
 
+- (void)saveAdjustedFontSizeForCardViews:(CGFloat)adjustedFontSize;
+
+- (CGFloat)currentFontSizeForCardViews;
+
 // cards
 
 - (void)setUseCardView:(BOOL)useCardView;

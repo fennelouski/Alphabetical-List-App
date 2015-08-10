@@ -20,6 +20,9 @@ static NSString * const previousErrorsKey = @"PreviousErros K£y";
 static NSString * const lastVerseOfTheDayDateKey = @"Last Verse of The Day Date K£y";
 static NSString * const useCardViewKey = @"Use Card Vi£w K3Y";
 static NSString * const fontSizeKey = @"This is my font size Key and don't forget that I like Tacos";
+static NSString * const adjustedFontSizeKey = @"This is my font size Key for changing the font size of the card view";
+
+static CGFloat const screenSizeLimit = 668.0f;
 
 @implementation ALUDataManager {
 	NSMutableArray *_lists;
@@ -73,7 +76,6 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		CGFloat screenSizeLimit = 668.0f;
 		_useCardView = kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit;
 		_shouldShowStatusBar = YES;
         
@@ -145,10 +147,17 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 		NSString *deviceType = [UIDevice currentDevice].model;
 		NSLog(@"deviceType: %@", deviceType);
 		if ([deviceType rangeOfString:@"iPhone"].location != NSNotFound) {
-			NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap < to see a list of all your notes. Tap the + to create a new note.\n\nTap the note title to view settings for that note.\n\nPinch this text to adjust the font size.";
-			[_lists addObject:listTitle];
-			[_dictionaryOfLists setObject:list forKey:listTitle];
-		} else if ([deviceType rangeOfString:@"iPad"].location != NSNotFound) {
+			
+			if (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) {
+				NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap the + to create a new note.\n\nTap a note title to open that note.\n\nWith a note open, tap on the note title to see settings for that note or tap < to return to a list of all your notes.\n\nPinch this text to adjust the font size.";
+				[_lists addObject:listTitle];
+				[_dictionaryOfLists setObject:list forKey:listTitle];
+			} else {
+				NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap < to see a list of all your notes. Tap the + to create a new note.\n\nTap the note title to view settings for that note.\n\nPinch this text to adjust the font size.";
+				[_lists addObject:listTitle];
+				[_dictionaryOfLists setObject:list forKey:listTitle];
+			}
+		} else /*if ([deviceType rangeOfString:@"iPad"].location != NSNotFound)*/ {
 			NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap \"My Notes\" to see a list of all your notes. Tap the \"+\" to create a new note.\n\nPinch this text to adjust the font size.";
 			[_lists addObject:listTitle];
 			[_dictionaryOfLists setObject:list forKey:listTitle];
@@ -986,6 +995,16 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 - (CGFloat)currentFontSize {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     return [defaults floatForKey:fontSizeKey];
+}
+
+- (void)saveAdjustedFontSizeForCardViews:(CGFloat)adjustedFontSize {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	[defaults setFloat:adjustedFontSize forKey:adjustedFontSizeKey];
+}
+
+- (CGFloat)currentFontSizeForCardViews {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	return [defaults floatForKey:adjustedFontSizeKey];
 }
 
 #pragma mark - Card view

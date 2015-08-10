@@ -274,7 +274,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 		_textView.dataDetectorTypes = UIDataDetectorTypeAll;
         
         if (_currentFontSize == 0 || _tempFontSize == 0) {
-            _currentFontSize = [[ALUDataManager sharedDataManager] currentFontSize];
+            _currentFontSize = [[ALUDataManager sharedDataManager] currentFontSizeForCardViews];
             _tempFontSize = _currentFontSize;
             
             if (_currentFontSize < 0 || _tempFontSize < 0) {
@@ -344,7 +344,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
     
     if (sender.state == UIGestureRecognizerStateEnded) {
         _currentFontSize = _tempFontSize;
-        [[ALUDataManager sharedDataManager] saveAdjustedFontSize:_currentFontSize];
+        [[ALUDataManager sharedDataManager] saveAdjustedFontSizeForCardViews:_currentFontSize];
     }
 }
 
