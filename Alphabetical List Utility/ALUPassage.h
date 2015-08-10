@@ -7,7 +7,20 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ALUVerse.h"
 
 @interface ALUPassage : NSObject
+
+@property (nonatomic, strong) NSString *book;
+
+@property (nonatomic, strong) NSString *title;
+
+@property (nonatomic, strong) NSMutableArray *verses;
+
+- (void)addVerse:(ALUVerse *)verse;
+
+- (NSAttributedString *)formattedVerse;
+- (NSAttributedString *)formattedVersePrependedByDate;
+
 
 @end
