@@ -231,10 +231,11 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 #pragma mark - Images
 
 - (UIImage *)imageForCompanyName:(NSString *)companyName {
+	
 	if ([_companyLogos objectForKey:companyName]) {
 		return [_companyLogos objectForKey:companyName];
 	}
-    
+	
 	NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
     
     if (!companyNameURLString && ![self imageSavedLocallyForCompanyName:companyName]) {
@@ -552,11 +553,15 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
     if (!companyNameURLString) {
         companyNameURLString = [self formattedListTitle:companyName];
     }
-    
+	
     NSURL *filePath = [self saveLocationForCompanyNameURLString:companyNameURLString];
-    [UIImagePNGRepresentation(image) writeToURL:filePath atomically:YES];
+	NSData *imageData = UIImagePNGRepresentation(image);
+	
+    [imageData writeToURL:filePath atomically:YES];
     [_companyLogos setObject:image forKey:companyName];
     [_companyLogos setObject:image forKey:companyNameURLString];
+	
+	imageData = [NSData dataWithContentsOfURL:filePath];
 }
 
 - (void)removeImageForCompanyName:(NSString *)companyName {
@@ -584,7 +589,7 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
     NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
     if (!companyNameURLString) {
         companyNameURLString = [self formattedListTitle:companyName];
-    }
+	}
     
     NSURL *filePath = [self saveLocationForCompanyNameURLString:companyNameURLString];
     NSData *imageData = [NSData dataWithContentsOfURL:filePath];
@@ -592,7 +597,7 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
     if (imageData) {
         return YES;
     }
-    
+	
     return NO;
 }
 
@@ -689,9 +694,9 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         [defaults setBool:!useWebIcon forKey:[NSString stringWithFormat:@"%@useWebIcon", title]];
         [_useWebIcon setObject:@(useWebIcon) forKey:title];
-        [self removeImageForCompanyName:title];
 		
 		if (useWebIcon) {
+			[self removeImageForCompanyName:title];
 			[_companyLogos removeAllObjects];
 			[_useWebIcon removeAllObjects];
 			[self imageForCompanyName:title];

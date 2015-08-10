@@ -559,12 +559,18 @@ static CGFloat const defaultRowHeight = 44.0f;
 	cell.selectionStyle = UITableViewCellSelectionStyleNone;
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
 	
+	if (USE_CARDS && !companyLogoImage) {
+		NSLog(@"%@\t\t%@", cell.noteTitle, cell.textLabel.text);
+	}
+	
 	if (companyLogoImage
         &&
             (
              [NKFColor strictColorForCompanyName:cell.textLabel.text]
              ||
              [[ALUDataManager sharedDataManager] imageSavedLocallyForCompanyName:cell.textLabel.text]
+			 ||
+			 [[ALUDataManager sharedDataManager] imageSavedLocallyForCompanyName:cell.noteTitle]
             )
         &&
         [[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]) {
@@ -737,7 +743,6 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (void)updateCellContentOffset {
-	
 	if (USE_CARDS && self.tableView.indexPathsForVisibleRows.count > 3) {
 		NSArray *sortedIndexPaths = [[self.tableView indexPathsForVisibleRows] sortedArrayUsingSelector:@selector(compare:)];
 		NSIndexPath *middlePath = [self middleIndexPath];
