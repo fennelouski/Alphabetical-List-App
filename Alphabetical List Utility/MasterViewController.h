@@ -11,7 +11,7 @@
 
 @class DetailViewController;
 
-@interface MasterViewController : UITableViewController <UITextFieldDelegate>
+@interface MasterViewController : UITableViewController
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 

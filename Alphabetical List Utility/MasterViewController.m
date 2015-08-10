@@ -242,7 +242,6 @@ static CGFloat const defaultRowHeight = 44.0f;
 		textField.keyboardType = UIKeyboardTypeDefault;
 		textField.autocapitalizationType = UITextAutocapitalizationTypeWords;
 		textField.autocorrectionType = UITextAutocorrectionTypeYes;
-		textField.delegate = self;
 		_alertTextField = textField;
 	}];
 	
@@ -405,10 +404,6 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (BOOL)canBecomeFirstResponder {
-	if (_alertTextField) {
-		return NO;
-	}
-	
 	return USE_CARDS;
 }
 
@@ -819,14 +814,6 @@ static CGFloat const defaultRowHeight = 44.0f;
 	}
 	
 	_previousContentOffset = self.tableView.contentOffset;
-}
-
-#pragma mark - Text Field Delegate
-
-- (void)textFieldDidEndEditing:(UITextField *)textField {
-	[_alertTextField resignFirstResponder];
-	_alertTextField = nil;
-	[self becomeFirstResponder];
 }
 
 @end
