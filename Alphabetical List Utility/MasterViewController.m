@@ -36,6 +36,10 @@ static CGFloat const minimumYContentOffset = -15.0f;
 
 static CGFloat const tableViewInset = 30.0f;
 
+static CGSize const buttonSize = {44.0f, 44.0f};
+
+static CGFloat const defaultRowHeight = 44.0f;
+
 @implementation MasterViewController {
 	UITextField *_alertTextField;
 	NSDate *_lastReloadDate;
@@ -293,7 +297,8 @@ static CGFloat const tableViewInset = 30.0f;
 		self.navigationController.toolbarHidden = YES;
 		
 		UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressed:)];
-		[longPress setMinimumPressDuration:3.5f];
+		longPress.minimumPressDuration = 1.0f;
+		longPress.numberOfTouchesRequired = 2;
 		[_inputAccessoryView addGestureRecognizer:longPress];
 		
 		[_inputAccessoryView addSubview:self.addButton];
@@ -309,8 +314,8 @@ static CGFloat const tableViewInset = 30.0f;
 	if (!_addButton) {
 		_addButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0f,
 																 0.0f,
-																 44.0f,
-																 44.0f)];
+																 buttonSize.width,
+																 buttonSize.height)];
 		[_addButton addTarget:self action:@selector(createNewListButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
 		[_addButton setImage:[UIImage imageNamed:@"Plus-icon"] forState:UIControlStateNormal];
 		[_addButton setTitleColor:[NKFColor white] forState:UIControlStateNormal];
@@ -329,9 +334,9 @@ static CGFloat const tableViewInset = 30.0f;
 - (UIButton *)editButton {
 	if (!_editButton) {
 		_editButton = [[UIButton alloc] initWithFrame:CGRectMake(0.0f,
-																0.0f,
-																44.0f,
-																44.0f)];
+																 0.0f,
+																 buttonSize.width,
+																 buttonSize.height)];
 		[_editButton setImage:[UIImage imageNamed:@"Edit-icon"] forState:UIControlStateNormal];
 		[_editButton setTitleColor:[NKFColor white] forState:UIControlStateNormal];
 		[_editButton setBackgroundColor:[NKFColor appColor]];
@@ -355,6 +360,44 @@ static CGFloat const tableViewInset = 30.0f;
 
 - (void)longPressed:(UILongPressGestureRecognizer *)sender {
 	[[ALUDataManager sharedDataManager] setUseCardView:![[ALUDataManager sharedDataManager] useCardView]];
+	
+	NSString *message = @"Would you like to start using Card Views?";
+	if (USE_CARDS) {
+		message = @"You are currently using Card Views. Would you like to switch back to the normal list?";
+	}
+	
+	UIAlertController *cardViewAlertController = [UIAlertController alertControllerWithTitle:@"Use Card View"
+																					 message:message
+																			  preferredStyle:UIAlertControllerStyleAlert];
+	
+	if (USE_CARDS) {
+		UIAlertAction *stopCardsAction = [UIAlertAction actionWithTitle:@"Use Normal List"
+																  style:UIAlertActionStyleDestructive
+																handler:^(UIAlertAction *action) {
+																	[[ALUDataManager sharedDataManager] setUseCardView:NO];
+																}];
+		[cardViewAlertController addAction:stopCardsAction];
+	} else {
+		UIAlertAction *useCardsACtion = [UIAlertAction actionWithTitle:@"Use Card Views"
+																 style:UIAlertActionStyleDefault
+															   handler:^(UIAlertAction *action) {
+																   [[ALUDataManager sharedDataManager] setUseCardView:YES];
+															   }];
+		[cardViewAlertController addAction:useCardsACtion];
+	}
+	
+	UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+														   style:UIAlertActionStyleCancel
+														 handler:^(UIAlertAction *action) {
+															 
+														 }];
+	[cardViewAlertController addAction:cancelAction];
+	
+	[self presentViewController:cardViewAlertController
+					   animated:YES
+					 completion:^{
+						 
+					 }];
 }
 
 - (void)settingsButtonTouched {
@@ -482,7 +525,7 @@ static CGFloat const tableViewInset = 30.0f;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-	CGFloat heightForRow = (USE_CARDS) ? 100.0f : 44.0f;
+	CGFloat heightForRow = (USE_CARDS) ? 100.0f : defaultRowHeight;
 	
 	if (USE_CARDS
 		&&
@@ -648,11 +691,11 @@ static CGFloat const tableViewInset = 30.0f;
     
 	self.tableView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight,
 												   0.0f,
-												   ([self canBecomeFirstResponder]) ? 44.0f : 0.0f,
+												   ([self canBecomeFirstResponder]) ? self.inputAccessoryView.frame.size.height : 0.0f,
 												   0.0f);
     self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight,
 															0.0f,
-															([self canBecomeFirstResponder]) ? 44.0f : 0.0f,
+															([self canBecomeFirstResponder]) ? self.inputAccessoryView.frame.size.height : 0.0f,
 															0.0f);
     
     _isKeyboardShowing = YES;
@@ -665,7 +708,7 @@ static CGFloat const tableViewInset = 30.0f;
 	if ([scrollView isEqual:self.tableView]) {
 		CGFloat overScrolledDistance = scrollView.contentSize.height - scrollView.contentOffset.y - scrollView.frame.size.height + scrollView.contentInset.bottom;
 		
-		if (scrollView.contentOffset.y > _previousContentOffset.y && overScrolledDistance > 0.0f && scrollView.contentOffset.y > -60.0f) {
+		if (scrollView.contentOffset.y > _previousContentOffset.y && overScrolledDistance > 0.0f && scrollView.contentOffset.y > -30.0f) {
 			self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(scrollView.scrollIndicatorInsets.top,
 																	scrollView.scrollIndicatorInsets.left,
 																	0.0f,
