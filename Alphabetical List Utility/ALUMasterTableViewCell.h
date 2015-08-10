@@ -10,4 +10,23 @@
 
 @interface ALUMasterTableViewCell : UITableViewCell
 
+
+- (void)setNoteTitle:(NSString *)noteTitle;
+- (NSString *)noteTitle;
+
+- (void)setColor:(UIColor *)color;
+- (UIColor *)color;
+
+- (void)setAccessoryImage:(UIImage *)accessoryImage;
+- (UIImage *)accessoryImage;
+
+- (void)setParallaxStrength:(CGFloat)parallaxIntensity;
+- (CGFloat)parallaxStrength;
+
+- (void)setNoteText:(NSString *)noteText;
+- (NSString *)noteText;
+
+- (void)setContentOffset:(CGPoint)contentOffset;
+- (CGPoint)contentOffset;
+
 @end
