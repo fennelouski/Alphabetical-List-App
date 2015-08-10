@@ -12,11 +12,15 @@
 
 - (void)takePhoto;
 - (void)pickPhoto;
+- (void)useWebIcon;
 - (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text;
 - (void)listModeChanged;
 - (void)showListIconChanged;
 - (void)listRenameSelected;
 - (void)alphabetize;
+- (void)sendEmail;
+- (void)selectLocation;
+- (void)selectContact;
 
 @end
 
@@ -31,6 +35,8 @@
 @property (nonatomic, strong) NSString *listName;
 
 @property (nonatomic, strong) UIColor *listColor;
+
+@property (nonatomic, strong) UIViewController *presentingViewController;
 
 - (void)setSettingsTitles:(NSDictionary *)settingsTitles;
 

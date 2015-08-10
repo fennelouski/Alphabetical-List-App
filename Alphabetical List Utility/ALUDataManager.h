@@ -8,8 +8,16 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <CoreLocation/CoreLocation.h>
+#import <MapKit/MapKit.h>
+#import "ALUPointAnnotation.h"
+#import "ALUDocument.h"
 
-@interface ALUDataManager : NSObject
+@interface ALUDataManager : NSObject <CLLocationManagerDelegate, UIDocumentMenuDelegate>
+
+- (CLLocationManager *)locationManager;
+
+- (CLLocationCoordinate2D)userLocation;
 
 + (instancetype)sharedDataManager;
 
@@ -52,6 +60,73 @@
 
 - (BOOL)imageSavedLocallyForCompanyName:(NSString *)companyName;
 
+
+- (NSString *)companyNameURLStringForCompanyName:(NSString *)companyName;
+
+
+// API Calls
+- (BOOL)apiAvailableForTitle:(NSString *)listTitle;
+
+- (void)makeCallForListTitle:(NSString *)listTitle;
+
+- (NSDictionary *)dictionaryForTitle:(NSString *)listTitle;
+
+
+
+// Geolocation
+- (void)setCoordinate:(CLLocationCoordinate2D)coordinate radius:(double)radiusInMeters forListTitle:(NSString *)listTitle;
+
+- (void)setRadius:(double)radiusInMeters forListTitle:(NSString *)listTitle;
+
+- (BOOL)geolocationReminderExistsForTitle:(NSString *)listTitle;
+
+- (ALUPointAnnotation *)annotationForTitle:(NSString *)listTitle;
+
+- (NSString *)geolocationNameForTitle:(NSString *)listTitle;
+
+- (void)removeReminderForListTitle:(NSString *)listTitle;
+
+
+// App State
+
+- (void)setNoteHasBeenSelectedOnce:(BOOL)noteHasBeenSelectedOnce;
+
+- (BOOL)noteHasBeenSelectedOnce;
+
+- (void)setMenuShowing:(BOOL)menuShowing;
+
+- (BOOL)menuShowing;
+
+- (void)setShouldShowStatusBar:(BOOL)shouldShowStatusBar;
+
+- (BOOL)shouldShowStatusBar;
+
+// font size
+
+- (void)saveAdjustedFontSize:(CGFloat)adjustedFontSize;
+
+- (CGFloat)currentFontSize;
+
+// cards
+
+- (void)setUseCardView:(BOOL)useCardView;
+
+- (BOOL)useCardView;
+
+
+// iCloud
+
+- (BOOL)iCloudIsAvailable;
+
 @property (nonatomic) BOOL currentColorIsDark;
+
+
+
+- (void)setDocument:(ALUDocument *)document;
+- (ALUDocument *)document;
+- (void)setQuery:(NSMetadataQuery *)query;
+- (NSMetadataQuery *)query;
+- (void)loadIcloudDocument:(NSString *)noteTitle;
+
 
 @end

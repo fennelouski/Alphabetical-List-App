@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		275C89CD1B6FFF6A00521755 /* ALUVerse.m in Sources */ = {isa = PBXBuildFile; fileRef = 275C89CC1B6FFF6A00521755 /* ALUVerse.m */; };
+		278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038721B73B347008C509F /* ALUMasterTableViewCell.m */; };
+		278038761B73B679008C509F /* ALUMasterTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038751B73B679008C509F /* ALUMasterTableView.m */; };
 		278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255521B628BCA00309E6F /* ALUSettingsView.m */; };
 		278255561B62910100309E6F /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255551B62910100309E6F /* UIImage+ImageEffects.m */; };
 		278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255581B62A6F000309E6F /* ALUTableViewCell.m */; };
@@ -24,6 +27,8 @@
 		27A8C26E1B4AED2200E5A3D9 /* NGAParallaxMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2681B4AED2200E5A3D9 /* NGAParallaxMotion.m */; };
 		27A8C26F1B4AED2200E5A3D9 /* NSString+AppFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */; };
 		27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */; };
+		27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CCD54C1B78E544007EEAD0 /* ALUPassage.m */; };
+		27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 27D6F7981B67F3F900F42EAA /* TestLocations.gpx */; };
 		27E6D7B51B5D579700D7CC19 /* ALUNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */; };
 		27E6D7F31B5D785600D7CC19 /* ALUSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */; };
 		27E6D8101B5D9EB500D7CC19 /* AFHTTPRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D7FE1B5D9EB500D7CC19 /* AFHTTPRequestOperation.m */; };
@@ -49,7 +54,22 @@
 		27E6D83E1B605A6800D7CC19 /* NKFColor+WikipediaColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D83D1B605A6800D7CC19 /* NKFColor+WikipediaColors.m */; };
 		27E6D8411B605B0000D7CC19 /* NKFColor+Dates.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D8401B605B0000D7CC19 /* NKFColor+Dates.m */; };
 		27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D8431B605CC200D7CC19 /* NKFColor+AppColors.m */; };
+		27F2CA941B756355006918CC /* Edit-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA911B756355006918CC /* Edit-icon.png */; };
+		27F2CA951B756355006918CC /* Edit-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA921B756355006918CC /* Edit-icon@2x.png */; };
+		27F2CA961B756355006918CC /* Edit-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA931B756355006918CC /* Edit-icon@3x.png */; };
 		27FF34B81B58011E005DD69E /* NKFColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 27FF34B71B58011E005DD69E /* NKFColor.m */; };
+		803127991B77E8F000033031 /* ALUBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 803127981B77E8F000033031 /* ALUBackgroundView.m */; };
+		805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */; };
+		80C4AE911B781257002922F7 /* UIImage+PixelInformation.m in Sources */ = {isa = PBXBuildFile; fileRef = 80C4AE901B781257002922F7 /* UIImage+PixelInformation.m */; };
+		905E9F3E1B716ED5007A6DB4 /* ALUDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 905E9F3D1B716ED5007A6DB4 /* ALUDocument.m */; };
+		906ED6B21B6A5C8B00362BC6 /* NKFColor+Universities.m in Sources */ = {isa = PBXBuildFile; fileRef = 906ED6B11B6A5C8B00362BC6 /* NKFColor+Universities.m */; };
+		90BFD9751B67258600CA617B /* ALUPointAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 90BFD9741B67258600CA617B /* ALUPointAnnotation.m */; };
+		90C282941B66B4120078340C /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90C282931B66B4120078340C /* MapKit.framework */; };
+		90C282971B66B4800078340C /* ALUMapViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 90C282961B66B4800078340C /* ALUMapViewController.m */; };
+		90F7DA7F1B63BF9800D4E0B7 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA7E1B63BF9800D4E0B7 /* MessageUI.framework */; };
+		90F7DA811B65D73500D4E0B7 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA801B65D73500D4E0B7 /* CoreLocation.framework */; };
+		90F7DA841B65D78400D4E0B7 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA821B65D78400D4E0B7 /* AddressBook.framework */; };
+		90F7DA851B65D78400D4E0B7 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +83,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		272850C61B7295D800B7C6A6 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		275C89CB1B6FFF6A00521755 /* ALUVerse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUVerse.h; sourceTree = "<group>"; };
+		275C89CC1B6FFF6A00521755 /* ALUVerse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUVerse.m; sourceTree = "<group>"; };
+		278038711B73B347008C509F /* ALUMasterTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMasterTableViewCell.h; sourceTree = "<group>"; };
+		278038721B73B347008C509F /* ALUMasterTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMasterTableViewCell.m; sourceTree = "<group>"; };
+		278038741B73B679008C509F /* ALUMasterTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMasterTableView.h; sourceTree = "<group>"; };
+		278038751B73B679008C509F /* ALUMasterTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMasterTableView.m; sourceTree = "<group>"; };
 		278255511B628BCA00309E6F /* ALUSettingsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUSettingsView.h; sourceTree = "<group>"; };
 		278255521B628BCA00309E6F /* ALUSettingsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUSettingsView.m; sourceTree = "<group>"; };
 		278255541B62910100309E6F /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
@@ -99,6 +126,9 @@
 		27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+AppFunctions.m"; sourceTree = "<group>"; };
 		27A8C2701B4AFEE300E5A3D9 /* UIColor+BrandColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+BrandColors.h"; sourceTree = "<group>"; };
 		27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+BrandColors.m"; sourceTree = "<group>"; };
+		27CCD54B1B78E544007EEAD0 /* ALUPassage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPassage.h; sourceTree = "<group>"; };
+		27CCD54C1B78E544007EEAD0 /* ALUPassage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPassage.m; sourceTree = "<group>"; };
+		27D6F7981B67F3F900F42EAA /* TestLocations.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TestLocations.gpx; sourceTree = "<group>"; };
 		27E6D7B31B5D579600D7CC19 /* ALUNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUNavigationController.h; sourceTree = "<group>"; };
 		27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUNavigationController.m; sourceTree = "<group>"; };
 		27E6D7F11B5D785600D7CC19 /* ALUSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUSplitViewController.h; sourceTree = "<group>"; };
@@ -151,8 +181,31 @@
 		27E6D8401B605B0000D7CC19 /* NKFColor+Dates.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NKFColor+Dates.m"; sourceTree = "<group>"; };
 		27E6D8421B605CC200D7CC19 /* NKFColor+AppColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NKFColor+AppColors.h"; sourceTree = "<group>"; };
 		27E6D8431B605CC200D7CC19 /* NKFColor+AppColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NKFColor+AppColors.m"; sourceTree = "<group>"; };
+		27F2CA911B756355006918CC /* Edit-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon.png"; path = "Graphics/Edit-icon.png"; sourceTree = "<group>"; };
+		27F2CA921B756355006918CC /* Edit-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon@2x.png"; path = "Graphics/Edit-icon@2x.png"; sourceTree = "<group>"; };
+		27F2CA931B756355006918CC /* Edit-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon@3x.png"; path = "Graphics/Edit-icon@3x.png"; sourceTree = "<group>"; };
 		27FF34B61B58011E005DD69E /* NKFColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NKFColor.h; sourceTree = "<group>"; };
 		27FF34B71B58011E005DD69E /* NKFColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NKFColor.m; sourceTree = "<group>"; };
+		803127971B77E8F000033031 /* ALUBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUBackgroundView.h; sourceTree = "<group>"; };
+		803127981B77E8F000033031 /* ALUBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUBackgroundView.m; sourceTree = "<group>"; };
+		805E83F01B77EFDD00D362C3 /* ALUPatternedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPatternedView.h; sourceTree = "<group>"; };
+		805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPatternedView.m; sourceTree = "<group>"; };
+		80C4AE8F1B781257002922F7 /* UIImage+PixelInformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+PixelInformation.h"; sourceTree = "<group>"; };
+		80C4AE901B781257002922F7 /* UIImage+PixelInformation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+PixelInformation.m"; sourceTree = "<group>"; };
+		905E9F3B1B7168A6007A6DB4 /* Alphabetical List Utility.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Alphabetical List Utility.entitlements"; sourceTree = "<group>"; };
+		905E9F3C1B716ED5007A6DB4 /* ALUDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUDocument.h; sourceTree = "<group>"; };
+		905E9F3D1B716ED5007A6DB4 /* ALUDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUDocument.m; sourceTree = "<group>"; };
+		906ED6B01B6A5C8B00362BC6 /* NKFColor+Universities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NKFColor+Universities.h"; sourceTree = "<group>"; };
+		906ED6B11B6A5C8B00362BC6 /* NKFColor+Universities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NKFColor+Universities.m"; sourceTree = "<group>"; };
+		90BFD9731B67258600CA617B /* ALUPointAnnotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPointAnnotation.h; sourceTree = "<group>"; };
+		90BFD9741B67258600CA617B /* ALUPointAnnotation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPointAnnotation.m; sourceTree = "<group>"; };
+		90C282931B66B4120078340C /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		90C282951B66B4800078340C /* ALUMapViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMapViewController.h; sourceTree = "<group>"; };
+		90C282961B66B4800078340C /* ALUMapViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMapViewController.m; sourceTree = "<group>"; };
+		90F7DA7E1B63BF9800D4E0B7 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		90F7DA801B65D73500D4E0B7 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		90F7DA821B65D78400D4E0B7 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,6 +213,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				90C282941B66B4120078340C /* MapKit.framework in Frameworks */,
+				90F7DA841B65D78400D4E0B7 /* AddressBook.framework in Frameworks */,
+				90F7DA851B65D78400D4E0B7 /* AddressBookUI.framework in Frameworks */,
+				90F7DA811B65D73500D4E0B7 /* CoreLocation.framework in Frameworks */,
+				90F7DA7F1B63BF9800D4E0B7 /* MessageUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,6 +238,11 @@
 				27A8C2431B4AD62800E5A3D9 /* Alphabetical List UtilityTests */,
 				27A8C24E1B4AD62800E5A3D9 /* Alphabetical List UtilityUITests */,
 				27A8C2251B4AD62800E5A3D9 /* Products */,
+				90C282931B66B4120078340C /* MapKit.framework */,
+				90F7DA821B65D78400D4E0B7 /* AddressBook.framework */,
+				90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */,
+				90F7DA801B65D73500D4E0B7 /* CoreLocation.framework */,
+				90F7DA7E1B63BF9800D4E0B7 /* MessageUI.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -197,20 +260,9 @@
 			children = (
 				27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */,
 				27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */,
-				27A8C22D1B4AD62800E5A3D9 /* MasterViewController.h */,
-				27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */,
-				27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */,
-				27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */,
-				278255511B628BCA00309E6F /* ALUSettingsView.h */,
-				278255521B628BCA00309E6F /* ALUSettingsView.m */,
-				278255571B62A6F000309E6F /* ALUTableViewCell.h */,
-				278255581B62A6F000309E6F /* ALUTableViewCell.m */,
-				27E6D7B31B5D579600D7CC19 /* ALUNavigationController.h */,
-				27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */,
-				27E6D7F11B5D785600D7CC19 /* ALUSplitViewController.h */,
-				27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */,
-				27A8C25D1B4AD7BB00E5A3D9 /* ALUDataManager.h */,
-				27A8C25E1B4AD7BB00E5A3D9 /* ALUDataManager.m */,
+				803127941B77E80400033031 /* View Controllers */,
+				803127951B77E81900033031 /* Views */,
+				803127961B77E82300033031 /* Data */,
 				27A8C2331B4AD62800E5A3D9 /* Main.storyboard */,
 				27A8C2361B4AD62800E5A3D9 /* Assets.xcassets */,
 				27A8C23B1B4AD62800E5A3D9 /* Info.plist */,
@@ -224,6 +276,10 @@
 		27A8C2271B4AD62800E5A3D9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				27F2CA8F1B756346006918CC /* Graphics */,
+				905E9F3B1B7168A6007A6DB4 /* Alphabetical List Utility.entitlements */,
+				27D6F7981B67F3F900F42EAA /* TestLocations.gpx */,
+				272850C61B7295D800B7C6A6 /* PrefixHeader.pch */,
 				27A8C2601B4AED1800E5A3D9 /* Categories */,
 				27A8C2281B4AD62800E5A3D9 /* main.m */,
 				27FF34B61B58011E005DD69E /* NKFColor.h */,
@@ -236,6 +292,8 @@
 				27E6D83D1B605A6800D7CC19 /* NKFColor+WikipediaColors.m */,
 				27E6D8361B6055EE00D7CC19 /* NKFColor+SportsTeams.h */,
 				27E6D8371B6055EE00D7CC19 /* NKFColor+SportsTeams.m */,
+				906ED6B01B6A5C8B00362BC6 /* NKFColor+Universities.h */,
+				906ED6B11B6A5C8B00362BC6 /* NKFColor+Universities.m */,
 				27E6D8391B60563C00D7CC19 /* NKFColor+Companies.h */,
 				27E6D83A1B60563C00D7CC19 /* NKFColor+Companies.m */,
 				27E6D8331B6038AA00D7CC19 /* JSONColorFormatter.h */,
@@ -279,6 +337,8 @@
 				27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */,
 				278255541B62910100309E6F /* UIImage+ImageEffects.h */,
 				278255551B62910100309E6F /* UIImage+ImageEffects.m */,
+				80C4AE8F1B781257002922F7 /* UIImage+PixelInformation.h */,
+				80C4AE901B781257002922F7 /* UIImage+PixelInformation.m */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -333,6 +393,77 @@
 			name = "UIKit+AFNetworking";
 			sourceTree = "<group>";
 		};
+		27F2CA8F1B756346006918CC /* Graphics */ = {
+			isa = PBXGroup;
+			children = (
+				27F2CA901B75634C006918CC /* Icons */,
+			);
+			name = Graphics;
+			sourceTree = "<group>";
+		};
+		27F2CA901B75634C006918CC /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				27F2CA911B756355006918CC /* Edit-icon.png */,
+				27F2CA921B756355006918CC /* Edit-icon@2x.png */,
+				27F2CA931B756355006918CC /* Edit-icon@3x.png */,
+			);
+			name = Icons;
+			sourceTree = "<group>";
+		};
+		803127941B77E80400033031 /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				27A8C22D1B4AD62800E5A3D9 /* MasterViewController.h */,
+				27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */,
+				27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */,
+				27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */,
+				90C282951B66B4800078340C /* ALUMapViewController.h */,
+				90C282961B66B4800078340C /* ALUMapViewController.m */,
+				27E6D7B31B5D579600D7CC19 /* ALUNavigationController.h */,
+				27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */,
+				27E6D7F11B5D785600D7CC19 /* ALUSplitViewController.h */,
+				27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */,
+			);
+			name = "View Controllers";
+			sourceTree = "<group>";
+		};
+		803127951B77E81900033031 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				278255511B628BCA00309E6F /* ALUSettingsView.h */,
+				278255521B628BCA00309E6F /* ALUSettingsView.m */,
+				278255571B62A6F000309E6F /* ALUTableViewCell.h */,
+				278255581B62A6F000309E6F /* ALUTableViewCell.m */,
+				278038711B73B347008C509F /* ALUMasterTableViewCell.h */,
+				278038721B73B347008C509F /* ALUMasterTableViewCell.m */,
+				278038741B73B679008C509F /* ALUMasterTableView.h */,
+				278038751B73B679008C509F /* ALUMasterTableView.m */,
+				803127971B77E8F000033031 /* ALUBackgroundView.h */,
+				803127981B77E8F000033031 /* ALUBackgroundView.m */,
+				805E83F01B77EFDD00D362C3 /* ALUPatternedView.h */,
+				805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		803127961B77E82300033031 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				27A8C25D1B4AD7BB00E5A3D9 /* ALUDataManager.h */,
+				27A8C25E1B4AD7BB00E5A3D9 /* ALUDataManager.m */,
+				90BFD9731B67258600CA617B /* ALUPointAnnotation.h */,
+				90BFD9741B67258600CA617B /* ALUPointAnnotation.m */,
+				275C89CB1B6FFF6A00521755 /* ALUVerse.h */,
+				275C89CC1B6FFF6A00521755 /* ALUVerse.m */,
+				27CCD54B1B78E544007EEAD0 /* ALUPassage.h */,
+				27CCD54C1B78E544007EEAD0 /* ALUPassage.m */,
+				905E9F3C1B716ED5007A6DB4 /* ALUDocument.h */,
+				905E9F3D1B716ED5007A6DB4 /* ALUDocument.m */,
+			);
+			name = Data;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -383,6 +514,11 @@
 					27A8C2231B4AD62800E5A3D9 = {
 						CreatedOnToolsVersion = 7.0;
 						DevelopmentTeam = EJLR2RPSV2;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					27A8C23F1B4AD62800E5A3D9 = {
 						CreatedOnToolsVersion = 7.0;
@@ -414,7 +550,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27F2CA961B756355006918CC /* Edit-icon@3x.png in Resources */,
+				27F2CA951B756355006918CC /* Edit-icon@2x.png in Resources */,
+				27F2CA941B756355006918CC /* Edit-icon.png in Resources */,
 				27A8C2371B4AD62800E5A3D9 /* Assets.xcassets in Resources */,
+				27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */,
 				27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -433,15 +573,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */,
+				805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */,
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
 				27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */,
 				27E6D82C1B5D9ED000D7CC19 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
 				27E6D8311B5D9ED000D7CC19 /* UIRefreshControl+AFNetworking.m in Sources */,
 				27E6D82E1B5D9ED000D7CC19 /* UIButton+AFNetworking.m in Sources */,
+				905E9F3E1B716ED5007A6DB4 /* ALUDocument.m in Sources */,
 				27E6D82D1B5D9ED000D7CC19 /* UIAlertView+AFNetworking.m in Sources */,
 				27A8C26B1B4AED2200E5A3D9 /* UIColor+AppColors.m in Sources */,
 				27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */,
 				27FF34B81B58011E005DD69E /* NKFColor.m in Sources */,
+				80C4AE911B781257002922F7 /* UIImage+PixelInformation.m in Sources */,
 				27E6D8381B6055EE00D7CC19 /* NKFColor+SportsTeams.m in Sources */,
 				278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */,
 				27E6D8171B5D9EB500D7CC19 /* AFURLResponseSerialization.m in Sources */,
@@ -453,11 +597,15 @@
 				27E6D8111B5D9EB500D7CC19 /* AFHTTPRequestOperationManager.m in Sources */,
 				278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */,
 				27A8C25F1B4AD7BB00E5A3D9 /* ALUDataManager.m in Sources */,
+				90C282971B66B4800078340C /* ALUMapViewController.m in Sources */,
 				27E6D8141B5D9EB500D7CC19 /* AFSecurityPolicy.m in Sources */,
 				27E6D7B51B5D579700D7CC19 /* ALUNavigationController.m in Sources */,
 				27A8C26C1B4AED2200E5A3D9 /* UIFont+AppFonts.m in Sources */,
+				275C89CD1B6FFF6A00521755 /* ALUVerse.m in Sources */,
 				27E6D8161B5D9EB500D7CC19 /* AFURLRequestSerialization.m in Sources */,
+				906ED6B21B6A5C8B00362BC6 /* NKFColor+Universities.m in Sources */,
 				27E6D8131B5D9EB500D7CC19 /* AFNetworkReachabilityManager.m in Sources */,
+				90BFD9751B67258600CA617B /* ALUPointAnnotation.m in Sources */,
 				27E6D8411B605B0000D7CC19 /* NKFColor+Dates.m in Sources */,
 				27A8C26D1B4AED2200E5A3D9 /* UIFont+Custom.m in Sources */,
 				27E6D82F1B5D9ED000D7CC19 /* UIImageView+AFNetworking.m in Sources */,
@@ -471,8 +619,11 @@
 				27E6D8351B6038AA00D7CC19 /* JSONColorFormatter.m in Sources */,
 				27E6D8321B5D9ED000D7CC19 /* UIWebView+AFNetworking.m in Sources */,
 				27E6D83E1B605A6800D7CC19 /* NKFColor+WikipediaColors.m in Sources */,
+				803127991B77E8F000033031 /* ALUBackgroundView.m in Sources */,
 				27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */,
+				278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */,
 				27E6D8181B5D9EB500D7CC19 /* AFURLSessionManager.m in Sources */,
+				278038761B73B679008C509F /* ALUMasterTableView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -593,8 +744,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = "Alphabetical List Utility/Alphabetical List Utility.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Alphabetical List Utility/PrefixHeader.pch";
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -609,8 +763,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = "Alphabetical List Utility/Alphabetical List Utility.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

@@ -8,6 +8,8 @@
 
 #import "AppDelegate.h"
 #import "DetailViewController.h"
+#import "ALUDataManager.h"
+#import "UIColor+AppColors.h"
 
 @interface AppDelegate () <UISplitViewControllerDelegate>
 
@@ -24,6 +26,12 @@
 	UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
 	navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
 	splitViewController.delegate = self;
+	
+	if (!self.locationManager) {
+		self.locationManager = [[CLLocationManager alloc] init];
+		self.locationManager.delegate = self;
+	}
+	
 	return YES;
 }
 
@@ -58,6 +66,110 @@
     } else {
         return NO;
     }
+}
+
+- (BOOL)splitViewController:(UISplitViewController *)splitViewController showViewController:(UIViewController *)vc sender:(id)sender {
+	NSLog(@"- (BOOL)splitViewController:(UISplitViewController *)splitViewController showViewController:(UIViewController *)vc sender:(id)sender");
+	if ([splitViewController.navigationController.navigationBar.tintColor isLight]) {
+		if ([splitViewController.navigationController.navigationBar.barTintColor isLight]) {
+			splitViewController.navigationController.navigationBar.tintColor = [UIColor black];
+		}
+	} else {
+		if (![splitViewController.navigationController.navigationBar.barTintColor isLight]) {
+			splitViewController.navigationController.navigationBar.tintColor = [UIColor white];
+		}
+	}
+	
+	return YES;
+}
+
+- (void)splitViewController:(UISplitViewController *)svc willChangeToDisplayMode:(UISplitViewControllerDisplayMode)displayMode {
+	if ([svc.navigationController.navigationBar.tintColor isLight]) {
+		if ([svc.navigationController.navigationBar.barTintColor isLight]) {
+			svc.navigationController.navigationBar.tintColor = [UIColor black];
+		}
+	} else {
+		if (![svc.navigationController.navigationBar.barTintColor isLight]) {
+			svc.navigationController.navigationBar.tintColor = [UIColor white];
+		}
+	}
+}
+
+#pragma mark - Location Notifications
+
+- (void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region {
+	if ([region isKindOfClass:[CLCircularRegion class]]) {
+		[self handleRegionEvent:region];
+	}
+}
+
+- (void)locationManager:(CLLocationManager *)manager didExitRegion:(CLRegion *)region {
+	if ([region isKindOfClass:[CLCircularRegion class]]) {
+		[self handleRegionEvent:region];
+	}
+}
+
+- (void)handleRegionEvent:(CLRegion *)region {
+	if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {
+		UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[region identifier] message:@"" preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+														   style:UIAlertActionStyleDefault
+														 handler:^(UIAlertAction *action) {
+															 
+														 }];
+		[alertController addAction:okAction];
+	} else {
+		UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+		NSMutableString *alertBody = [[NSMutableString alloc] init];
+		
+		NSString *noteInfo = [[ALUDataManager sharedDataManager] listWithTitle:[region identifier]];
+		if (noteInfo) {
+			// remove extra white space between lines and limits the number of lines to 5
+			NSArray *lines = [noteInfo componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+			
+			if (lines.count > 1) {
+				int maxNumberOfLines = 5;
+				int blankLines = 0;
+				NSMutableString *formattedNoteInfo = [[NSMutableString alloc] initWithString:[lines firstObject]];
+				
+				for (int i = 1; i < lines.count && i < maxNumberOfLines + blankLines; i++) {
+					NSString *line = [[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+					
+					if (line.length > 0) {
+						[formattedNoteInfo appendFormat:@"\n%@", line];
+					} else {
+						blankLines++;
+					}
+				}
+			}
+			
+			[alertBody appendString:noteInfo];
+		} else {
+			[self.locationManager stopMonitoringForRegion:region];
+			return;
+		}
+        
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSString *lastNotificationDateKey = [NSString stringWithFormat:@"Last Notification Date K£Y%@", [region identifier]];
+        NSDate *lastNotificationDate = [defaults objectForKey:lastNotificationDateKey];
+        NSTimeInterval minimumWaitTime = -600.0f;
+        if (lastNotificationDate && [lastNotificationDate timeIntervalSinceNow] > minimumWaitTime) {
+            return;
+        }
+        
+        [defaults setObject:[NSDate date] forKey:lastNotificationDateKey];
+		
+        localNotification.alertAction = @"show note";
+        localNotification.alertTitle = [region identifier];
+        localNotification.alertBody = alertBody;
+		localNotification.soundName = @"Default";
+		localNotification.category = @"showNoteNotificationCategory";
+		
+		
+        NSLog(@"scheduledLocalNotifications: %@", [[UIApplication sharedApplication] scheduledLocalNotifications]);
+        
+		[[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
+	}
 }
 
 @end

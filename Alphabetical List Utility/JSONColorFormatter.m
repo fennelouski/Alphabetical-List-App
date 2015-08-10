@@ -1253,7 +1253,7 @@
 		}
 	}
 	
-	NSLog(@"%@", finalOutputString);
+	NSLog(@"+ (void)logSportsTeamJSON: %@", finalOutputString);
 }
 
 @end

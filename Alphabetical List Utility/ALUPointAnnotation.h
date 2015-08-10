@@ -10,4 +10,18 @@
 
 @interface ALUPointAnnotation : MKPointAnnotation
 
+@property (nonatomic) double radius;
+
+@property (nonatomic) BOOL notifyOnEntry;
+
+@property (nonatomic) BOOL notificationEnabled;
+
+@property (nonatomic, strong) NSString *addressString;
+
+- (void)getAddressForCoordinate;
+
+- (void)save;
+- (void)load;
+- (void)remove;
+
 @end
