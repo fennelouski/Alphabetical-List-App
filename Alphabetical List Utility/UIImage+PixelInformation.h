@@ -10,4 +10,7 @@
 
 @interface UIImage (PixelInformation)
 
+- (BOOL)cornersAreEmpty;
+- (UIColor *)colorAtPixel:(CGPoint)point;
+
 @end
