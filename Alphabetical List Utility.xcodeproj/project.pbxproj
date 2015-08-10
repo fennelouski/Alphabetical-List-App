@@ -28,6 +28,9 @@
 		27A8C26F1B4AED2200E5A3D9 /* NSString+AppFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */; };
 		27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */; };
 		27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CCD54C1B78E544007EEAD0 /* ALUPassage.m */; };
+		27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */; };
+		27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */; };
+		27CCD5531B78FDEF007EEAD0 /* Plus-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD5501B78FDEF007EEAD0 /* Plus-icon@3x.png */; };
 		27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 27D6F7981B67F3F900F42EAA /* TestLocations.gpx */; };
 		27E6D7B51B5D579700D7CC19 /* ALUNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */; };
 		27E6D7F31B5D785600D7CC19 /* ALUSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */; };
@@ -128,6 +131,9 @@
 		27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+BrandColors.m"; sourceTree = "<group>"; };
 		27CCD54B1B78E544007EEAD0 /* ALUPassage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPassage.h; sourceTree = "<group>"; };
 		27CCD54C1B78E544007EEAD0 /* ALUPassage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPassage.m; sourceTree = "<group>"; };
+		27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon.png"; path = "Graphics/Plus-icon.png"; sourceTree = "<group>"; };
+		27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon@2x.png"; path = "Graphics/Plus-icon@2x.png"; sourceTree = "<group>"; };
+		27CCD5501B78FDEF007EEAD0 /* Plus-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon@3x.png"; path = "Graphics/Plus-icon@3x.png"; sourceTree = "<group>"; };
 		27D6F7981B67F3F900F42EAA /* TestLocations.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = TestLocations.gpx; sourceTree = "<group>"; };
 		27E6D7B31B5D579600D7CC19 /* ALUNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUNavigationController.h; sourceTree = "<group>"; };
 		27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUNavigationController.m; sourceTree = "<group>"; };
@@ -407,6 +413,9 @@
 				27F2CA911B756355006918CC /* Edit-icon.png */,
 				27F2CA921B756355006918CC /* Edit-icon@2x.png */,
 				27F2CA931B756355006918CC /* Edit-icon@3x.png */,
+				27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */,
+				27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */,
+				27CCD5501B78FDEF007EEAD0 /* Plus-icon@3x.png */,
 			);
 			name = Icons;
 			sourceTree = "<group>";
@@ -550,12 +559,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */,
+				27CCD5531B78FDEF007EEAD0 /* Plus-icon@3x.png in Resources */,
 				27F2CA961B756355006918CC /* Edit-icon@3x.png in Resources */,
 				27F2CA951B756355006918CC /* Edit-icon@2x.png in Resources */,
 				27F2CA941B756355006918CC /* Edit-icon.png in Resources */,
 				27A8C2371B4AD62800E5A3D9 /* Assets.xcassets in Resources */,
 				27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */,
 				27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */,
+				27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
