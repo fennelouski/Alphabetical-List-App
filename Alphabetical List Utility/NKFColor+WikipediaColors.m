@@ -6293,6 +6293,10 @@
 	return chineseViolet;
 }
 
++ (NKFColor *)chocolate {
+    return [NKFColor chocolateTraditional];
+}
+
 + (NKFColor *)chocolateTraditional {
 	NKFColor *chocolateTraditional = [NKFColor colorWithRed:48.0f/100.0f green:0.25f blue:0.0f alpha:1.0f];
 	return chocolateTraditional;
@@ -8679,6 +8683,11 @@
 + (NKFColor *)mikadoYellow {
 	NKFColor *mikadoYellow = [NKFColor colorWithRed:1.0f green:77.0f/100.0f blue:5.0f/100.0f alpha:1.0f];
 	return mikadoYellow;
+}
+
++ (NKFColor *)milk {
+	NKFColor *milk = [NKFColor cream];
+	return milk;
 }
 
 + (NKFColor *)mindaro {

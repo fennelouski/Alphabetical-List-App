@@ -438,6 +438,8 @@
 
 + (NKFColor *)chineseViolet;
 
++ (NKFColor *)chocolate;
+
 + (NKFColor *)chocolateTraditional;
 
 + (NKFColor *)chocolateWeb;
@@ -1386,6 +1388,8 @@
 + (NKFColor *)midnightGreenEagleGreen;
 
 + (NKFColor *)mikadoYellow;
+
++ (NKFColor *)milk;
 
 + (NKFColor *)mindaro;
 

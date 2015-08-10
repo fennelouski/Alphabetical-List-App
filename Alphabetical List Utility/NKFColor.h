@@ -70,4 +70,6 @@
 
 + (NKFColor *)colorWithHexString:(NSString *)hexString;
 
++ (NSArray *)bannedWords;
+
 @end

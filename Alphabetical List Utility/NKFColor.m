@@ -1101,6 +1101,67 @@ typedef struct {
 
 
 
+// these are method names inherited by UIColor, mostly from NSObject
+// while NKFColor will respond to methods with these names, they will not necessarily return a valid object
+// checking for these words before finding a selector with these names prevents a multitude of unexpected behavior
++ (NSArray *)bannedWords {
+    return @[@"new",
+			 @"description",
+			 @"init",
+			 @"initialize",
+			 @"alloc",
+			 @"dealloc",
+			 @"copy",
+			 @"mutable",
+			 @"selector",
+			 @"invocation",
+			 @"method",
+			 @"reference",
+			 @"hash",
+			 @"class",
+			 @"load",
+			 @"initialize",
+			 @"init",
+			 @"new",
+			 @"allocWithZone",
+			 @"alloc",
+			 @"dealloc",
+			 @"finalize",
+			 @"copy",
+			 @"mutableCopy",
+			 @"copyWithZone",
+			 @"mutableCopyWithZone",
+			 @"instancesRespondToSelector",
+			 @"conformsToProtocol",
+			 @"methodForSelector",
+			 @"instanceMethodForSelector",
+			 @"doesNotRecognizeSelector",
+			 @"forwardingTargetForSelector",
+			 @"forwardInvocation",
+			 @"methodSignatureForSelector",
+			 @"instanceMethodSignatureForSelector",
+			 @"allowsWeakReference",
+			 @"retainWeakReference",
+			 @"isSubclassOfClass",
+			 @"resolveClassMethod",
+			 @"resolveInstanceMethod",
+			 @"hash",
+			 @"superclass",
+			 @"class",
+			 @"description",
+			 @"debugDescription",
+			 @"set",
+			 @"setFill",
+			 @"setStroke",
+			 @"getWhite",
+			 @"getHue",
+			 @"getRed",
+			 @"CGColor",
+			 @"CIColor",
+			 @"initWithColor"];
+}
+
+
 
 
 @end

@@ -9,6 +9,7 @@
 #import "NKFColor+Companies.h"
 #import "UIColor+AppColors.h"
 #import "NKFColor+WikipediaColors.h"
+#import "NKFColor+Universities.m"
 
 @implementation NKFColor (Companies)
 
@@ -96,10 +97,6 @@
 	return [NKFColor randomDarkColorFromString:companyName];
 }
 
-+ (NSArray *)bannedWords {
-	return @[@"new", @"description", @"init", @"initialize", @"alloc", @"dealloc", @"copy", @"mutable", @"selector", @"invocation", @"method", @"reference", @"hash", @"class"];
-}
-
 + (NKFColor *)strictColorForCompanyName:(NSString *)companyName {
 	if (!companyName || companyName.length == 0) {
 		NSLog(@"Company Name must exist to generate color.");
@@ -119,7 +116,7 @@
 	if ([self respondsToSelector:NSSelectorFromString(formattedCompanyName)]) {
 		return [NKFColor performSelector:NSSelectorFromString(formattedCompanyName) withObject:nil];
 	} else if ([lowerCaseCompanyName firstAlphabeticalCharacterIndex]) {
-		return [NKFColor colorForCompanyName:[lowerCaseCompanyName stringWithoutNumbersInTheBeginning]];
+		return [NKFColor strictColorForCompanyName:[lowerCaseCompanyName stringWithoutNumbersInTheBeginning]];
 	} else {
 		NSArray *words = [lowerCaseCompanyName componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		for (NSString *word in words) {
@@ -157,7 +154,7 @@
 		}
 		
 		if ([companyName rangeOfString:@"&"].location != NSNotFound) {
-			return [NKFColor colorForCompanyName:[lowerCaseCompanyName stringByReplacingOccurrencesOfString:@"&" withString:@"and"]];
+			return [NKFColor strictColorForCompanyName:[lowerCaseCompanyName stringByReplacingOccurrencesOfString:@"&" withString:@"and"]];
 		}
 		
 		for (NSString *word in words) {
@@ -170,6 +167,12 @@
 			}
 		}
 	}
+    
+    
+    NKFColor *universityColor = [NKFColor strictUniversityColorForSchoolName:companyName];
+    if (universityColor) {
+        return universityColor;
+    }
 	
 	return nil;
 }
@@ -701,6 +704,22 @@
 	return [NKFColor colorWithHexString:@"#3aa5dc"];
 }
 
++ (NKFColor *)atandt {
+    return [NKFColor att];
+}
+
++ (NKFColor *)atandt2 {
+    return [NKFColor att2];
+}
+
++ (NKFColor *)atandt3 {
+    return [NKFColor att3];
+}
+
++ (NKFColor *)atandt4 {
+    return [NKFColor att4];
+}
+
 
 + (NKFColor *)atlanticcoast{
 	return [NKFColor colorWithHexString:@"#013ca6"];
@@ -830,6 +849,15 @@
 
 + (NKFColor *)bestbuy2{
 	return [NKFColor colorWithHexString:@"#fff200"];
+}
+
+
++ (NKFColor *)biblegateway {
+	return [NKFColor colorWithRed:0.7f green:0.2f blue:0.3f alpha:1.0f];
+}
+
++ (NKFColor *)bible {
+	return [NKFColor biblegateway];
 }
 
 
@@ -1223,6 +1251,16 @@
 }
 
 
+
++ (NKFColor *)charterone {
+    return [NKFColor citizensbank];
+}
+
++ (NKFColor *)charterone2 {
+    return [NKFColor citizensbank2];
+}
+
+
 + (NKFColor *)chilis {
 	return [NKFColor colorWithRed:14.0f/255.0f green:136.0f/255.0f blue:102.0f/255.0f alpha:1.0f];
 }
@@ -1271,6 +1309,16 @@
 
 + (NKFColor *)citymarket {
 	return [NKFColor colorWithRed:237.0f/255.0f green:28.0f/255.0f blue:36.0f/255.0f alpha:1.0f];
+}
+
+
+
++ (NKFColor *)citizensbank {
+    return [NKFColor colorWithHexString:@"#009966"];
+}
+
++ (NKFColor *)citizensbank2 {
+    return [NKFColor colorWithHexString:@"#014084"];
 }
 
 
@@ -1616,6 +1664,11 @@
 
 + (NKFColor *)disqus{
 	return [NKFColor colorWithHexString:@"#2e9fff"];
+}
+
+
++ (NKFColor *)disney {
+	return [NKFColor colorWithHexString:@"#42CAC4"];
 }
 
 
@@ -2451,6 +2504,11 @@
 }
 
 
++ (NKFColor *)hertz {
+	return [NKFColor colorWithHexString:@"#FFD60D"];
+}
+
+
 + (NKFColor *)hi5{
 	return [NKFColor colorWithHexString:@"#fd9827"];
 }
@@ -2707,6 +2765,15 @@
 }
 
 
++ (NKFColor *)jackinthebox {
+	return [NKFColor red];
+}
+
++ (NKFColor *)jacknthebox {
+	return [NKFColor jackinthebox];
+}
+
+
 + (NKFColor *)jambajuice {
 	return [NKFColor colorWithRed:96.0f/255.0f green:44.0f/255.0f blue:6.0f/255.0f alpha:1.0f];
 }
@@ -2928,6 +2995,11 @@
 
 + (NKFColor *)livestream7{
 	return [NKFColor colorWithHexString:@"#8f499c"];
+}
+
+
++ (NKFColor *)llbean {
+	return [NKFColor colorWithRed:77.0f/255.0f green:110.0f/255.0f blue:59.0f/255.0f alpha:1.0f];
 }
 
 
@@ -3466,6 +3538,87 @@
 
 + (NKFColor *)pandora{
 	return [NKFColor colorWithHexString:@"#005483"];
+}
+
+
++ (NKFColor *)panera {
+	return [NKFColor colorWithHexString:@"#728F33"];
+}
+
++ (NKFColor *)panerabread {
+	return [NKFColor panera];
+}
+
++ (NKFColor *)panerabreadco {
+	return [NKFColor panerabread];
+}
+
++ (NKFColor *)panerabreadcompany {
+	return [NKFColor panerabreadco];
+}
+
++ (NKFColor *)panera2 {
+	return [NKFColor colorWithHexString:@"#B4C985"];
+}
+
++ (NKFColor *)panerabread2 {
+	return [NKFColor panera2];
+}
+
++ (NKFColor *)panerabreadco2 {
+	return [NKFColor panerabread2];
+}
+
++ (NKFColor *)panerabreadcompany2 {
+	return [NKFColor panerabreadco2];
+}
+
++ (NKFColor *)panera3 {
+	return [NKFColor colorWithHexString:@"#ECC56D"];
+}
+
++ (NKFColor *)panerabread3 {
+	return [NKFColor panera3];
+}
+
++ (NKFColor *)panerabreadco3 {
+	return [NKFColor panerabread3];
+}
+
++ (NKFColor *)panerabreadcompany3 {
+	return [NKFColor panerabreadco3];
+}
+
++ (NKFColor *)panera4 {
+	return [NKFColor colorWithHexString:@"#64829B"];
+}
+
++ (NKFColor *)panerabread4 {
+	return [NKFColor panera4];
+}
+
++ (NKFColor *)panerabreadco4 {
+	return [NKFColor panerabread4];
+}
+
++ (NKFColor *)panerabreadcompany4 {
+	return [NKFColor panerabreadco4];
+}
+
++ (NKFColor *)panera5 {
+	return [NKFColor colorWithHexString:@"#EBB479"];
+}
+
++ (NKFColor *)panerabread5 {
+	return [NKFColor panera5];
+}
+
++ (NKFColor *)panerabreadco5 {
+	return [NKFColor panerabread5];
+}
+
++ (NKFColor *)panerabreadcompany5 {
+	return [NKFColor panerabreadco5];
 }
 
 
@@ -4101,6 +4254,11 @@
 }
 
 
++ (NKFColor *)seaworld {
+	return [NKFColor colorWithHexString:@"#323f75"];
+}
+
+
 + (NKFColor *)serta {
 	return [NKFColor colorWithRed:14.0f/255.0f green:40.0f/255.0f blue:91.0f/255.0f alpha:1.0f];
 }
@@ -4329,6 +4487,10 @@
 	return [NKFColor colorWithHexString:@"#ffe100"];
 }
 
++ (NKFColor *)sprint2 {
+    return [NKFColor black];
+}
+
 
 + (NKFColor *)squarecash{
 	return [NKFColor colorWithHexString:@"#28c101"];
@@ -4546,6 +4708,11 @@
 
 + (NKFColor *)tcby {
 	return [NKFColor colorWithRed:229.0f/255.0f green:0.0f/255.0f blue:140.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)tdbank {
+    return [NKFColor colorWithHexString:@"#34B233"];
 }
 
 
@@ -5058,6 +5225,11 @@
 }
 
 
++ (NKFColor *)verse {
+	return [NKFColor bible];
+}
+
+
 + (NKFColor *)viadeo{
 	return [NKFColor colorWithHexString:@"#f07355"];
 }
@@ -5102,6 +5274,27 @@
 
 + (NKFColor *)virginmedia2{
 	return [NKFColor colorWithHexString:@"#222221"];
+}
+
+
++ (NKFColor *)visa {
+	return [NKFColor colorWithHexString:@"#1a1f71"];
+}
+
++ (NKFColor *)visa2 {
+	return [NKFColor colorWithHexString:@"#ffffff"];
+}
+
++ (NKFColor *)visa3 {
+	return [NKFColor colorWithHexString:@"#fdbb0a"];
+}
+
++ (NKFColor *)visa4 {
+	return [NKFColor colorWithHexString:@"#faaa13"];
+}
+
++ (NKFColor *)visa5 {
+	return [NKFColor colorWithHexString:@"#75787b"];
 }
 
 
@@ -5202,6 +5395,25 @@
 }
 
 
++ (NKFColor *)wayfair {
+    return [NKFColor colorWithHexString:@"#864887"];
+}
+
++ (NKFColor *)wayfair2 {
+    return [NKFColor colorWithHexString:@"#864887"];
+}
+
++ (NKFColor *)wayfair3 {
+    return [NKFColor colorWithHexString:@"#864887"];
+}
+
++ (NKFColor *)wayfair4 {
+    return [NKFColor colorWithHexString:@"#864887"];
+}
+
+
+
+
 + (NKFColor *)wechat{
 	return [NKFColor colorWithHexString:@"#7bb32e"];
 }
@@ -5209,6 +5421,23 @@
 
 + (NKFColor *)wegmans {
 	return [NKFColor colorWithRed:62.0f/255.0f green:150.0f/255.0f blue:63.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)wellsfargo {
+    return [NKFColor colorWithHexString:@"#ba0924"];
+}
+
++ (NKFColor *)wellsfargo2 {
+    return [NKFColor colorWithHexString:@"#fdc819"];
+}
+
++ (NKFColor *)wellsfargo3 {
+    return [NKFColor colorWithHexString:@"#cb3a1e"];
+}
+
++ (NKFColor *)wellsfargo4 {
+    return [NKFColor colorWithHexString:@"#f4a525"];
 }
 
 
@@ -5434,6 +5663,11 @@
 }
 
 
++ (NKFColor *)xkcd {
+	return [NKFColor black];
+}
+
+
 + (NKFColor *)yahoo{
 	return [NKFColor colorWithHexString:@"#400191"];
 }
@@ -5648,6 +5882,13 @@
 + (NKFColor *)massachusetts3 {
 	return [NKFColor cranberry];
 }
+
+
++ (NKFColor *)mbta {
+    return [NKFColor colorWithHexString:@"#000000"];
+}
+
+
 
 + (NKFColor *)nevada {
 	return [NKFColor colorWithWhite:192.0f/255.0f alpha:1.0f];

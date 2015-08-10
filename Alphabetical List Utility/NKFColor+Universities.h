@@ -10,4 +10,6 @@
 
 @interface NKFColor (Universities)
 
++ (NKFColor *)strictUniversityColorForSchoolName:(NSString *)schoolName;
+
 @end

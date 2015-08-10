@@ -12,6 +12,7 @@
 
 // Company colors
 + (NKFColor *)colorForCompanyName:(NSString *)companyName;
++ (NSArray *)colorsForCompanyName:(NSString *)companyName;
 + (NKFColor *)strictColorForCompanyName:(NSString *)companyName;
 + (NSAttributedString *)attributedStringForCompanyName:(NSString *)companyName;
 
