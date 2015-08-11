@@ -72,8 +72,7 @@ static const char * af_imageRequestOperationKeyForState(UIControlState state) {
 }
 
 - (void)af_setImageRequestOperation:(AFHTTPRequestOperation *)imageRequestOperation
-                           forState:(UIControlState)state
-{
+                           forState:(UIControlState)state {
     objc_setAssociatedObject(self, af_imageRequestOperationKeyForState(state), imageRequestOperation, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
@@ -103,8 +102,7 @@ static const char * af_backgroundImageRequestOperationKeyForState(UIControlState
 }
 
 - (void)af_setBackgroundImageRequestOperation:(AFHTTPRequestOperation *)imageRequestOperation
-                                     forState:(UIControlState)state
-{
+                                     forState:(UIControlState)state {
     objc_setAssociatedObject(self, af_backgroundImageRequestOperationKeyForState(state), imageRequestOperation, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
@@ -147,15 +145,13 @@ static const char * af_backgroundImageRequestOperationKeyForState(UIControlState
 #pragma mark -
 
 - (void)setImageForState:(UIControlState)state
-                 withURL:(NSURL *)url
-{
+                 withURL:(NSURL *)url {
     [self setImageForState:state withURL:url placeholderImage:nil];
 }
 
 - (void)setImageForState:(UIControlState)state
                  withURL:(NSURL *)url
-        placeholderImage:(UIImage *)placeholderImage
-{
+        placeholderImage:(UIImage *)placeholderImage {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];
 
@@ -166,8 +162,7 @@ static const char * af_backgroundImageRequestOperationKeyForState(UIControlState
           withURLRequest:(NSURLRequest *)urlRequest
         placeholderImage:(UIImage *)placeholderImage
                  success:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image))success
-                 failure:(void (^)(NSError *error))failure
-{
+                 failure:(void (^)(NSError *error))failure {
     [self cancelImageRequestOperationForState:state];
 
     UIImage *cachedImage = [[[self class] sharedImageCache] cachedImageForRequest:urlRequest];
@@ -213,15 +208,13 @@ static const char * af_backgroundImageRequestOperationKeyForState(UIControlState
 #pragma mark -
 
 - (void)setBackgroundImageForState:(UIControlState)state
-                           withURL:(NSURL *)url
-{
+                           withURL:(NSURL *)url {
     [self setBackgroundImageForState:state withURL:url placeholderImage:nil];
 }
 
 - (void)setBackgroundImageForState:(UIControlState)state
                            withURL:(NSURL *)url
-                  placeholderImage:(UIImage *)placeholderImage
-{
+                  placeholderImage:(UIImage *)placeholderImage {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request addValue:@"image/*" forHTTPHeaderField:@"Accept"];
 
@@ -232,8 +225,7 @@ static const char * af_backgroundImageRequestOperationKeyForState(UIControlState
                     withURLRequest:(NSURLRequest *)urlRequest
                   placeholderImage:(UIImage *)placeholderImage
                            success:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image))success
-                           failure:(void (^)(NSError *error))failure
-{
+                           failure:(void (^)(NSError *error))failure {
     [self cancelBackgroundImageRequestOperationForState:state];
 
     UIImage *cachedImage = [[[self class] sharedImageCache] cachedImageForRequest:urlRequest];

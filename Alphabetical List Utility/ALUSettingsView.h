@@ -22,6 +22,7 @@
 - (void)selectLocation;
 - (void)selectContact;
 - (void)showEmojiView;
+- (void)showDrawingView;
 
 @end
 

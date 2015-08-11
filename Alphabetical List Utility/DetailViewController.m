@@ -17,6 +17,7 @@
 
 #import "ALUSettingsView.h"
 #import "ALUEmojiImageViewController.h"
+#import "ALUDrawingViewController.h"
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
@@ -31,7 +32,7 @@ static CGFloat const ALUDetailViewControllerMinFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
-@interface DetailViewController () <ALUSettingsViewDelegate, ALUEmojiImageViewControllerDelegate>
+@interface DetailViewController () <ALUSettingsViewDelegate, ALUEmojiImageViewControllerDelegate, ALUDrawingViewControllerDelegate>
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
 
@@ -373,7 +374,9 @@ static CGFloat const borderWidth = 10.0f;
         }
         
         [iconOptions addObject:@"Type text for Icon"];
-        
+		
+		[iconOptions addObject:@"Draw Icon"];
+		
         if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
             DLog(@"Use web icon added");
         } else {
@@ -1037,6 +1040,18 @@ static CGFloat const borderWidth = 10.0f;
                      }];
 }
 
+- (void)showDrawingView {
+	ALUDrawingViewController *drawingViewController = [[ALUDrawingViewController alloc] init];
+	drawingViewController.delegate = self;
+	drawingViewController.currentColor = self.titleViewButton.titleLabel.textColor;
+	
+	[self presentViewController:drawingViewController
+					   animated:YES
+					 completion:^{
+						 
+					 }];
+}
+
 #pragma mark - Messaging Delegate
 
 - (void)showEmail:(BOOL)includeAttachments {
@@ -1188,6 +1203,15 @@ static CGFloat const borderWidth = 10.0f;
         [[ALUDataManager sharedDataManager] saveImage:image forCompanyName:_detailItem];
         [[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
     }
+}
+
+#pragma mark - Drawing Delegate
+
+- (void)drawnImage:(UIImage *)image {
+	if (image) {
+		[[ALUDataManager sharedDataManager] saveImage:image forCompanyName:_detailItem];
+		[[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
+	}
 }
 
 @end

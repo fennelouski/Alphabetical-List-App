@@ -88,8 +88,7 @@
 - (void)loadRequest:(NSURLRequest *)request
            progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
             success:(NSString * (^)(NSHTTPURLResponse *response, NSString *HTML))success
-            failure:(void (^)(NSError *error))failure
-{
+            failure:(void (^)(NSError *error))failure {
     [self loadRequest:request MIMEType:nil textEncodingName:nil progress:progress success:^NSData *(NSHTTPURLResponse *response, NSData *data) {
         NSStringEncoding stringEncoding = NSUTF8StringEncoding;
         if (response.textEncodingName) {
@@ -113,8 +112,7 @@
    textEncodingName:(NSString *)textEncodingName
            progress:(void (^)(NSUInteger bytesWritten, long long totalBytesWritten, long long totalBytesExpectedToWrite))progress
             success:(NSData * (^)(NSHTTPURLResponse *response, NSData *data))success
-            failure:(void (^)(NSError *error))failure
-{
+            failure:(void (^)(NSError *error))failure {
     NSParameterAssert(request);
 
     if (self.af_HTTPRequestOperation) {

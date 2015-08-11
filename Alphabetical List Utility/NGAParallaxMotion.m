@@ -18,8 +18,7 @@ static void * const kNGAParallaxMotionEffectGroupKey = (void*)&kNGAParallaxMotio
 #warning DISABLED WITHOUT IOS7 SDK
 #endif
 
--(void)setParallaxIntensity:(CGFloat)parallaxDepth
-{
+-(void)setParallaxIntensity:(CGFloat)parallaxDepth {
     
     if (self.parallaxIntensity == parallaxDepth)
         return;
@@ -84,8 +83,7 @@ static void * const kNGAParallaxMotionEffectGroupKey = (void*)&kNGAParallaxMotio
 #endif
 }
 
--(CGFloat)parallaxIntensity
-{
+-(CGFloat)parallaxIntensity {
     NSNumber * val = objc_getAssociatedObject(self, kNGAParallaxDepthKey);
     if (!val)
         return 0.0;
@@ -103,13 +101,11 @@ static void * const kNGAParallaxMotionEffectGroupKey = (void*)&kNGAParallaxMotio
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
 
--(UIMotionEffectGroup*)nga_parallaxMotionEffectGroup
-{
+-(UIMotionEffectGroup*)nga_parallaxMotionEffectGroup {
     return objc_getAssociatedObject(self, kNGAParallaxMotionEffectGroupKey);
 }
 
--(void)nga_setParallaxMotionEffectGroup:(UIMotionEffectGroup*)group
-{
+-(void)nga_setParallaxMotionEffectGroup:(UIMotionEffectGroup*)group {
     objc_setAssociatedObject(self, kNGAParallaxMotionEffectGroupKey, group, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     NSAssert( group == objc_getAssociatedObject(self, kNGAParallaxMotionEffectGroupKey), @"set didn't work" );
 }

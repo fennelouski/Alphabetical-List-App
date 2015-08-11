@@ -66,8 +66,7 @@
 
 @implementation AFActivityIndicatorViewNotificationObserver
 
-- (instancetype)initWithActivityIndicatorView:(UIActivityIndicatorView *)activityIndicatorView
-{
+- (instancetype)initWithActivityIndicatorView:(UIActivityIndicatorView *)activityIndicatorView {
     self = [super init];
     if (self) {
         _activityIndicatorView = activityIndicatorView;

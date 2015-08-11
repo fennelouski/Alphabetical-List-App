@@ -15,8 +15,7 @@
 
 static NSMutableDictionary *_fonts = nil;
 
-+ (instancetype)fontFromCacheWithFontName:(NSString *)fontName size:(CGFloat)size;
-{
++ (instancetype)fontFromCacheWithFontName:(NSString *)fontName size:(CGFloat)size; {
   if ( !_fonts ) {
 	_fonts = [[NSMutableDictionary alloc] init];
   }
@@ -33,8 +32,7 @@ static NSMutableDictionary *_fonts = nil;
   return font;
 }
 
-+ (instancetype)typeDepotCentraleSansFontWithSize:(CGFloat)size fontType:(FontType)fontType;
-{
++ (instancetype)typeDepotCentraleSansFontWithSize:(CGFloat)size fontType:(FontType)fontType; {
   NSString *fontName = nil;
   
   switch (fontType) {
@@ -53,8 +51,7 @@ static NSMutableDictionary *_fonts = nil;
   return [self fontFromCacheWithFontName:fontName size:size];
 }
 
-+ (instancetype)helveticaNeueFontWithSize:(CGFloat)size fontType:(FontType)fontType;
-{
++ (instancetype)helveticaNeueFontWithSize:(CGFloat)size fontType:(FontType)fontType; {
   NSString *fontName = @"HelveticaNeueLTStd-Th";
   
   return [self fontFromCacheWithFontName:fontName size:size];

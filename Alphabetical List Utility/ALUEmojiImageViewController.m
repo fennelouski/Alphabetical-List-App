@@ -18,7 +18,7 @@
 @property (nonatomic, strong) UIImageView *imageView;
 
 @property (nonatomic, strong) UIToolbar *inputAccessoryView;
-@property (nonatomic, strong) UIBarButtonItem *editButton, *doneButton;
+@property (nonatomic, strong) UIBarButtonItem *editButton, *cancelButton, *doneButton;
 
 @property (nonatomic, strong) UILabel *label;
 
@@ -54,24 +54,26 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 - (UITextField *)textField {
     if (!_textField) {
         _textField = [[UITextField alloc] initWithFrame:CGRectMake(0.0f,
-                                                                   kStatusBarHeight,
+                                                                   0.0f,
                                                                    self.view.frame.size.width,
-                                                                   ALUEmojiImageViewControllerTextFieldHeight)];
+                                                                   ALUEmojiImageViewControllerTextFieldHeight + kStatusBarHeight)];
         _textField.delegate = self;
         _textField.placeholder = @"Text for icon";
         _textField.textAlignment = NSTextAlignmentCenter;
         _textField.autocapitalizationType = UITextAutocapitalizationTypeAllCharacters;
         _textField.returnKeyType = UIReturnKeyDone;
         _textField.inputAccessoryView = self.inputAccessoryView;
-        _textField.textColor = [NKFColor whiteColor];
+        _textField.textColor = [NKFColor blackColor];
+		_textField.backgroundColor = [NKFColor whiteColor];
+		_textField.tintColor = [NKFColor appColor];
         
         CAGradientLayer *gradientLayer = [CAGradientLayer layer];
         gradientLayer.frame = CGRectMake(0.0f,
                                          0.0f,
                                          LONGER_SIDE,
                                          _textField.frame.size.height);
-        gradientLayer.colors = [NSArray arrayWithObjects:(id)[[NKFColor clearColor] CGColor], (id)[[NKFColor whiteColor] CGColor], (id)[[NKFColor clearColor] CGColor], nil];
-        gradientLayer.startPoint = CGPointMake(0.0f, 0.0f);
+        gradientLayer.colors = [NSArray arrayWithObjects:(id)[[[NKFColor whiteColor] colorWithAlphaComponent:0.5f] CGColor], (id)[[NKFColor clearColor] CGColor], nil];
+        gradientLayer.startPoint = CGPointMake(0.0f, 0.7f);
         gradientLayer.endPoint = CGPointMake(0.0f, 1.0f);
         
         _textField.layer.mask = gradientLayer;
@@ -100,6 +102,8 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
         _label.font = [UIFont boldSystemFontOfSize:self.imageView.frame.size.height];
         _label.adjustsFontSizeToFitWidth = YES;
         _label.textColor = [UIColor whiteColor];
+		_label.textAlignment = NSTextAlignmentCenter;
+		_label.contentMode = UIViewContentModeCenter;
     }
     
     return _label;
@@ -117,7 +121,7 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
     if (!_inputAccessoryView) {
         _inputAccessoryView = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, kScreenHeight, kScreenWidth, ALUEmojiImageViewControllerTextFieldHeight)];
         _inputAccessoryView.tintColor = [NKFColor appColor];
-        _inputAccessoryView.items = @[self.editButton, [self flexibleSpace], self.doneButton];
+        _inputAccessoryView.items = @[self.editButton, [self flexibleSpace], self.cancelButton, [self flexibleSpace], self.doneButton];
     }
     
     return _inputAccessoryView;
@@ -132,6 +136,16 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
     }
     
     return _editButton;
+}
+
+- (UIBarButtonItem *)cancelButton {
+	if (!_cancelButton) {
+		_cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+																	  target:self
+																	  action:@selector(cancelButtonTouched)];
+	}
+	
+	return _cancelButton;
 }
 
 - (UIBarButtonItem *)doneButton {
@@ -160,6 +174,13 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 - (void)editButtonTouched {
     DLog(@"Edit");
     [self.textField becomeFirstResponder];
+}
+
+- (void)cancelButtonTouched {
+	[self dismissViewControllerAnimated:YES
+							 completion:^{
+								 
+							 }];
 }
 
 - (void)doneButtonTouched {

@@ -27,6 +27,12 @@
 		27A8C26E1B4AED2200E5A3D9 /* NGAParallaxMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2681B4AED2200E5A3D9 /* NGAParallaxMotion.m */; };
 		27A8C26F1B4AED2200E5A3D9 /* NSString+AppFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */; };
 		27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */; };
+		27CAD7A91B7A6A6600D67DDD /* ALUDrawingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */; };
+		27CAD7B51B7A75A600D67DDD /* LinearInterpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */; };
+		27CAD7B91B7A8E4200D67DDD /* ALUColorPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */; };
+		27CAD7BE1B7A91A500D67DDD /* Color-gradient.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */; };
+		27CAD7BF1B7A91A500D67DDD /* Color-gradient@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */; };
+		27CAD7C01B7A91A500D67DDD /* Color-gradient@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */; };
 		27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CCD54C1B78E544007EEAD0 /* ALUPassage.m */; };
 		27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */; };
 		27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */; };
@@ -130,6 +136,15 @@
 		27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+AppFunctions.m"; sourceTree = "<group>"; };
 		27A8C2701B4AFEE300E5A3D9 /* UIColor+BrandColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+BrandColors.h"; sourceTree = "<group>"; };
 		27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+BrandColors.m"; sourceTree = "<group>"; };
+		27CAD7A71B7A6A6600D67DDD /* ALUDrawingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUDrawingViewController.h; sourceTree = "<group>"; };
+		27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUDrawingViewController.m; sourceTree = "<group>"; };
+		27CAD7B01B7A75A600D67DDD /* LinearInterpView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinearInterpView.h; sourceTree = "<group>"; };
+		27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinearInterpView.m; sourceTree = "<group>"; };
+		27CAD7B71B7A8E4200D67DDD /* ALUColorPickerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUColorPickerView.h; sourceTree = "<group>"; };
+		27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUColorPickerView.m; sourceTree = "<group>"; };
+		27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient.png"; path = "Graphics/Color-gradient.png"; sourceTree = "<group>"; };
+		27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@2x.png"; path = "Graphics/Color-gradient@2x.png"; sourceTree = "<group>"; };
+		27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@3x.png"; path = "Graphics/Color-gradient@3x.png"; sourceTree = "<group>"; };
 		27CCD54B1B78E544007EEAD0 /* ALUPassage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPassage.h; sourceTree = "<group>"; };
 		27CCD54C1B78E544007EEAD0 /* ALUPassage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPassage.m; sourceTree = "<group>"; };
 		27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon.png"; path = "Graphics/Plus-icon.png"; sourceTree = "<group>"; };
@@ -352,6 +367,27 @@
 			name = Categories;
 			sourceTree = "<group>";
 		};
+		27CAD7B61B7A75AD00D67DDD /* Drawing Views */ = {
+			isa = PBXGroup;
+			children = (
+				27CAD7B01B7A75A600D67DDD /* LinearInterpView.h */,
+				27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */,
+				27CAD7B71B7A8E4200D67DDD /* ALUColorPickerView.h */,
+				27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */,
+			);
+			name = "Drawing Views";
+			sourceTree = "<group>";
+		};
+		27CAD7BA1B7A919D00D67DDD /* Colors */ = {
+			isa = PBXGroup;
+			children = (
+				27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */,
+				27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */,
+				27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */,
+			);
+			name = Colors;
+			sourceTree = "<group>";
+		};
 		27E6D7FC1B5D9EAB00D7CC19 /* AFNetworking */ = {
 			isa = PBXGroup;
 			children = (
@@ -405,6 +441,7 @@
 		27F2CA8F1B756346006918CC /* Graphics */ = {
 			isa = PBXGroup;
 			children = (
+				27CAD7BA1B7A919D00D67DDD /* Colors */,
 				27F2CA901B75634C006918CC /* Icons */,
 			);
 			name = Graphics;
@@ -438,6 +475,8 @@
 				27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */,
 				80386B191B796EF1000EEC85 /* ALUEmojiImageViewController.h */,
 				80386B1A1B796EF1000EEC85 /* ALUEmojiImageViewController.m */,
+				27CAD7A71B7A6A6600D67DDD /* ALUDrawingViewController.h */,
+				27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */,
 			);
 			name = "View Controllers";
 			sourceTree = "<group>";
@@ -457,6 +496,7 @@
 				803127981B77E8F000033031 /* ALUBackgroundView.m */,
 				805E83F01B77EFDD00D362C3 /* ALUPatternedView.h */,
 				805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */,
+				27CAD7B61B7A75AD00D67DDD /* Drawing Views */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -565,6 +605,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */,
+				27CAD7C01B7A91A500D67DDD /* Color-gradient@3x.png in Resources */,
+				27CAD7BF1B7A91A500D67DDD /* Color-gradient@2x.png in Resources */,
 				27CCD5531B78FDEF007EEAD0 /* Plus-icon@3x.png in Resources */,
 				27F2CA961B756355006918CC /* Edit-icon@3x.png in Resources */,
 				27F2CA951B756355006918CC /* Edit-icon@2x.png in Resources */,
@@ -573,6 +615,7 @@
 				27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */,
 				27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */,
 				27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */,
+				27CAD7BE1B7A91A500D67DDD /* Color-gradient.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -590,6 +633,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27CAD7B91B7A8E4200D67DDD /* ALUColorPickerView.m in Sources */,
 				27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */,
 				805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */,
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
@@ -623,9 +667,11 @@
 				906ED6B21B6A5C8B00362BC6 /* NKFColor+Universities.m in Sources */,
 				27E6D8131B5D9EB500D7CC19 /* AFNetworkReachabilityManager.m in Sources */,
 				90BFD9751B67258600CA617B /* ALUPointAnnotation.m in Sources */,
+				27CAD7A91B7A6A6600D67DDD /* ALUDrawingViewController.m in Sources */,
 				27E6D8411B605B0000D7CC19 /* NKFColor+Dates.m in Sources */,
 				27A8C26D1B4AED2200E5A3D9 /* UIFont+Custom.m in Sources */,
 				27E6D82F1B5D9ED000D7CC19 /* UIImageView+AFNetworking.m in Sources */,
+				27CAD7B51B7A75A600D67DDD /* LinearInterpView.m in Sources */,
 				27A8C2291B4AD62800E5A3D9 /* main.m in Sources */,
 				27A8C26E1B4AED2200E5A3D9 /* NGAParallaxMotion.m in Sources */,
 				27E6D8101B5D9EB500D7CC19 /* AFHTTPRequestOperation.m in Sources */,

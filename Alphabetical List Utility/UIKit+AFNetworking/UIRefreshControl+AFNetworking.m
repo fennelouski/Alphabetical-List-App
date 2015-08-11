@@ -67,8 +67,7 @@
 
 @implementation AFRefreshControlNotificationObserver
 
-- (instancetype)initWithActivityRefreshControl:(UIRefreshControl *)refreshControl
-{
+- (instancetype)initWithActivityRefreshControl:(UIRefreshControl *)refreshControl {
     self = [super init];
     if (self) {
         _refreshControl = refreshControl;

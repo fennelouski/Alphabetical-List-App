@@ -509,6 +509,8 @@
         [self selectContact];
     } else if ([lowercaseCellText containsString:@"text for icon"]) {
         [self showEmojiController];
+	} else if ([lowercaseCellText containsString:@"draw"]) {
+		[self showDrawingController];
 	} else {
 		DLog(@"Selected %@", cell.textLabel.text);
 	}
@@ -598,5 +600,13 @@
         [self hide];
     }
 }
+
+- (void)showDrawingController {
+	if ([self.delegateSettings respondsToSelector:@selector(showDrawingView)]) {
+		[self.delegateSettings showDrawingView];
+		[self hide];
+	}
+}
+
 
 @end
