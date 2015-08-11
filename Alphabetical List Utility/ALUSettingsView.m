@@ -212,7 +212,7 @@
 			[self.delegateSettings showListIconChanged];
 		}
 	} else {
-		NSLog(@"Switch not recognized");
+		DLog(@"Switch not recognized");
 	}
 }
 
@@ -376,15 +376,15 @@
     if (totalTimeTranspired > tooLongToWaitTime) {
         if (totalTimeTranspired < maxTimeToWaitForSingleBlur && iterations > minIterations) {
             [defaults setFloat:(iterations - 1) forKey:@"maxIterationsTotalKey"];
-            NSLog(@"Decreasing the number of blur transitions to improve transition time when showing the settings view %f \t\t%d", totalTimeTranspired, (int)maxIterationsTotal);
+            DLog(@"Decreasing the number of blur transitions to improve transition time when showing the settings view %f \t\t%d", totalTimeTranspired, (int)maxIterationsTotal);
         } else {
-            NSLog(@"We're a little behind now and there's not much that can be done...unfortunately %f", totalTimeTranspired);
+            DLog(@"We're a little behind now and there's not much that can be done...unfortunately %f", totalTimeTranspired);
         }
     } else if (totalTimeTranspired < reasonableTimeToWait) {
         [defaults setFloat:(iterations + 1) forKey:@"maxIterationsTotalKey"];
-        NSLog(@"Increasing the number of blur transitions to improve the appearance of the settings view %f \t\t%f", totalTimeTranspired, maxIterationsTotal);
+        DLog(@"Increasing the number of blur transitions to improve the appearance of the settings view %f \t\t%f", totalTimeTranspired, maxIterationsTotal);
     } else {
-//        NSLog(@"We're good %f \t\t%f", totalTimeTranspired, maxIterationsTotal);
+//        DLog(@"We're good %f \t\t%f", totalTimeTranspired, maxIterationsTotal);
     }
     
     [self performSelector:@selector(addCoverUpView) withObject:self afterDelay:duration];
@@ -404,7 +404,7 @@
 
 - (void)tapped {
     if (self.isShowing && !self.isHidden) {
-        NSLog(@"Hiding from tap!");
+        DLog(@"Hiding from tap!");
         [self hide];
     }
 }
@@ -507,8 +507,10 @@
         [self selectLocation];
     } else if ([lowercaseCellText containsString:@"contact"]) {
         [self selectContact];
+    } else if ([lowercaseCellText containsString:@"text for icon"]) {
+        [self showEmojiController];
 	} else {
-		NSLog(@"Selected %@", cell.textLabel.text);
+		DLog(@"Selected %@", cell.textLabel.text);
 	}
 }
 
@@ -518,7 +520,7 @@
 	if ([self.delegateSettings respondsToSelector:@selector(takePhoto)]) {
 		[self.delegateSettings takePhoto];
 	} else {
-		NSLog(@"delegateSettings not set. Does not respond to \"takePhoto\"");
+		DLog(@"delegateSettings not set. Does not respond to \"takePhoto\"");
 	}
 }
 
@@ -526,7 +528,7 @@
 	if ([self.delegateSettings respondsToSelector:@selector(pickPhoto)]) {
 		[self.delegateSettings pickPhoto];
 	} else {
-		NSLog(@"delegateSettings not set. Does not respond to \"pickPhoto\"");
+		DLog(@"delegateSettings not set. Does not respond to \"pickPhoto\"");
 	}
 }
 
@@ -535,7 +537,7 @@
         [self.delegateSettings useWebIcon];
         [self hide];
     } else {
-        NSLog(@"delegateSettings not set. Does not respond to \"useWebIcon\"");
+        DLog(@"delegateSettings not set. Does not respond to \"useWebIcon\"");
     }
 }
 
@@ -585,9 +587,16 @@
 	if (self.listName) {
 		[[ALUDataManager sharedDataManager] removeReminderForListTitle:self.listName];
 	} else {
-		NSLog(@"There's no listName!");
+		DLog(@"There's no listName!");
 	}
 	[self hide];
+}
+
+- (void)showEmojiController {
+    if ([self.delegateSettings respondsToSelector:@selector(showEmojiView)]) {
+        [self.delegateSettings showEmojiView];
+        [self hide];
+    }
 }
 
 @end

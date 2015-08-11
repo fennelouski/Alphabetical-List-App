@@ -14,10 +14,6 @@
 #import "ALUDataManager.h"
 #import "UIImage+PixelInformation.h"
 
-#define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
-#define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-
 static CGFloat const ALUMasterTableViewCellTextViewMaxFontSize = 30.0f;
 
 static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
@@ -254,6 +250,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 																			40.0f,
 																			40.0f)];
         _accessoryImageView.clipsToBounds = YES;
+        _accessoryImageView.contentMode = UIViewContentModeScaleAspectFit;
 	}
 	
 	return _accessoryImageView;

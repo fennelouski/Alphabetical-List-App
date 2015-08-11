@@ -21,6 +21,7 @@
 - (void)sendEmail;
 - (void)selectLocation;
 - (void)selectContact;
+- (void)showEmojiView;
 
 @end
 
