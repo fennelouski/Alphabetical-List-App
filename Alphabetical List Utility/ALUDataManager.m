@@ -23,6 +23,7 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 static NSString * const adjustedFontSizeKey = @"This is my font size Key for changing the font size of the card view";
 
 static CGFloat const screenSizeLimit = 668.0f;
+static CGFloat const screenSizeUpperLimit = 767.0f;
 
 @implementation ALUDataManager {
 	NSMutableArray *_lists;
@@ -76,7 +77,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		_useCardView = kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit;
+		_useCardView = (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) || (kScreenHeight > screenSizeUpperLimit && kScreenWidth > screenSizeUpperLimit);
 		_shouldShowStatusBar = YES;
         
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
@@ -119,7 +120,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		for (CLRegion *region in monitoredRegions) {
 			if (![self listWithTitle:region.identifier]) {
 				[_locationManager stopMonitoringForRegion:region];
-				NSLog(@"List is no longer recognized");
+				DLog(@"List is no longer recognized");
 			}
 		}
     }
@@ -145,7 +146,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		NSString *listTitle = @"Welcome!";
 		
 		NSString *deviceType = [UIDevice currentDevice].model;
-		NSLog(@"deviceType: %@", deviceType);
+		DLog(@"deviceType: %@", deviceType);
 		if ([deviceType rangeOfString:@"iPhone"].location != NSNotFound) {
 			
 			if (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) {
@@ -175,7 +176,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		[self checkForBibleVerseOfTheDay];
 		return NO;
 	} else {
-		NSLog(@"All List titles: %@", _lists);
+		DLog(@"All List titles: %@", _lists);
 	}
 	
 	return YES;
@@ -183,7 +184,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 
 - (void)removeList:(NSString *)listTitle {
 	if (![_lists containsObject:listTitle]) {
-		NSLog(@"List does NOT exist...cannot remove");
+		DLog(@"List does NOT exist...cannot remove");
 	}
 	
 	[_lists removeObject:listTitle];
@@ -191,16 +192,16 @@ static CGFloat const screenSizeLimit = 668.0f;
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults removeObjectForKey:listTitle];
 	[self updateListsInStorage];
-	NSLog(@"All List titles:\t%@", _lists);
+	DLog(@"All List titles:\t%@", _lists);
 	[self performSelector:@selector(addDefaultList) withObject:self afterDelay:0.0f];
 }
 
 - (void)saveList:(NSString *)list withTitle:(NSString *)title {
 	if (!list) {
-		NSLog(@"List must exist");
+		DLog(@"List must exist");
 		return;
 	} else if (!title || title.length == 0) {
-		NSLog(@"Title must exist");
+		DLog(@"Title must exist");
 		return;
 	}
     
@@ -258,7 +259,8 @@ static CGFloat const screenSizeLimit = 668.0f;
     }
     
     if (companyNameURLString.length < 7) {
-        return nil;
+        DLog(@"Company name is too short: %@", companyNameURLString);
+//        return nil;
     }
 
 	// Use the default session configuration for the manager (background downloads must use the delegate APIs)
@@ -284,7 +286,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		NSData *imageData = [NSData dataWithContentsOfURL:saveLocation];
 		
 		if (!imageData) {
-//			NSLog(@"No image data!");
+//			DLog(@"No image data!");
 		} else {
 			// Get a UIImage object from the image data.
 			UIImage *image = [UIImage imageWithData:imageData];
@@ -294,10 +296,10 @@ static CGFloat const screenSizeLimit = 668.0f;
                     [_companyLogos setObject:image forKey:companyName];
 					return image;
 				} else {
-					NSLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
+					DLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
 				}
 			} else {
-				NSLog(@"I'm missing the image for %@", companyNameURLString);
+				DLog(@"I'm missing the image for %@", companyNameURLString);
 			}
 		}
 	}
@@ -339,11 +341,11 @@ static CGFloat const screenSizeLimit = 668.0f;
 				NSData *imageData = [NSData dataWithContentsOfURL:filePath];
 				
 				if (!filePath) {
-					NSLog(@"No filepath");
+					DLog(@"No filepath");
 				}
 				
 				if (!imageData) {
-					NSLog(@"No image data!");
+					DLog(@"No image data!");
 				}
 				
 				// Get a UIImage object from the image data.
@@ -353,10 +355,10 @@ static CGFloat const screenSizeLimit = 668.0f;
 						[_companyLogos setObject:image forKey:companyNameURLString];
                         [_companyLogos setObject:image forKey:companyName];
 					} else {
-						NSLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
+						DLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
 					}
 				} else {
-					NSLog(@"I'm missing the image for %@", companyNameURLString);
+					DLog(@"I'm missing the image for %@", companyNameURLString);
 				}
 			}
 		});
@@ -388,7 +390,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 //		NSProgress *progress = (NSProgress *)object;
 		// localizedDescription gives a string appropriate for display to the user, i.e. "42% completed"
 //		self.progressLabel.text = progress.localizedDescription;
-//		NSLog(@"%@", progress.localizedDescription);
+//		DLog(@"%@", progress.localizedDescription);
 	} else {
 		[super observeValueForKeyPath:keyPath
 							 ofObject:object
@@ -558,6 +560,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 }
 
 - (void)saveImage:(UIImage *)image forCompanyName:(NSString *)companyName {
+    DLog(@"Saving image for %@", companyName);
     NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
     if (!companyNameURLString) {
         companyNameURLString = [self formattedListTitle:companyName];
@@ -571,9 +574,23 @@ static CGFloat const screenSizeLimit = 668.0f;
     [_companyLogos setObject:image forKey:companyNameURLString];
 	
 	imageData = [NSData dataWithContentsOfURL:filePath];
+    
+    if (!imageData) {
+        DLog(@"Image data is not saved for %@", companyName);
+    } else {
+        [self performSelector:@selector(checkForDataAtFilePath:) withObject:filePath afterDelay:0.5f];
+    }
+}
+
+- (void)checkForDataAtFilePath:(NSURL *)filePath {
+    NSData *imageData = [NSData dataWithContentsOfURL:filePath];
+    if (!imageData) {
+        DLog(@"Now the data is is missing for %@", filePath);
+    }
 }
 
 - (void)removeImageForCompanyName:(NSString *)companyName {
+    DLog(@"Removing image for %@", companyName);
     [_companyLogos removeObjectForKey:companyName];
     
     NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
@@ -589,8 +606,8 @@ static CGFloat const screenSizeLimit = 668.0f;
     [manager removeItemAtURL:filePath error:&error];
     
     if (error) {
-		NSLog(@"%s", __PRETTY_FUNCTION__);
-        NSLog(@"removeImageForCompanyName Error: %@", error.localizedDescription);
+		DLog(@"%s", __PRETTY_FUNCTION__);
+        DLog(@"removeImageForCompanyName Error: %@", error.localizedDescription);
     }
 }
 
@@ -619,7 +636,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		[defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@listModeEnabled", title]];
 		[_listModes setObject:@(listMode) forKey:title];
 	} else {
-		NSLog(@"setListMode: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
+		DLog(@"setListMode: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 }
 
@@ -634,7 +651,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 			return listModeEnabled;
 		}
 	} else {
-		NSLog(@"listModeForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+		DLog(@"listModeForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 	
 	return NO;
@@ -646,7 +663,7 @@ static CGFloat const screenSizeLimit = 668.0f;
         [defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
         [_listModes setObject:@(listMode) forKey:title];
     } else {
-        NSLog(@"setAlphabetize: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
+        DLog(@"setAlphabetize: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
 }
 
@@ -661,7 +678,7 @@ static CGFloat const screenSizeLimit = 668.0f;
             return listModeEnabled;
         }
     } else {
-        NSLog(@"alphabetizeForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+        DLog(@"alphabetizeForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
     
     return NO;
@@ -677,7 +694,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 		[defaults setBool:!showImage forKey:[NSString stringWithFormat:@"%@showImageInList", title]];
 		[_showListImages setObject:@(showImage) forKey:title];
 	} else {
-		NSLog(@"setShowImage: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
+		DLog(@"setShowImage: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 }
 
@@ -692,7 +709,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 			return listModeEnabled;
 		}
 	} else {
-		NSLog(@"showImageForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+		DLog(@"showImageForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
 	}
 	
 	return NO;
@@ -711,7 +728,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 			[self imageForCompanyName:title];
 		}
     } else {
-        NSLog(@"setUseWebIcon: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
+        DLog(@"setUseWebIcon: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
 }
 
@@ -726,7 +743,7 @@ static CGFloat const screenSizeLimit = 668.0f;
             return useWebIcon;
         }
     } else {
-        NSLog(@"useWebIconForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
+        DLog(@"useWebIconForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
     
     return NO;
@@ -750,7 +767,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 	NSString *formattedListTitle = [self formattedListTitle:listTitle];
 	NSString *urlString = [[self urlDictionary] objectForKey:formattedListTitle];
 	if (urlString) {
-		NSLog(@"I should try calling %@", urlString);
+		DLog(@"I should try calling %@", urlString);
 		
 		return YES;
 	}
@@ -763,7 +780,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 	
     NSURL *url = [NSURL URLWithString:urlString];
     
-    NSLog(@"I'm ready to call \"%@\"", url);
+    DLog(@"I'm ready to call \"%@\"", url);
 }
 
 - (NSDictionary *)dictionaryForTitle:(NSString *)listTitle {
@@ -771,13 +788,13 @@ static CGFloat const screenSizeLimit = 668.0f;
 	
 	if (apiResponseDictionary) {
 		if (![apiResponseDictionary isKindOfClass:[NSDictionary class]]) {
-			NSLog(@"Response for %@ is kindOfClass: %@", [self formattedListTitle:listTitle], [apiResponseDictionary class]);
+			DLog(@"Response for %@ is kindOfClass: %@", [self formattedListTitle:listTitle], [apiResponseDictionary class]);
 		}
 		
 		return apiResponseDictionary;
 	}
 	
-	NSLog(@"No response found %@", [self formattedListTitle:listTitle]);
+	DLog(@"No response found %@", [self formattedListTitle:listTitle]);
 	return @{};
 }
 
@@ -894,7 +911,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 			break;
 		}
 	} else {
-		NSLog(@"The annotation doesn't exist for the listTitle %@", listTitle);
+		DLog(@"The annotation doesn't exist for the listTitle %@", listTitle);
 	}
     
     [_geolocationReminders removeObjectForKey:formattedListTitle];
@@ -934,11 +951,11 @@ static CGFloat const screenSizeLimit = 668.0f;
 	[errorsString appendString:currentErrorString];
 	[defaults setObject:currentErrorString forKey:previousErrorsKey];
 	
-	NSLog(@"currentErrorString: %@", currentErrorString);
+	DLog(@"currentErrorString: %@", currentErrorString);
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
-	NSLog(@"Location manager failed with the following error: %@", error);
+	DLog(@"Location manager failed with the following error: %@", error);
 	
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSString *pastErrors = [defaults objectForKey:previousErrorsKey];
@@ -954,7 +971,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 	[errorsString appendString:currentErrorString];
 	[defaults setObject:currentErrorString forKey:previousErrorsKey];
 	
-	NSLog(@"currentErrorString: %@", currentErrorString);
+	DLog(@"currentErrorString: %@", currentErrorString);
 }
 
 
@@ -1051,7 +1068,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 
 - (void)retrieveBibleVerseOfTheDay {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDate *lastVerseOfTheDayDate;// = [defaults objectForKey:lastVerseOfTheDayDateKey];
+	NSDate *lastVerseOfTheDayDate = [defaults objectForKey:lastVerseOfTheDayDateKey];
 	
 	if (!lastVerseOfTheDayDate) {
 		lastVerseOfTheDayDate = [NSDate dateWithTimeIntervalSince1970:0];
@@ -1076,11 +1093,11 @@ static CGFloat const screenSizeLimit = 668.0f;
 		[op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
 			[self analyzeBibleVerseResponseObject:responseObject];
 		} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-			NSLog(@"Error: %@", error);
+			DLog(@"Error: %@", error);
 		}];
 		[[NSOperationQueue mainQueue] addOperation:op];
 	} else {
-		NSLog(@"Verse does not need to be updated %@", lastVerseOfTheDayDate);
+		DLog(@"Verse does not need to be updated %@", lastVerseOfTheDayDate);
 	}
 }
 
@@ -1128,9 +1145,9 @@ static CGFloat const screenSizeLimit = 668.0f;
 			 withTitle:_verseOfTheDayListTitle];
 
 	} else if ([responseObject isKindOfClass:[NSDictionary class]]) {
-		NSLog(@"Received dictionary instead of array as expected");
+		DLog(@"Received dictionary instead of array as expected");
 	} else {
-		NSLog(@"responseObject class: %@!", [responseObject class]);
+		DLog(@"responseObject class: %@!", [responseObject class]);
 	}
 }
 
@@ -1161,12 +1178,12 @@ static CGFloat const screenSizeLimit = 668.0f;
     NSURL *ubiq = [[NSFileManager defaultManager]
                    URLForUbiquityContainerIdentifier:nil];
     if (ubiq) {
-        NSLog(@"iCloud access at %@", ubiq);
+        DLog(@"iCloud access at %@", ubiq);
         // TODO: Load document...
         [self loadIcloudDocument:[_lists firstObject]];
         _iCloudIsAvailable = YES;
     } else {
-        NSLog(@"No iCloud access");
+        DLog(@"No iCloud access");
         _iCloudIsAvailable = NO;
     }
 }
@@ -1232,9 +1249,9 @@ static CGFloat const screenSizeLimit = 668.0f;
         
         [self.document openWithCompletionHandler:^(BOOL success) {
             if (success) {
-                NSLog(@"iCloud document opened");
+                DLog(@"iCloud document opened");
             } else {
-                NSLog(@"failed opening document from iCloud");
+                DLog(@"failed opening document from iCloud");
             }
         }];
     } else {
@@ -1250,7 +1267,7 @@ static CGFloat const screenSizeLimit = 668.0f;
           completionHandler:^(BOOL success) {
               if (success) {
                   [document openWithCompletionHandler:^(BOOL success) {
-                      NSLog(@"new document opened from iCloud");
+                      DLog(@"new document opened from iCloud");
                   }];
               }
           }];
@@ -1258,7 +1275,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 }
 
 - (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker {
-	NSLog(@"\n- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker\n\t\tDOES NOTHING\n");
+	DLog(@"\n- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker\n\t\tDOES NOTHING\n");
 }
 
 

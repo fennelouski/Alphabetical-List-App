@@ -1691,6 +1691,8 @@
 
 + (NKFColor *)pistachio;
 
++ (NKFColor *)pizza;
+
 + (NKFColor *)platinum;
 
 + (NKFColor *)plum;

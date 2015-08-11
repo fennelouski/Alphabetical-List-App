@@ -11,10 +11,6 @@
 #import "NKFColor.h"
 #import "NKFColor+AppColors.h"
 
-#define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
-#define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-
 @implementation ALUMapViewController {
     BOOL _foundUserLocation;
     double _radius;
@@ -81,7 +77,7 @@
     }
     
     if (!annotation) {
-        NSLog(@"No annotation for %@", self.title);
+        DLog(@"No annotation for %@", self.title);
         return;
     }
     
@@ -101,10 +97,10 @@
 
 
 - (void)createGeofence {
-    NSLog(@"Create geofence");
+    DLog(@"Create geofence");
     
     if (_radius == 0.0) {
-        NSLog(@"Radius is 0 so changing it to a default of 100");
+        DLog(@"Radius is 0 so changing it to a default of 100");
         _radius = 10.0;
     }
     
@@ -116,7 +112,7 @@
 }
 
 - (MKOverlayView *)mapView:(MKMapView *)mapView viewForOverlay:(id <MKOverlay>)overlay {
-    NSLog(@"Overlay: %@", [overlay title]);
+    DLog(@"Overlay: %@", [overlay title]);
     
     MKOverlayView *view = [[MKOverlayView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1.0f, 1.0f)];
     view.backgroundColor = [[NKFColor appColor] colorWithAlphaComponent:0.5f];

@@ -9440,6 +9440,10 @@
 	return pistachio;
 }
 
++ (NKFColor *)pizza {
+    return [NKFColor colorWithRed:0.85f green:0.1f blue:0.15f alpha:1.0f];
+}
+
 + (NKFColor *)platinum {
 	NKFColor *platinum = [NKFColor colorWithRed:9.0f/10.0f green:89.0f/100.0f blue:89.0f/100.0f alpha:1.0f];
 	return platinum;

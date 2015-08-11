@@ -9,8 +9,10 @@
 #import "ALUSplitViewController.h"
 #import "ALUDataManager.h"
 
-@implementation ALUSplitViewController
+static CGFloat const screenSizeLimit = 668.0f;
+static CGFloat const screenSizeUpperLimit = 767.0f;
 
+@implementation ALUSplitViewController
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
@@ -39,7 +41,7 @@
 		}
 	}
 	
-	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] && ![[ALUDataManager sharedDataManager] menuShowing]) && !USE_CARDS;
+	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] && ![[ALUDataManager sharedDataManager] menuShowing]) && (!(kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) || (kScreenHeight > screenSizeUpperLimit && kScreenWidth > screenSizeUpperLimit));
 }
 
 @end

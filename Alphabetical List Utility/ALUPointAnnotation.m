@@ -30,7 +30,7 @@ static NSString * const addressStringKey        = @"addressStringK£y";
 
 - (void)save {
     if (self.radius == 0) {
-        NSLog(@"Radius is 0. Not saving geotification for \"%@\"", self.title);
+        DLog(@"Radius is 0. Not saving geotification for \"%@\"", self.title);
         return;
     }
     
@@ -68,7 +68,7 @@ static NSString * const addressStringKey        = @"addressStringK£y";
     
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
         for (CLPlacemark *placemark in placemarks) {
-            NSLog(@"placemark.addressDictionary: %@", placemark.addressDictionary);
+            DLog(@"placemark.addressDictionary: %@", placemark.addressDictionary);
 			NSString *streetAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressStreetKey];
 			NSString *cityAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressCityKey];
 			NSString *stateAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressStateKey];
@@ -109,7 +109,7 @@ static NSString * const addressStringKey        = @"addressStringK£y";
         [self getAddressForCoordinate];
     }
     
-    NSLog(@"Loaded %@", self.title);
+    DLog(@"Loaded %@", self.title);
 }
 
 - (NSString *)latitudeKey {

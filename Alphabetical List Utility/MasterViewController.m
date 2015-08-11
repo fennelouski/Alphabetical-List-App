@@ -193,29 +193,31 @@ static CGFloat const defaultRowHeight = 44.0f;
 
 - (void)adjustTableViewFrame {
     if (_lastTableViewFrameAdjustmentDate && [_lastTableViewFrameAdjustmentDate  timeIntervalSinceNow] > -0.35f) {
-        NSLog(@"Too little Adjustment delay: %f", [_lastTableViewFrameAdjustmentDate  timeIntervalSinceNow]);
+        DLog(@"Too little Adjustment delay: %f", [_lastTableViewFrameAdjustmentDate  timeIntervalSinceNow]);
         return;
     }
     
-    NSLog(@"Adjustment delay: %f", [_lastTableViewFrameAdjustmentDate  timeIntervalSinceNow]);
+    DLog(@"Adjustment delay: %f", [_lastTableViewFrameAdjustmentDate  timeIntervalSinceNow]);
     _lastTableViewFrameAdjustmentDate = [NSDate date];
     
     if (USE_CARDS) {
-        self.headerToolbar.frame = CGRectMake(0.0f, -kStatusBarHeight, kScreenWidth, kStatusBarHeight);
-        [self.view.superview addSubview:self.headerToolbar];
-        [self animateStatusBar];
-        
-        UIEdgeInsets contentInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + tableViewInset,
-                                                      self.tableView.contentInset.left,
-                                                      self.tableView.contentInset.bottom,
-                                                      self.tableView.contentInset.right);
-        self.tableView.contentInset = contentInsets;
-        
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
-        });
-        
+        [UIView animateWithDuration:0.35f
+                         animations:^{
+                             self.headerToolbar.frame = CGRectMake(0.0f, -kStatusBarHeight, kScreenWidth, kStatusBarHeight);
+                             [self.view.superview addSubview:self.headerToolbar];
+                             [self animateStatusBar];
+                            
+                             UIEdgeInsets contentInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + tableViewInset,
+                                                                          self.tableView.contentInset.left,
+                                                                          self.tableView.contentInset.bottom,
+                                                                          self.tableView.contentInset.right);
+                             self.tableView.contentInset = contentInsets;
+                            
+                             static dispatch_once_t onceToken;
+                             dispatch_once(&onceToken, ^{
+                                 [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+                             });
+                         }];
 //        self.tableView.frame = CGRectOffset(CGRectMake(0.0f, -tableViewInset, self.view.frame.size.width, self.view.frame.size.height + tableViewInset + 14.0f), 0.0f, -13.0f);
     }
 }
@@ -303,8 +305,10 @@ static CGFloat const defaultRowHeight = 44.0f;
 		[_inputAccessoryView addSubview:self.addButton];
 		self.addButton.center = CGPointMake(_inputAccessoryView.frame.size.width - _inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
 		[_inputAccessoryView addSubview:self.editButton];
-		self.editButton.center = CGPointMake(_inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
 	}
+	
+	self.addButton.center = CGPointMake(_inputAccessoryView.frame.size.width - _inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
+	self.editButton.center = CGPointMake(_inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
 	
 	return _inputAccessoryView;
 }
@@ -400,7 +404,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (void)settingsButtonTouched {
-	NSLog(@"Settings Button Touched");
+	DLog(@"Settings Button Touched");
 }
 
 - (BOOL)canBecomeFirstResponder {
@@ -436,7 +440,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 			[ALUDataManager sharedDataManager].currentColorIsDark = NO;
 		}
 	} else {
-		NSLog(@"Prepare Segue for \"%@\" won't do anything", sender);
+		DLog(@"Prepare Segue for \"%@\" won't do anything", sender);
 	}
 }
 
@@ -444,16 +448,16 @@ static CGFloat const defaultRowHeight = 44.0f;
 
 - (UIView *)headerToolbar {
 	if (!_headerToolbar) {
-		_headerToolbar = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, kScreenWidth, kStatusBarHeight)];
-		_headerToolbar.backgroundColor = [NKFColor black];
-        
+		_headerToolbar = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, kScreenWidth, kStatusBarHeight * 1.05f)];
+		[_headerToolbar addSubview:[[UIImageView alloc] initWithImage:self.backgroundView.blurredImageView.image]];
+		
         CAGradientLayer *gradientLayer = [CAGradientLayer layer];
         gradientLayer.frame = CGRectMake(0.0f,
                                          0.0f,
                                          LONGER_SIDE,
                                          _headerToolbar.frame.size.height);
         gradientLayer.colors = [NSArray arrayWithObjects:(id)[[NKFColor black] CGColor], (id)[[NKFColor clearColor] CGColor], nil];
-        gradientLayer.startPoint = CGPointMake(0.0f, 0.5f);
+        gradientLayer.startPoint = CGPointMake(0.0f, 0.75f);
         gradientLayer.endPoint = CGPointMake(0.0f, 1.0f);
         
         _headerToolbar.layer.mask = gradientLayer;
@@ -555,7 +559,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
 	
 	if (USE_CARDS && !companyLogoImage) {
-		NSLog(@"%@\t\t%@", cell.noteTitle, cell.textLabel.text);
+		DLog(@"No companyLogoImage for: %@\t\t%@", cell.noteTitle, cell.textLabel.text);
 	}
 	
 	if (companyLogoImage

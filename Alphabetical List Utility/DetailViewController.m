@@ -16,6 +16,7 @@
 #import <AVFoundation/AVFoundation.h>
 
 #import "ALUSettingsView.h"
+#import "ALUEmojiImageViewController.h"
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
@@ -30,7 +31,7 @@ static CGFloat const ALUDetailViewControllerMinFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
-@interface DetailViewController () <ALUSettingsViewDelegate>
+@interface DetailViewController () <ALUSettingsViewDelegate, ALUEmojiImageViewControllerDelegate>
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
 
@@ -170,7 +171,7 @@ static CGFloat const borderWidth = 10.0f;
 	[super updateViewConstraints];
     
     if (!self.listItemTextView) {
-        NSLog(@"Missing text view");
+        DLog(@"Missing text view");
     }
     
     for (UITextView *textView in self.view.subviews) {
@@ -220,7 +221,7 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)resetNavBarColors {
-    NSLog(@"Resetting nav bar colors");
+    DLog(@"Resetting nav bar colors");
     self.navigationController.navigationBar.barTintColor = [NKFColor appColor];
     self.navigationController.navigationBar.tintColor = [NKFColor whiteColor];
     self.navigationController.navigationController.navigationBar.barTintColor = self.navigationController.navigationBar.barTintColor;
@@ -240,17 +241,17 @@ static CGFloat const borderWidth = 10.0f;
           orientation == UIDeviceOrientationLandscapeRight))) ||
         orientation == 0 ||
         orientation == 6) {
-//        NSLog(@"Orientation: %zd\t\tLast Orientation: %zd", orientation, _lastDeviceOrientation);
-//        NSLog(@"Not actually rotating: %f\t\t%f", kScreenWidth - _previousScreenSize.width, kScreenHeight - _previousScreenSize.height);
+//        DLog(@"Orientation: %zd\t\tLast Orientation: %zd", orientation, _lastDeviceOrientation);
+//        DLog(@"Not actually rotating: %f\t\t%f", kScreenWidth - _previousScreenSize.width, kScreenHeight - _previousScreenSize.height);
         return;
     } else if (orientation == UIDeviceOrientationFaceDown ||
 			   orientation == UIDeviceOrientationFaceUp) {
-		NSLog(@"Orientation change is face up/down");
+		DLog(@"Orientation change is face up/down");
 		return;
 	}
     
     if ([_lastOrientationChangeCheckDate timeIntervalSinceNow] < -3.0f) {
-        NSLog(@"Recent orientation check\t%f", [_lastOrientationChangeCheckDate timeIntervalSinceNow]);
+        DLog(@"Recent orientation check\t%f", [_lastOrientationChangeCheckDate timeIntervalSinceNow]);
     }
     
     _lastDeviceOrientation = orientation;
@@ -371,8 +372,10 @@ static CGFloat const borderWidth = 10.0f;
             [iconOptions addObject:@"Choose Photo for Icon"];
         }
         
+        [iconOptions addObject:@"Type text for Icon"];
+        
         if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
-            NSLog(@"Use web icon added");
+            DLog(@"Use web icon added");
         } else {
             [iconOptions addObject:@"Use Web Icon"];
         }
@@ -411,7 +414,7 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)delayedUpdateOfText {
 	if (!self.listItemTextView) {
-		NSLog(@"What is wrong with this?");
+		DLog(@"What is wrong with this?");
 	}
 	
 	if ([[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
@@ -477,7 +480,7 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)listAlreadyExistsWarning:(NSString *)warningMessage {
-	NSLog(@"- (void)listAlreadyExistsWarning:(NSString *)warningMessage: %@", warningMessage);
+	DLog(@"- (void)listAlreadyExistsWarning:(NSString *)warningMessage: %@", warningMessage);
 	
 	UIAlertController *warningController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"%@ \"%@\"", NSLocalizedString(@"Note already exists with the title", nil), warningMessage]
 																			   message:NSLocalizedString(@"Each note title needs to be unique.", nil)
@@ -669,7 +672,7 @@ static CGFloat const borderWidth = 10.0f;
             NSString *numericSubstring = [line substringToIndex:breakLocation];
             if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
 				if (line.length <= breakLocation + numericDelimeter.length) {
-					NSLog(@"This will cause a problem if left without checking.");
+					DLog(@"This will cause a problem if left without checking.");
 				} else {
 					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
 						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
@@ -683,7 +686,7 @@ static CGFloat const borderWidth = 10.0f;
 				}
             } else {
 				if (line.length < breakLocation + numericDelimeter.length) {
-					NSLog(@"This will cause a problem if left without checking.");
+					DLog(@"This will cause a problem if left without checking.");
 				} else {
 					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
 						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
@@ -734,7 +737,7 @@ static CGFloat const borderWidth = 10.0f;
 	CGRect rect = [self.listItemTextView caretRectForPosition:self.listItemTextView.selectedTextRange.end];
 	[self.listItemTextView scrollRectToVisible:rect
 									  animated:animated.boolValue];
-	NSLog(@"Scroll to %f", rect.origin.y);
+	DLog(@"Scroll to %f", rect.origin.y);
 }
 
 - (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text {
@@ -771,7 +774,7 @@ static CGFloat const borderWidth = 10.0f;
 			NSString *numericSubstring = [line substringToIndex:breakLocation];
 			if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
 				if (line.length <= breakLocation + numericDelimeter.length) {
-					NSLog(@"This will cause a problem if left without checking.");
+					DLog(@"This will cause a problem if left without checking.");
 				} else {
 					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
 						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
@@ -785,7 +788,7 @@ static CGFloat const borderWidth = 10.0f;
 				}
 			} else {
 				if (line.length < breakLocation + numericDelimeter.length) {
-					NSLog(@"This will cause a problem if left without checking.");
+					DLog(@"This will cause a problem if left without checking.");
 				} else {
 					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
 						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
@@ -891,7 +894,7 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Photo Taking
 
 - (void)takePhoto {
-    NSLog(@"Take Photo");
+    DLog(@"Take Photo");
 	
 	if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
 		return;
@@ -950,7 +953,7 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Settings Delegate
 
 - (void)showListIconChanged {
-	NSLog(@"List icon changed");
+	DLog(@"List icon changed");
 }
 
 - (void)listModeChanged {
@@ -978,13 +981,13 @@ static CGFloat const borderWidth = 10.0f;
             [[[ALUDataManager sharedDataManager] locationManager] requestAlwaysAuthorization];
         }
     } else if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
-        NSLog(@"Ask user to grant location permission");
+        DLog(@"Ask user to grant location permission");
         return;
     } else {
         [[ALUDataManager sharedDataManager] locationManager];
     }
     
-    NSLog(@"Select Location");
+    DLog(@"Select Location");
     
     ALUMapViewController *mapViewController = [[ALUMapViewController alloc] init];
     mapViewController.title = _detailItem;
@@ -992,7 +995,7 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)selectContact {
-    NSLog(@"Select Contact");
+    DLog(@"Select Contact");
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     BOOL addressBookAccessRequested = [defaults boolForKey:@"addressBookAccessRequestedK£Y"];
@@ -1019,10 +1022,20 @@ static CGFloat const borderWidth = 10.0f;
     ABPeoplePickerNavigationController *peoplePickerNavigationController = [[ABPeoplePickerNavigationController alloc] init];
     [peoplePickerNavigationController setPeoplePickerDelegate:self];
     [self presentViewController:peoplePickerNavigationController animated:YES completion:^{
-//        NSLog(@"Showing people picker");
+//        DLog(@"Showing people picker");
     }];
 }
 
+- (void)showEmojiView {
+    ALUEmojiImageViewController *emojiViewController = [[ALUEmojiImageViewController alloc] init];
+    emojiViewController.delegate = self;
+    
+    [self presentViewController:emojiViewController
+                       animated:YES
+                     completion:^{
+                         
+                     }];
+}
 
 #pragma mark - Messaging Delegate
 
@@ -1096,17 +1109,17 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person {
     
-    NSLog(@"Got a person %@", [self formattedNameForContact:person]);
+    DLog(@"Got a person %@", [self formattedNameForContact:person]);
 }
 
 - (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
-    NSLog(@"Got a person with property and identifier");
+    DLog(@"Got a person with property and identifier");
 }
 
 - (void)peoplePickerNavigationControllerDidCancel:(ABPeoplePickerNavigationController *)peoplePicker {
     [peoplePicker dismissViewControllerAnimated:YES
                                      completion:^{
-                                         NSLog(@"Cancelled people picker");
+                                         DLog(@"Cancelled people picker");
                                      }];
 }
 
@@ -1124,10 +1137,10 @@ static CGFloat const borderWidth = 10.0f;
     
     NSArray *emails = (__bridge NSArray *)ABRecordCopyValue(person, kABPersonEmailProperty);
     NSString *name = (__bridge NSString *)ABRecordCopyCompositeName(person);
-    NSLog(@"Name: %@", name);
+    DLog(@"Name: %@", name);
     
     if (![emails respondsToSelector:@selector(count)]) {
-        NSLog(@"I don't even know...%@", [emails class]);
+        DLog(@"I don't even know...%@", [emails class]);
     }
     
     if (emails) {
@@ -1146,12 +1159,12 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)conditionallyAppendString:(NSString *)string toMutableString:(NSMutableString *)mutableString {
     if (![string respondsToSelector:@selector(length)]) {
-        NSLog(@"This isn't right...%@\t\t\"%@\"", [string class], string);
+        DLog(@"This isn't right...%@\t\t\"%@\"", [string class], string);
         return;
     }
     
     if (![mutableString respondsToSelector:@selector(length)]) {
-        NSLog(@"This isn't right...mutable...%@\t\t\"%@\"", [string class], mutableString);
+        DLog(@"This isn't right...mutable...%@\t\t\"%@\"", [string class], mutableString);
         return;
     }
     
@@ -1167,5 +1180,14 @@ static CGFloat const borderWidth = 10.0f;
     [mutableString appendFormat:@" %@", string];
 }
 
+
+#pragma mark - Emoji Delegate
+
+- (void)emojiImage:(UIImage *)image {
+    if (image) {
+        [[ALUDataManager sharedDataManager] saveImage:image forCompanyName:_detailItem];
+        [[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
+    }
+}
 
 @end

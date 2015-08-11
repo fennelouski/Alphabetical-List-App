@@ -15,7 +15,6 @@
 
 @interface ALUBackgroundView ()
 
-@property (nonatomic, strong) UIImageView *blurredImageView;
 @property (nonatomic, strong) ALUPatternedView *patternedView;
 @property (nonatomic, strong) UILabel *titleLabel;
 

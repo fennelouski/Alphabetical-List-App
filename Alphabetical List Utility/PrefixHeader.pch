@@ -24,11 +24,11 @@
 
 #define USE_CARDS [[ALUDataManager sharedDataManager] useCardView]
 
-#define DEFAULT_FONT_SIZE ((((kScreenHeight + kScreenWidth) * 0.02f) < 16.0f) ? 16.0f : (((kScreenHeight + kScreenWidth) * 0.02f) > 20.0f) ? 20.0f : ((kScreenHeight + kScreenWidth) * 0.02f))
-
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
 #define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define LONGER_SIDE ((kScreenHeight > kScreenWidth) ? kScreenHeight : kScreenWidth)
+
+#define DEFAULT_FONT_SIZE ((((kScreenHeight + kScreenWidth) * 0.02f) < 16.0f) ? 16.0f : (((kScreenHeight + kScreenWidth) * 0.02f) > 20.0f) ? 20.0f : ((kScreenHeight + kScreenWidth) * 0.02f))
 
 #endif

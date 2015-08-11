@@ -10,4 +10,6 @@
 
 @interface ALUBackgroundView : UIView
 
+@property (nonatomic, strong) UIImageView *blurredImageView;
+
 @end
