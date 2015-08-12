@@ -505,7 +505,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                                       @"ohiostateuniversity": @"osu.edu",
                                       @"michiganstateuniversity":@"msu.edu",
                                       @"michiganstate"      : @"msu.edu",
-                                      @"mississippistate"   : @"mssstate.edu"};
+                                      @"mississippistate"   : @"mssstate.edu",
+									  @"pier1imports"		: @"pier1.com",
+									  @"worldmark"			: @"worldmarkbywyndham.com"};
 	
     BOOL replacementFound = NO;
     for (NSString *forwardingWord in forwardingWords.allKeys) {
