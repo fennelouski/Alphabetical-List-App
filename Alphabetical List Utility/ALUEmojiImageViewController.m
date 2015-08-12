@@ -49,18 +49,24 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
     _saving = NO;
 }
 
+- (void)updateViewConstraints {
+	[super updateViewConstraints];
+	
+	self.imageView.frame = [self imageViewFrame];
+	self.backgroundView.frame = CGRectMake(0.0f, 0.0f, self.navigationController.navigationBar.frame.size.width, LONGER_SIDE);
+	self.textField.frame = [self textFieldFrame];
+}
+
 #pragma mark - Subviews
 
 - (UITextField *)textField {
     if (!_textField) {
-        _textField = [[UITextField alloc] initWithFrame:CGRectMake(0.0f,
-                                                                   0.0f,
-                                                                   self.view.frame.size.width,
-                                                                   ALUEmojiImageViewControllerTextFieldHeight + kStatusBarHeight)];
+        _textField = [[UITextField alloc] initWithFrame:[self textFieldFrame]];
         _textField.delegate = self;
         _textField.placeholder = @"Text for icon";
         _textField.textAlignment = NSTextAlignmentCenter;
         _textField.autocapitalizationType = UITextAutocapitalizationTypeAllCharacters;
+		_textField.autocorrectionType = UITextAutocorrectionTypeNo;
         _textField.returnKeyType = UIReturnKeyDone;
         _textField.inputAccessoryView = self.inputAccessoryView;
         _textField.textColor = [NKFColor blackColor];
@@ -82,19 +88,50 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
     return _textField;
 }
 
+- (CGRect)textFieldFrame {
+	CGRect frame = CGRectMake(0.0f,
+							  self.navigationController.navigationBar.frame.size.height + kStatusBarHeight,
+							  self.navigationController.navigationBar.frame.size.width,
+							  ALUEmojiImageViewControllerTextFieldHeight);
+	
+	return frame;
+}
+
 - (UIImageView *)imageView {
     if (!_imageView) {
-        _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0.0f,
-                                                                   self.textField.frame.size.height + self.textField.frame.origin.y,
-                                                                   self.view.frame.size.width * 0.5f,
-                                                                   self.view.frame.size.width * 0.5f)];
-        _imageView.center = CGPointMake(self.view.frame.size.width * 0.5f,
-                                        _imageView.center.y);
+        _imageView = [[UIImageView alloc] initWithFrame:[self imageViewFrame]];
         _imageView.contentMode = UIViewContentModeScaleAspectFit;
     }
     
     return _imageView;
 }
+
+- (CGRect)imageViewFrame {
+	CGFloat sideLength = (SHORTER_SIDE < self.view.bounds.size.height && SHORTER_SIDE < self.navigationController.navigationBar.frame.size.width) ? SHORTER_SIDE : (self.view.bounds.size.height < self.navigationController.navigationBar.frame.size.width) ? self.view.bounds.size.height : self.navigationController.navigationBar.frame.size.width;
+	if (sideLength > 500.0f) {
+		sideLength = 500.0f;
+	}
+	
+	CGFloat xOrigin = (self.navigationController.navigationBar.frame.size.width - sideLength) * 0.5f;
+	
+	if (IS_IPAD && self.navigationController.navigationBar.frame.size.width > self.view.frame.size.height) {
+		xOrigin = 0.0f;
+	}
+	
+	CGFloat yOrigin = self.navigationController.navigationBar.frame.size.height + kStatusBarHeight;
+	
+	if (yOrigin < 50.0f) {
+		yOrigin = kStatusBarHeight + 44.0f;
+	}
+	
+	CGRect frame = CGRectMake(xOrigin,
+							  yOrigin,
+							  sideLength,
+							  sideLength);
+	
+	return frame;
+}
+
 
 - (UILabel *)label {
     if (!_label) {
@@ -111,7 +148,7 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 
 - (ALUBackgroundView *)backgroundView {
     if (!_backgroundView) {
-        _backgroundView = [[ALUBackgroundView alloc] initWithFrame:self.view.bounds];
+        _backgroundView = [[ALUBackgroundView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, self.navigationController.navigationBar.frame.size.width, LONGER_SIDE)];
     }
     
     return _backgroundView;
@@ -177,10 +214,7 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 }
 
 - (void)cancelButtonTouched {
-	[self dismissViewControllerAnimated:YES
-							 completion:^{
-								 
-							 }];
+	[self dismiss];
 }
 
 - (void)doneButtonTouched {
@@ -201,10 +235,11 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
     
     [self resignFirstResponder];
     
-    [self dismissViewControllerAnimated:YES
-                             completion:^{
-                                 
-                             }];
+	[self dismiss];
+}
+
+- (void)dismiss {
+	[self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark - Text Field Delegate
