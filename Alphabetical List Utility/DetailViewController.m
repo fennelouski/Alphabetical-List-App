@@ -1032,24 +1032,23 @@ static CGFloat const borderWidth = 10.0f;
 - (void)showEmojiView {
     ALUEmojiImageViewController *emojiViewController = [[ALUEmojiImageViewController alloc] init];
     emojiViewController.delegate = self;
-    
-    [self presentViewController:emojiViewController
-                       animated:YES
-                     completion:^{
-                         
-                     }];
+	[self.navigationController pushViewController:emojiViewController animated:YES];
 }
 
 - (void)showDrawingView {
 	ALUDrawingViewController *drawingViewController = [[ALUDrawingViewController alloc] init];
 	drawingViewController.delegate = self;
 	drawingViewController.currentColor = self.titleViewButton.titleLabel.textColor;
+    
+    if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
+        UIImage *image = [[ALUDataManager sharedDataManager] imageForCompanyName:_detailItem];
+        
+        if (image) {
+            [drawingViewController setBaseImage:image];
+        }
+    }
 	
-	[self presentViewController:drawingViewController
-					   animated:YES
-					 completion:^{
-						 
-					 }];
+	[self.navigationController pushViewController:drawingViewController animated:YES];
 }
 
 #pragma mark - Messaging Delegate

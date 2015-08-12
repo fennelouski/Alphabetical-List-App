@@ -12,15 +12,19 @@
 #import "NKFColor+AppColors.h"
 #import "LinearInterpView.h"
 #import "ALUColorPickerView.h"
+#import "ALUDataManager.h"
 
 @interface ALUDrawingViewController () <ALUColorPickerViewDelegate>
 
 @property (nonatomic, strong) UIToolbar *inputAccessoryView;
-@property (nonatomic, strong) UIBarButtonItem *cancelButton, *clearButton, *doneButton;
+@property (nonatomic, strong) UIBarButtonItem *clearButton, *cancelButton, *undoButton, *doneButton;
 @property (nonatomic, strong) ALUBackgroundView *backgroundView;
+@property (nonatomic, strong) UIToolbar *headerToolbar;
 
 @property (nonatomic, strong) LinearInterpView *drawingView;
 @property (nonatomic, strong) ALUColorPickerView *colorPickerView;
+
+@property (nonatomic, strong) UIImageView *baseImageView;
 
 @end
 
@@ -31,6 +35,7 @@
 	CGFloat brush;
 	CGFloat opacity;
 	CGPoint lastPoint;
+    UIImage *_baseImage;
 }
 
 - (void)viewDidLoad {
@@ -39,8 +44,19 @@
 	[self.view addSubview:self.backgroundView];
 	[self.view addSubview:self.drawingView];
 	[self.view addSubview:self.colorPickerView];
+	
+	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.0f];
+	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:1.0f];
 }
 
+- (void)updateViewConstraints {
+    [super updateViewConstraints];
+    
+    self.backgroundView.frame = CGRectMake(0.0f, 0.0f, self.navigationController.navigationBar.frame.size.width, LONGER_SIDE);
+    self.drawingView.frame = [self drawingViewFrame];
+    self.colorPickerView.frame = [self colorPickerViewFrame];
+	self.baseImageView.frame = self.drawingView.frame;
+}
 
 
 #pragma mark - Subviews
@@ -55,31 +71,67 @@
 
 - (LinearInterpView *)drawingView {
 	if (!_drawingView) {
-		_drawingView = [[LinearInterpView alloc] initWithFrame:CGRectMake(0.0f,
-																		  0.0f,
-																		  self.view.bounds.size.width,
-																		  self.view.bounds.size.width)];
-		_drawingView.center = CGPointMake(self.view.bounds.size.width * 0.5f,
-										  self.view.bounds.size.width * 0.5f + kStatusBarHeight);
+        
+		_drawingView = [[LinearInterpView alloc] initWithFrame:[self drawingViewFrame]];
 		_drawingView.backgroundColor = [NKFColor clearColor];
-		_drawingView.layer.borderColor = [[[NKFColor appColor] lightenColor] colorWithAlphaComponent:0.5f].CGColor;
 		_drawingView.layer.borderWidth = 1.0f;
 		_drawingView.currentColor = self.currentColor;
+		_drawingView.layer.borderColor = self.currentColor.CGColor;
 	}
 	
 	return _drawingView;
 }
 
+- (CGRect)drawingViewFrame {
+    CGFloat sideLength = (SHORTER_SIDE < self.view.bounds.size.height && SHORTER_SIDE < self.navigationController.navigationBar.frame.size.width) ? SHORTER_SIDE : (self.view.bounds.size.height < self.navigationController.navigationBar.frame.size.width) ? self.view.bounds.size.height : self.navigationController.navigationBar.frame.size.width;
+    if (sideLength > 500.0f) {
+        sideLength = 500.0f;
+    }
+    
+    CGFloat xOrigin = (self.navigationController.navigationBar.frame.size.width - sideLength) * 0.5f;
+    
+    if (IS_IPAD && self.navigationController.navigationBar.frame.size.width > self.view.frame.size.height) {
+        xOrigin = 0.0f;
+    }
+    
+    CGFloat yOrigin = self.navigationController.navigationBar.frame.size.height + kStatusBarHeight;
+    
+    if (yOrigin < 50.0f) {
+        yOrigin = kStatusBarHeight + 44.0f;
+    }
+
+    CGRect frame = CGRectMake(xOrigin,
+                              yOrigin,
+                              sideLength,
+                              sideLength);
+    
+    return frame;
+}
+
 - (ALUColorPickerView *)colorPickerView {
 	if (!_colorPickerView) {
-		_colorPickerView = [[ALUColorPickerView alloc] initWithFrame:CGRectMake(0.0f,
-																				self.drawingView.frame.origin.y + self.drawingView.frame.size.height,
-																				self.drawingView.frame.size.width,
-																				self.view.frame.size.height - self.drawingView.frame.origin.y - self.drawingView.frame.size.height - self.inputAccessoryView.frame.size.height)];
+		_colorPickerView = [[ALUColorPickerView alloc] initWithFrame:[self colorPickerViewFrame]];
 		_colorPickerView.delegate = self;
 	}
 	
 	return _colorPickerView;
+}
+
+- (CGRect)colorPickerViewFrame {
+    CGRect frame = CGRectMake(self.drawingView.frame.origin.x,
+                              self.drawingView.frame.origin.y + self.drawingView.frame.size.height,
+                              self.drawingView.frame.size.width,
+                              self.view.frame.size.height - self.drawingView.frame.origin.y - self.drawingView.frame.size.height - self.inputAccessoryView.frame.size.height);
+    return frame;
+}
+
+- (UIImageView *)baseImageView {
+    if (!_baseImageView) {
+        _baseImageView = [[UIImageView alloc] initWithFrame:[self drawingViewFrame]];
+        _baseImageView.contentMode = UIViewContentModeScaleAspectFit;
+    }
+    
+    return _baseImageView;
 }
 
 #pragma mark - Input Accessory View
@@ -88,10 +140,24 @@
 	if (!_inputAccessoryView) {
 		_inputAccessoryView = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0f, kScreenHeight, kScreenWidth, 44.0f)];
 		_inputAccessoryView.tintColor = [NKFColor appColor];
-		_inputAccessoryView.items = @[self.cancelButton, [self flexibleSpace], self.clearButton, [self flexibleSpace], self.doneButton];
+		_inputAccessoryView.items = @[self.clearButton, [self flexibleSpace], self.cancelButton, [self flexibleSpace], self.undoButton, [self flexibleSpace], self.doneButton];
+        
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                              target:self
+                                                                                              action:@selector(doneButtonTouched)];
 	}
 	
 	return _inputAccessoryView;
+}
+
+- (UIBarButtonItem *)clearButton {
+	if (!_clearButton) {
+		_clearButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+																	 target:self
+																	 action:@selector(clearButtonTouched)];
+	}
+	
+	return _clearButton;
 }
 
 - (UIBarButtonItem *)cancelButton {
@@ -104,14 +170,14 @@
 	return _cancelButton;
 }
 
-- (UIBarButtonItem *)clearButton {
-	if (!_clearButton) {
-		_clearButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
-																	 target:self
-																	 action:@selector(clearButtonTouched)];
+- (UIBarButtonItem *)undoButton {
+	if (!_undoButton) {
+		_undoButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemUndo
+																	target:self
+																	action:@selector(undoButtonTouched)];
 	}
 	
-	return _clearButton;
+	return _undoButton;
 }
 
 - (UIBarButtonItem *)doneButton {
@@ -138,16 +204,21 @@
 #pragma mark - Button Actions
 
 - (void)cancelButtonTouched {
-	[self dismissViewControllerAnimated:YES
-							 completion:^{
-								 
-							 }];
+	[self dismiss];
 }
 
 - (void)clearButtonTouched {
 	[self.drawingView removeFromSuperview];
 	self.drawingView = nil;
+    self.drawingView.frame = [self drawingViewFrame];
 	[self.view addSubview:self.drawingView];
+    self.colorPickerView.frame = [self colorPickerViewFrame];
+    [self.view addSubview:self.colorPickerView];
+    [self.baseImageView removeFromSuperview];
+}
+
+- (void)undoButtonTouched {
+	[self.drawingView undoLastLine];
 }
 
 - (void)doneButtonTouched {
@@ -168,22 +239,44 @@
 	
 	[self resignFirstResponder];
 	
-	[self dismissViewControllerAnimated:YES
-							 completion:^{
-								 
-							 }];
+	[self dismiss];
+}
+
+- (void)dismiss {
+	[self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark - Export Image
 
 - (void)updateImageWithDrawing {
 	self.drawingView.layer.borderWidth = 0.0f;
-	_image = [self imageWithView:self.drawingView];
-	self.drawingView.layer.borderWidth = 1.0f;
+    
+    UIView *containerView = [[UIView alloc] initWithFrame:self.drawingView.bounds];
+    
+    if (self.baseImageView.superview) {
+        self.baseImageView.frame = containerView.bounds;
+        [containerView addSubview:self.baseImageView];
+        self.drawingView.frame = containerView.bounds;
+        [containerView addSubview:self.drawingView];
+        _image = [self imageWithView:containerView];
+    } else {
+        _image = [self imageWithView:self.drawingView];
+        self.drawingView.layer.borderWidth = 1.0f;
+    }
+	
+	[self.view addSubview:self.baseImageView];
+	[self.view addSubview:self.drawingView];
+	self.drawingView.frame = [self drawingViewFrame];
+	self.colorPickerView.frame = [self colorPickerViewFrame];
 }
 
 - (UIImage *)image {
 	return _image;
+}
+
+- (void)setBaseImage:(UIImage *)baseImage {
+    self.baseImageView.image = baseImage;
+    [self.view insertSubview:self.baseImageView belowSubview:self.drawingView];
 }
 
 - (UIImage *)imageWithView:(UIView *)view {
@@ -203,6 +296,7 @@
 - (void)colorPicked:(UIColor *)color {
 	self.currentColor = color;
 	self.drawingView.currentColor = color;
+	self.drawingView.layer.borderColor = color.CGColor;
 }
 
 

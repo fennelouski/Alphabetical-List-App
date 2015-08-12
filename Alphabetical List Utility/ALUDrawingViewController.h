@@ -19,6 +19,8 @@
 
 - (UIImage *)image;
 
+- (void)setBaseImage:(UIImage *)baseImage;
+
 @property (assign) id <ALUDrawingViewControllerDelegate> delegate;
 
 @property (nonatomic, strong) UIColor *currentColor;
