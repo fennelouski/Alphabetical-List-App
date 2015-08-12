@@ -12,4 +12,6 @@
 
 @property (nonatomic, strong) UIColor *currentColor;
 
+- (void)undoLastLine;
+
 @end

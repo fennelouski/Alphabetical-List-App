@@ -3,20 +3,26 @@
 #import "LinearInterpView.h"
 #import "NKFColor.h"
 
-static CGFloat const LinearInterpViewLineWidth = 5.0f;
+static CGFloat const LinearInterpViewLineWidth = 15.0f;
+
+@interface LinearInterpView ()
+
+@end
+
+
 
 @implementation LinearInterpView {
-    UIBezierPath *path;
+	NSMutableArray *paths, *colors;
 }
 
 - (id)initWithCoder:(NSCoder *)aDecoder {
-    if (self = [super initWithCoder:aDecoder])
-    {
+    if (self = [super initWithCoder:aDecoder]) {
         [self setMultipleTouchEnabled:NO];
         [self setBackgroundColor:[UIColor whiteColor]];
-        path = [UIBezierPath bezierPath];
-        [path setLineWidth:LinearInterpViewLineWidth];
+		paths = [[NSMutableArray alloc] init];
+		colors = [[NSMutableArray alloc] init];
     }
+	
     return self;
 }
 
@@ -26,28 +32,36 @@ static CGFloat const LinearInterpViewLineWidth = 5.0f;
 	if (self) {
 		[self setMultipleTouchEnabled:NO];
 		[self setBackgroundColor:[UIColor whiteColor]];
-		path = [UIBezierPath bezierPath];
-		[path setLineWidth:LinearInterpViewLineWidth];
+		paths = [[NSMutableArray alloc] init];
+		colors = [[NSMutableArray alloc] init];
 	}
 	
 	return self;
 }
 
 - (void)drawRect:(CGRect)rect {
-    [self.currentColor setStroke];
-    [path stroke];
+	for (int i = 0; i < paths.count && colors.count; i++) {
+		UIBezierPath *path = [paths objectAtIndex:i];
+		UIColor *color = [colors objectAtIndex:i];
+		[color setStroke];
+		[path stroke];
+	}
 }
-
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = [touches anyObject];
     CGPoint p = [touch locationInView:self];
+	UIBezierPath *path = [UIBezierPath bezierPath];
+	[path setLineWidth:LinearInterpViewLineWidth];
     [path moveToPoint:p];
+	[paths addObject:path];
+	[colors addObject:self.currentColor];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     UITouch *touch = [touches anyObject];
     CGPoint p = [touch locationInView:self];
+	UIBezierPath *path = [paths lastObject];
     [path addLineToPoint:p];
     [self setNeedsDisplay];
 }
@@ -59,4 +73,15 @@ static CGFloat const LinearInterpViewLineWidth = 5.0f;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
     [self touchesEnded:touches withEvent:event];
 }
+
+
+- (void)undoLastLine {
+	if (paths.count > 0 && colors.count > 0) {
+		[paths removeLastObject];
+		[colors removeLastObject];
+		[self setNeedsDisplay];
+	}
+}
+
+
 @end
