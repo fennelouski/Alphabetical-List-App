@@ -852,6 +852,11 @@
 }
 
 
++ (NKFColor *)bevmo {
+	return [NKFColor red];
+}
+
+
 + (NKFColor *)biblegateway {
 	return [NKFColor colorWithRed:0.7f green:0.2f blue:0.3f alpha:1.0f];
 }
@@ -3132,6 +3137,31 @@
 }
 
 
++ (NKFColor *)marriott {
+	return [NKFColor colorWithHexString:@"#9d102d"];
+}
+
++ (NKFColor *)marriott2 {
+	return [NKFColor colorWithHexString:@"#6c193f"];
+}
+
++ (NKFColor *)marriott3 {
+	return [NKFColor colorWithHexString:@"#d21034"];
+}
+
++ (NKFColor *)marriott4 {
+	return [NKFColor colorWithHexString:@"#d60077"];
+}
+
++ (NKFColor *)marriott5 {
+	return [NKFColor colorWithHexString:@"#ff5c00"];
+}
+
++ (NKFColor *)marriott6 {
+	return [NKFColor colorWithHexString:@"#767a7d"];
+}
+
+
 + (NKFColor *)marketbasket {
 	return [NKFColor colorWithRed:204.0f/255.0f green:0.0f blue:27.0f/255.0f alpha:1.0f];
 }
@@ -4457,6 +4487,47 @@
 
 + (NKFColor *)soundcloud2{
 	return [NKFColor colorWithHexString:@"#ff3300"];
+}
+
+
++ (NKFColor *)southwest {
+	return [NKFColor colorWithHexString:@"#260BAC"];
+}
+
++ (NKFColor *)southwest2 {
+	return [NKFColor colorWithHexString:@"#979393"];
+}
+
++ (NKFColor *)southwest3 {
+	return [NKFColor colorWithHexString:@"#F08B3E"];
+}
+
++ (NKFColor *)southwest4 {
+	return [NKFColor colorWithHexString:@"#E70000"];
+}
+
++ (NKFColor *)southwest5 {
+	return [NKFColor colorWithHexString:@"#000000"];
+}
+
++ (NKFColor *)southwestairlines {
+	return [NKFColor southwest];
+}
+
++ (NKFColor *)southwestairlines2 {
+	return [NKFColor southwest2];
+}
+
++ (NKFColor *)southwestairlines3 {
+	return [NKFColor southwest3];
+}
+
++ (NKFColor *)southwestairlines4 {
+	return [NKFColor southwest4];
+}
+
++ (NKFColor *)southwestairlines5 {
+	return [NKFColor southwest5];
 }
 
 

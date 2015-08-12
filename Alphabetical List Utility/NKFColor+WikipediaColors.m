@@ -9255,6 +9255,12 @@
 	return peach;
 }
 
+
++ (NKFColor *)pedicure {
+	return [NKFColor fuchsia];
+}
+
+
 + (NKFColor *)peach2 {
 	NKFColor *peach2 = [NKFColor colorWithRed:1.0f green:8.0f/10.0f blue:64.0f/100.0f alpha:1.0f];
 	return peach2;

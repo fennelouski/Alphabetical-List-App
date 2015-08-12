@@ -337,7 +337,7 @@
                                 @"Katie" : [UIColor etonBlue],
                                 @"Ryan" : [UIColor orangePeel],
                                 @"Promise" : [UIColor hotPink],
-                                @"Janelle" : [UIColor rose]
+                                @"Janelle" : [UIColor rose],
                                 };
     for (NSString *key in [whiteList allKeys]) {
         if ([[string lowercaseString] isEqualToString:[key lowercaseString]]) {

@@ -485,16 +485,19 @@ typedef struct {
 								@"Player 7" : [NKFColor lightCoral],
 								@"Player 8" : [NKFColor seashell],
 								@"Player 9" : [NKFColor darkBlue],
-								@"Girl" : [NKFColor carmine],
-								@"Boy" : [NKFColor denim],
-								@"Women" : [NKFColor carmine],
-								@"Men" : [NKFColor denim],
-								@"Nathan" : [NKFColor royalBlue],
-								@"Paul" : [NKFColor darkGreenX11],
-								@"Katie" : [NKFColor etonBlue],
-								@"Ryan" : [NKFColor orangePeel],
-								@"Promise" : [NKFColor hotPink],
-								@"Janelle" : [NKFColor rose]
+								@"Girl"		: [NKFColor carmine],
+								@"Boy"		: [NKFColor denim],
+								@"Women"	: [NKFColor carmine],
+								@"Men"		: [NKFColor denim],
+								@"Nathan"	: [NKFColor royalBlue],
+								@"Paul"		: [NKFColor darkGreenX11],
+								@"Katie"	: [NKFColor etonBlue],
+								@"Ryan"		: [NKFColor orangePeel],
+								@"Promise"	: [NKFColor hotPink],
+								@"Janelle"	: [NKFColor rose],
+								@"Christie"	: [NKFColor jungleGreen],
+								@"Susan"	: [NKFColor deepCarmine],
+								@"Prayer"	: [NKFColor bluebonnet]
 								};
 	
 	for (NSString *key in [whiteList allKeys]) {
@@ -516,6 +519,10 @@ typedef struct {
 			}
 			return whiteColor;
 		}
+	}
+	
+	if (string.length == 0) {
+		return [NKFColor blackColor];
 	}
 	
 	NSString *subString1 = [string substringToIndex:string.length/3];
@@ -541,19 +548,22 @@ typedef struct {
 		greenValueInt += (((int)character%2) + 1) * (((int)character%13) + 1) * (((int)character%11) + 1);
 	}
 	
-	redValueInt %= 30;
-	greenValueInt %= 40;
-	blueValueInt %= 50;
+	redValueInt += 37;
+	greenValueInt += 78;
+	blueValueInt += 14;
 	
-	redValueInt += 30;
-	greenValueInt += 45;
-	blueValueInt += 40;
-	
-	float redValue	 = (float)redValueInt/180.0f;
-	float greenValue = (float)greenValueInt/255.0f;
-	float blueValue	 = (float)blueValueInt/270.0f;
+	float redValue = [self pseudoRandomNumberFor:redValueInt] / 192.0f;
+	float greenValue = [self pseudoRandomNumberFor:greenValueInt] / 216.0f;
+	float blueValue = [self pseudoRandomNumberFor:blueValueInt] / 144.0f;
 	
 	return [NKFColor colorWithRed:redValue green:greenValue blue:blueValue alpha:1.0f];
+}
+
++ (int)pseudoRandomNumberFor:(int)input {
+	int mappedValues[250] = {21, 45, 69, 63, 50, 62, 31, 16, 43, 57, 91, 59, 114, 3, 30, 72, 3, 72, 18, 62, 27, 87, 48, 3, 102, 14, 17, 122, 102, 46, 101, 45, 42, 103, 116, 12, 120, 7, 6, 103, 31, 63, 63, 15, 110, 7, 89, 44, 58, 5, 2, 125, 52, 60, 23, 62, 79, 18, 98, 39, 77, 10, 111, 12, 71, 121, 9, 80, 118, 77, 85, 71, 57, 48, 57, 8, 104, 104, 65, 123, 71, 47, 27, 126, 12, 49, 96, 88, 75, 25, 45, 85, 6, 108, 57, 94, 118, 122, 57, 7, 125, 103, 126, 9, 101, 92, 68, 111, 57, 75, 46, 121, 105, 60, 9, 82, 33, 113, 59, 5, 14, 88, 108, 2, 97, 28, 99, 116, 118, 16, 31, 78, 65, 29, 116, 78, 22, 125, 114, 79, 13, 38, 112, 13, 63, 52, 86, 16, 124, 0, 79, 33, 55, 77, 67, 66, 43, 40, 86, 100, 125, 68, 43, 40, 89, 59, 73, 91, 17, 36, 116, 45, 46, 41, 115, 17, 15, 112, 127, 99, 119, 86, 36, 3, 57, 24, 6, 85, 93, 58, 48, 90, 83, 83, 87, 100, 93, 53, 92, 25, 40, 51, 120, 114, 53, 27, 85, 123, 112, 99, 75, 39, 29, 8, 92, 16, 43, 24, 48, 97, 100, 44, 62, 25, 27, 71, 120, 24, 67, 66, 59, 61, 0, 112, 51, 13, 50, 23, 23, 84, 94, 14, 1, 99, 1, 121, 71, 45, 10, 80};
+	int size = sizeof(mappedValues) / sizeof(int);
+	int index = input % size;
+	return mappedValues[index];
 }
 
 - (NSString *)randomColorName {
