@@ -42,6 +42,13 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 	}
 	
 	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] && ![[ALUDataManager sharedDataManager] menuShowing]) && (!(kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) || (kScreenHeight > screenSizeUpperLimit && kScreenWidth > screenSizeUpperLimit));
+	
+//	if (([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] && ![[ALUDataManager sharedDataManager] menuShowing]) && (!(kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) || (kScreenHeight > screenSizeUpperLimit && kScreenWidth > screenSizeUpperLimit))) {
+//		UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+//		return (orientation == UIDeviceOrientationPortrait || orientation == UIDeviceOrientationPortraitUpsideDown);
+//	}
+//	
+//	return !IS_IPHONE_6P && !IS_IPAD;
 }
 
 @end
