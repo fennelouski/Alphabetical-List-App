@@ -20,30 +20,45 @@
 
 @end
 
-@implementation ALUBackgroundView
+@implementation ALUBackgroundView {
+    UIImage *_blurredImage;
+}
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    [self addSubview:self.patternedView];
+    self.blurredImageView.frame = self.bounds;
     [self addSubview:self.blurredImageView];
+    self.titleLabel.frame = [self titleLabelFrame];
     [self addSubview:self.titleLabel];
 }
 
 - (UIImageView *)blurredImageView {
     if (!_blurredImageView) {
-        UIImage *capturedImage = [self imageWithView:self.patternedView];
         
-        UIColor *tintColor = [[[NKFColor appColor] darkenColorBy:0.25f] colorWithAlphaComponent:0.92f];
-        UIImage *blurredImage = [capturedImage applyBlurWithRadius:8.2f
-                                                         tintColor:tintColor
-                                             saturationDeltaFactor:1.2f
-                                                         maskImage:nil];
-        
-        _blurredImageView = [[UIImageView alloc] initWithImage:blurredImage];
+        _blurredImageView = [[UIImageView alloc] initWithImage:[self image]];
+		_blurredImageView.contentMode = UIViewContentModeScaleAspectFill;
     }
     
     return _blurredImageView;
+}
+
+- (UIImage *)image {
+    self.patternedView.frame = self.bounds;
+    [self.patternedView setNeedsDisplay];
+    
+    if (_blurredImage && _blurredImage.size.width >= self.bounds.size.width && _blurredImage.size.height > self.bounds.size.height) {
+        return _blurredImage;
+    }
+    
+    UIImage *capturedImage = [self imageWithView:self.patternedView];
+    
+    UIColor *tintColor = [[[NKFColor appColor] darkenColorBy:0.25f] colorWithAlphaComponent:0.92f];
+    _blurredImage = [capturedImage applyBlurWithRadius:8.2f
+                                             tintColor:tintColor
+                                 saturationDeltaFactor:1.2f
+                                             maskImage:nil];
+    return _blurredImage;
 }
 
 - (ALUPatternedView *)patternedView {
@@ -56,7 +71,7 @@
 
 - (UILabel *)titleLabel {
     if (!_titleLabel) {
-        _titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 150.0f, self.bounds.size.width, 50.0f)];
+        _titleLabel = [[UILabel alloc] initWithFrame:[self titleLabelFrame]];
         _titleLabel.attributedText = [[NSAttributedString alloc] initWithString:@"A to Z Notes" attributes:@{
                                                                                                        NSTextEffectAttributeName : NSTextEffectLetterpressStyle,
                                                                                                        NSFontAttributeName : [UIFont boldSystemFontOfSize:20.0f],
@@ -68,6 +83,12 @@
     }
     
     return _titleLabel;
+}
+
+- (CGRect)titleLabelFrame {
+    CGRect frame = CGRectMake(0.0f, kScreenHeight * 0.25f, self.bounds.size.width, 50.0f);
+    
+    return frame;
 }
 
 - (UIImage *)imageWithView:(UIView *)view {
