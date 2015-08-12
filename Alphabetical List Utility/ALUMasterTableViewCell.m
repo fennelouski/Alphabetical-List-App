@@ -83,7 +83,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 	}
     
     self.noteTitleLabel.text = _noteTitle;
-    
+	
 	_colors = [NKFColor colorsForCompanyName:_noteTitle];
 }
 
@@ -187,10 +187,32 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 										 self.cardView.frame.size.width - 20.0f,
 										 self.cardView.frame.size.height - textViewYOrigin - 10.0f);
 		self.textView.textColor = self.noteTitleLabel.textColor;
+		self.noteTitleLabel.frame = CGRectMake(10.0f,
+											   0.0f,
+											   self.accessoryImageView.frame.origin.x - 10.0f,
+											   44.0f);
 	} else {
 		[self.cardView removeFromSuperview];
 		[self.headerToolbar removeFromSuperview];
 	}
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        [self performSelector:@selector(findImage) withObject:self afterDelay:1.0f];
+    });
+}
+
+- (void)findImage {
+    if (!self.accessoryImageView.image) {
+        if ([[ALUDataManager sharedDataManager] showImageForListTitle:self.noteTitle]) {
+            UIImage *image = [[ALUDataManager sharedDataManager] imageForCompanyName:self.noteTitle];
+            
+            if (image) {
+                self.accessoryImageView.image = image;
+                self.accessoryImageView.hidden = NO;
+            }
+        }
+    }
 }
 
 - (CGRect)cardViewFrame {
@@ -210,6 +232,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 																	self.bounds.size.width - 40.0f,
 																	44.0f)];
 		_noteTitleLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
+		_noteTitleLabel.adjustsFontSizeToFitWidth = YES;
 	}
 	
 	return _noteTitleLabel;

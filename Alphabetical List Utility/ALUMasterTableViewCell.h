@@ -29,4 +29,8 @@
 - (void)setContentOffset:(CGPoint)contentOffset;
 - (CGPoint)contentOffset;
 
+- (void)findImage;
+
+@property BOOL hasSearchedForImage;
+
 @end

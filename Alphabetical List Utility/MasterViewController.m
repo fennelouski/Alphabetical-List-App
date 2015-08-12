@@ -170,10 +170,13 @@ static CGFloat const defaultRowHeight = 44.0f;
 	
 	if (USE_CARDS) {
 		[self updateCellContentOffset];
-		[self.navigationController setNavigationBarHidden:YES animated:YES];
+        
+        if (!IS_IPAD) {
+            [self.navigationController setNavigationBarHidden:YES animated:YES];
+            [self.view.superview addSubview:self.headerToolbar];
+            [self.view.superview bringSubviewToFront:self.headerToolbar];
+        }
 		
-		[self.view.superview addSubview:self.headerToolbar];
-		[self.view.superview bringSubviewToFront:self.headerToolbar];
 		[ALUDataManager sharedDataManager].currentColorIsDark = YES;
 		
 		[self.parentViewController setNeedsStatusBarAppearanceUpdate];
@@ -408,7 +411,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (BOOL)canBecomeFirstResponder {
-	return USE_CARDS;
+	return USE_CARDS && !IS_IPAD;
 }
 
 #pragma mark - Segues
@@ -595,6 +598,13 @@ static CGFloat const defaultRowHeight = 44.0f;
 			cell.accessoryView.hidden = YES;
 			cell.accessoryImage = companyLogoImage;
 		}
+    } else if ([[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]
+			   &&
+			   !cell.hasSearchedForImage) {
+        [cell performSelector:@selector(findImage) withObject:self afterDelay:2.0f];
+		cell.hasSearchedForImage = YES;
+		cell.accessoryView.hidden = YES;
+		cell.accessoryImage = nil;
 	} else {
 		cell.accessoryView.hidden = YES;
 		cell.accessoryImage = nil;
