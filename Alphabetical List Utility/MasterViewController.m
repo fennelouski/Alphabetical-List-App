@@ -206,7 +206,10 @@ static CGFloat const defaultRowHeight = 44.0f;
     if (USE_CARDS) {
         [UIView animateWithDuration:0.35f
                          animations:^{
-                             self.headerToolbar.frame = CGRectMake(0.0f, -kStatusBarHeight, kScreenWidth, kStatusBarHeight);
+                             self.headerToolbar.frame = CGRectMake(0.0f,
+                                                                   -kStatusBarHeight,
+                                                                   kScreenWidth,
+                                                                   kStatusBarHeight);
                              [self.view.superview addSubview:self.headerToolbar];
                              [self animateStatusBar];
                             
@@ -534,7 +537,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 		indexPath.section + 1 == [self numberOfSectionsInTableView:tableView]
 		&&
 		indexPath.row + 1 == [self tableView:tableView numberOfRowsInSection:indexPath.section]) {
-		heightForRow = LONGER_SIDE - tableViewInset;
+		heightForRow = SHORTER_SIDE - tableViewInset;
 	}
 	
 	return heightForRow;
@@ -560,10 +563,6 @@ static CGFloat const defaultRowHeight = 44.0f;
 	cell.opaque = NO;
 	cell.selectionStyle = UITableViewCellSelectionStyleNone;
 	UIImage *companyLogoImage = [[ALUDataManager sharedDataManager] imageForCompanyName:cell.textLabel.text];
-	
-	if (USE_CARDS && !companyLogoImage) {
-		DLog(@"No companyLogoImage for: %@\t\t%@", cell.noteTitle, cell.textLabel.text);
-	}
 	
 	if (companyLogoImage
         &&

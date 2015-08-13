@@ -181,12 +181,16 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 												   2.0f,
 												   40.0f,
 												   40.0f);
+		
+		
 		CGFloat textViewYOrigin = self.noteTitleLabel.frame.size.height + self.noteTitleLabel.frame.origin.y;
 		self.textView.frame = CGRectMake(10.0f,
 										 textViewYOrigin,
 										 self.cardView.frame.size.width - 20.0f,
 										 self.cardView.frame.size.height - textViewYOrigin - 10.0f);
 		self.textView.textColor = self.noteTitleLabel.textColor;
+		
+		
 		self.noteTitleLabel.frame = CGRectMake(10.0f,
 											   0.0f,
 											   self.accessoryImageView.frame.origin.x - 10.0f,
@@ -219,7 +223,7 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
 	return CGRectMake(_contentOffset.x,
 					  _contentOffset.y,
 					  ((self.bounds.size.width > 100.0f) ? self.bounds.size.width : kScreenWidth),
-					  LONGER_SIDE - 44.0f);
+					  SHORTER_SIDE - kStatusBarHeight);
 }
 
 
