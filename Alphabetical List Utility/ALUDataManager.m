@@ -258,9 +258,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
         return [_companyLogos objectForKey:companyNameURLString];
     }
     
-    if (companyNameURLString.length < 7) {
-        DLog(@"Company name is too short: %@", companyNameURLString);
-//        return nil;
+    if (companyNameURLString.length >= 30) {
+        DLog(@"Company name is too long: %@", companyNameURLString);
+        return nil;
     }
 
 	// Use the default session configuration for the manager (background downloads must use the delegate APIs)
@@ -430,7 +430,6 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     }
     
     NSDictionary *forwardingWords = @{@"volcano"			: @"volcanocorp.com",
-                                      @"pavilions"          : @"pavilions.com",
                                       @"welcome"			: @"nathanfennel.com",
                                       @"massachusetts"		: @"mass.gov",
                                       @"arizona"			: @"az.gov",
@@ -489,6 +488,8 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                                       @"apu"                : @"apu.edu",
                                       @"calpoly"            : @"calpoly.edu",
                                       @"mit"                : @"mit.edu",
+                                      @"ucla"               : @"ucla.edu",
+                                      @"usc"                : @"usc.edu",
 									  @"bible"              : @"bible.com",
 									  @"bibleverseoftheday" : @"bible.com",
 									  @"verseoftheday"      : @"bible.com",
@@ -507,8 +508,15 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                                       @"michiganstate"      : @"msu.edu",
                                       @"mississippistate"   : @"mssstate.edu",
 									  @"pier1imports"		: @"pier1.com",
-									  @"worldmark"			: @"worldmarkbywyndham.com"};
-	
+									  @"worldmark"			: @"worldmarkbywyndham.com",
+                                      @"peetscoffeeandtea"  : @"peets.com",
+                                      @"peetscoffee"        : @"peets.com",
+                                      @"innout"             : @"in-n-out.com",
+                                      @"northeastern"       : @"northeastern.edu",
+                                      @"northwestern"       : @"northwestern.edu",
+                                      @"northeasternuniversity": @"northeastern.edu",
+                                      @"northwesternuniversity": @"northwestern.edu"};
+
     BOOL replacementFound = NO;
     for (NSString *forwardingWord in forwardingWords.allKeys) {
         if ([companyNameURLString rangeOfString:forwardingWord].location != NSNotFound && !replacementFound && forwardingWord.length * 2 > companyName.length && !replacementFound) {
@@ -522,7 +530,7 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
         return nil;
     }
     
-    NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city", @"chores", @"officesupplies", @"samsonite", @"packing", @"aaa"];
+    NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city", @"chores", @"officesupplies", @"samsonite", @"packing", @"aaa", @"promise", @"university", @"josh", @"sand"];
     for (NSString *invalidWord in invalidWords) {
         if ([companyNameURLString rangeOfString:invalidWord].location != NSNotFound && invalidWord.length * 2 >= companyNameURLString.length && !replacementFound) {
             return nil;
@@ -540,8 +548,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                 NSString *smushedURLString = [[[companyName lowercaseString] componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] componentsJoinedByString:@""];
                 return [NSString stringWithFormat:@"%@.edu", smushedURLString];
             }
+            
             for (NSString *word in words) {
-                if (word.length > 1) {
+                if (word.length > 1 && !(word.length == 2 && [[word lowercaseString] containsString:@"of"])) {
                     [abbreviatedString appendString:[[word substringToIndex:1] lowercaseString]];
                 }
             }
