@@ -42,7 +42,6 @@
         CGFloat blueThreshold   = 0.95f;
         
         if (alpha > alphaThreshold && (red < redThreshold && green < greenThreshold && blue < blueThreshold)) {
-            NSLog(@"r: %f\tg: %f\tb: %f\ta: %f", red, green, blue, alpha);
             return NO;
         }
     }

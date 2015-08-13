@@ -895,6 +895,16 @@
     return [NKFColor colorWithHexString:@"#f1c437"];
 }
 
++ (NKFColor *)universityofcalifornialosangeles {
+    return [NKFColor ucla];
+}
+
++ (NKFColor *)universityofcalifornialosangeles2 {
+    return [NKFColor ucla2];
+}
+
+
+
 
 + (NKFColor *)usc {
     return [NKFColor colorWithHexString:@"#8e272a"];
@@ -902,6 +912,14 @@
 
 + (NKFColor *)usc2 {
     return [NKFColor colorWithHexString:@"#f1aa59"];
+}
+
++ (NKFColor *)universityofsoutherncalifornia {
+    return [NKFColor usc];
+}
+
++ (NKFColor *)universityofsoutherncalifornia2 {
+    return [NKFColor usc2];
 }
 
 

@@ -274,6 +274,15 @@
 }
 
 
++ (NKFColor *)aaa {
+    return [NKFColor colorWithHexString:@"#da291c"];
+}
+
++ (NKFColor *)aaa2 {
+    return [NKFColor colorWithHexString:@"#0072ce"];
+}
+
+
 + (NKFColor *)aboutme{
 	return [NKFColor colorWithHexString:@"#00405d"];
 }
@@ -1068,6 +1077,24 @@
 + (NKFColor *)bt5{
 	return [NKFColor colorWithHexString:@"#08538c"];
 }
+
+
++ (NKFColor *)buffalowildwings {
+    return [NKFColor colorWithHexString:@"#FFD200"];
+}
+
++ (NKFColor *)buffalowildwings2 {
+    return [NKFColor colorWithHexString:@"#000000"];
+}
+
++ (NKFColor *)buffalowildwings3 {
+    return [NKFColor colorWithHexString:@"#AAAAA9"];
+}
+
++ (NKFColor *)buffalowildwings4 {
+    return [NKFColor colorWithHexString:@"#FFFFFF"];
+}
+
 
 
 + (NKFColor *)buffer{
@@ -1947,6 +1974,39 @@
 }
 
 
++ (NKFColor *)fairfieldinn {
+    return [NKFColor colorWithRed:108.0f/255.0f green:173.0f/255.0f blue:223.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn2 {
+    return [NKFColor colorWithRed:176.0f/255.0f green:96.0f/255.0f blue:16.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn3 {
+    return [NKFColor colorWithRed:0.0f/255.0f green:73.0f/255.0f blue:144.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn4 {
+    return [NKFColor colorWithRed:181.0f/255.0f green:9.0f/255.0f blue:156.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn5 {
+    return [NKFColor colorWithRed:213.0f/255.0f green:224.0f/255.0f blue:77.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn6 {
+    return [NKFColor colorWithRed:207.0f/255.0f green:212.0f/255.0f blue:216.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn7 {
+    return [NKFColor colorWithRed:147.0f/255.0f green:79.0f/255.0f blue:70.0f/255.0f alpha:1.0f];
+}
+
++ (NKFColor *)fairfieldinn8 {
+    return [NKFColor colorWithRed:5.0f/255.0f green:108.0f/255.0f blue:182.0f/255.0f alpha:1.0f];
+}
+
+
 + (NKFColor *)familydollar {
 	return [NKFColor colorWithRed:253.0f/255.0f green:72.0f/255.0f blue:55.0f/255.0f alpha:1.0f];
 }
@@ -2248,6 +2308,11 @@
 }
 
 
++ (NKFColor *)geico {
+    return [NKFColor royalBlue];
+}
+
+
 + (NKFColor *)generalmotors {
 	return [NKFColor colorWithRed:19.0f/255.0f green:0.0f/255.0f blue:127.0f/255.0f alpha:1.0f];
 }
@@ -2524,6 +2589,19 @@
 }
 
 
++ (NKFColor *)hilton {
+    return [NKFColor colorWithHexString:@"#003150"];
+}
+
++ (NKFColor *)hilton2 {
+    return [NKFColor black];
+}
+
++ (NKFColor *)hilton3 {
+    return [NKFColor white];
+}
+
+
 + (NKFColor *)hobbylobby {
 	return [NKFColor colorWithRed:222.0f/255.0f green:104.0f/255.0f blue:32.0f/255.0f alpha:1.0f];
 }
@@ -2706,6 +2784,20 @@
 + (NKFColor *)indiegogo{
 	return [NKFColor colorWithHexString:@"#eb1478"];
 }
+
+
++ (NKFColor *)innout {
+    return [NKFColor colorWithHexString:@"#D00825"];
+}
+
++ (NKFColor *)innout2 {
+    return [NKFColor colorWithHexString:@"#FCF65A"];
+}
+
++ (NKFColor *)innout3 {
+    return [NKFColor colorWithHexString:@"#000000"];
+}
+
 
 
 + (NKFColor *)instacart{
@@ -3239,6 +3331,15 @@
 }
 
 
++ (NKFColor *)mercuryinsurance {
+    return [NKFColor bulgarianRose];
+}
+
++ (NKFColor *)mercuryautoinsurance {
+    return [NKFColor bulgarianRose];
+}
+
+
 + (NKFColor *)miami {
 	return [NKFColor florida];
 }
@@ -3760,6 +3861,28 @@
 
 + (NKFColor *)pepsi2{
 	return [NKFColor colorWithHexString:@"#004883"];
+}
+
+
++ (NKFColor *)petsmart {
+    return [NKFColor blue];
+}
+
++ (NKFColor *)petsmart2 {
+    return [NKFColor red];
+}
+
+
++ (NKFColor *)pfchangs {
+    return [NKFColor colorWithHexString:@"#6A2717"];
+}
+
++ (NKFColor *)pfchangs2 {
+    return [NKFColor colorWithHexString:@"#9B6C50"];
+}
+
++ (NKFColor *)pfchangs3 {
+    return [NKFColor colorWithHexString:@"#000000"];
 }
 
 
@@ -4295,6 +4418,15 @@
 
 + (NKFColor *)serta2 {
 	return [NKFColor colorWithRed:252.0f/255.0f green:246.0f/255.0f blue:34.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)shakeshack {
+    return [NKFColor colorWithHexString:@"#64B251"];
+}
+
++ (NKFColor *)shakeshack2 {
+    return [NKFColor black];
 }
 
 
@@ -5992,6 +6124,16 @@
 + (NKFColor *)newyork2 {
 	return [NKFColor colorWithRed:250.0f/255.0f green:218.0f/255.0f blue:31.0f/255.0f alpha:1.0f];
 }
+
+
++ (NKFColor *)nordstrom {
+    return [NKFColor black];
+}
+
++ (NKFColor *)nordstrom2 {
+    return [NKFColor silver];
+}
+
 
 + (NKFColor *)northcarolina {
 	return [NKFColor alabama];

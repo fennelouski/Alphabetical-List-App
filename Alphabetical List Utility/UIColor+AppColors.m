@@ -1980,8 +1980,6 @@
         blueValue *= 0.7f;
     }
     
-    NSLog(@"R: %f\t\tG: %f\t\tB: %f\t\t%@", redValue, greenValue, blueValue, date);
-    
     return [UIColor colorWithRed:redValue green:greenValue blue:blueValue alpha:1.0f];
 }
 
