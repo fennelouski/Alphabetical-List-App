@@ -23,6 +23,7 @@
 
 @property (nonatomic, strong) LinearInterpView *drawingView;
 @property (nonatomic, strong) ALUColorPickerView *colorPickerView;
+@property (nonatomic, strong) UIStepper *lineThicknessStepper;
 
 @property (nonatomic, strong) UIImageView *baseImageView;
 
@@ -56,6 +57,9 @@
     self.drawingView.frame = [self drawingViewFrame];
     self.colorPickerView.frame = [self colorPickerViewFrame];
 	self.baseImageView.frame = self.drawingView.frame;
+	[self.navigationController.navigationBar addSubview:self.lineThicknessStepper];
+	self.lineThicknessStepper.center = CGPointMake(self.navigationController.navigationBar.frame.size.width - 50.0f,
+												   self.navigationController.navigationBar.frame.size.height * 0.5f);
 }
 
 
@@ -123,6 +127,22 @@
                               self.drawingView.frame.size.width,
                               self.view.frame.size.height - self.drawingView.frame.origin.y - self.drawingView.frame.size.height - self.inputAccessoryView.frame.size.height);
     return frame;
+}
+
+- (UIStepper *)lineThicknessStepper {
+	if (!_lineThicknessStepper) {
+		_lineThicknessStepper = [[UIStepper alloc] init];
+		_lineThicknessStepper.minimumValue = 1.0f;
+		_lineThicknessStepper.maximumValue = SHORTER_SIDE / 7.5f;
+		_lineThicknessStepper.value = 15.0f;
+		self.drawingView.layer.borderWidth = self.lineThicknessStepper.value;
+		self.drawingView.lineThickness = @(_lineThicknessStepper.value);
+		[_lineThicknessStepper addTarget:self
+								  action:@selector(stepperTouched:)
+						forControlEvents:UIControlEventTouchUpInside];
+	}
+	
+	return _lineThicknessStepper;
 }
 
 - (UIImageView *)baseImageView {
@@ -244,6 +264,14 @@
 
 - (void)dismiss {
 	[self.navigationController popViewControllerAnimated:YES];
+	[self.lineThicknessStepper removeFromSuperview];
+}
+
+- (void)stepperTouched:(UIStepper *)stepper {
+	if ([stepper isEqual:self.lineThicknessStepper]) {
+		self.drawingView.lineThickness = @(stepper.value);
+		self.drawingView.layer.borderWidth = self.lineThicknessStepper.value;
+	}
 }
 
 #pragma mark - Export Image
@@ -261,13 +289,14 @@
         _image = [self imageWithView:containerView];
     } else {
         _image = [self imageWithView:self.drawingView];
-        self.drawingView.layer.borderWidth = 1.0f;
     }
 	
 	[self.view addSubview:self.baseImageView];
 	[self.view addSubview:self.drawingView];
 	self.drawingView.frame = [self drawingViewFrame];
 	self.colorPickerView.frame = [self colorPickerViewFrame];
+	
+	self.drawingView.layer.borderWidth = self.lineThicknessStepper.value;
 }
 
 - (UIImage *)image {

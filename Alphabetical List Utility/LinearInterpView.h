@@ -12,6 +12,8 @@
 
 @property (nonatomic, strong) UIColor *currentColor;
 
+@property (nonatomic, strong) NSNumber *lineThickness;
+
 - (void)undoLastLine;
 
 @end
