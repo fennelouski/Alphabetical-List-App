@@ -676,6 +676,19 @@
 }
 
 
++ (NKFColor *)northeastern {
+	return [NKFColor colorWithHexString:@"#CC0000"];
+}
+
++ (NKFColor *)northeastern2 {
+	return [NKFColor colorWithHexString:@"#615445"];
+}
+
++ (NKFColor *)northeastern3 {
+	return [NKFColor blackColor];
+}
+
+
 + (NKFColor *)northernillinois {
     return [NKFColor colorWithHexString:@"#c33a42"];
 }
@@ -686,11 +699,19 @@
 
 
 + (NKFColor *)northwestern {
-    return [NKFColor colorWithHexString:@"#67518b"];
+    return [NKFColor colorWithHexString:@"#520063"];
 }
 
 + (NKFColor *)northwestern2 {
     return [NKFColor colorWithHexString:@"#242520"];
+}
+
++ (NKFColor *)northwestern3 {
+	return [NKFColor colorWithHexString:@"#FFFFFF"];
+}
+
++ (NKFColor *)northwestern4 {
+	return [NKFColor colorWithHexString:@"#000000"];
 }
 
 

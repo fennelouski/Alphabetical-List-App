@@ -534,6 +534,15 @@
 }
 
 
++ (NKFColor *)americanairlines {
+	return [NKFColor colorWithHexString:@"#DE2118"];
+}
+
++ (NKFColor *)americanairlines2 {
+	return [NKFColor colorWithHexString:@"#324879"];
+}
+
+
 + (NKFColor *)americanredcross{
 	return [NKFColor colorWithHexString:@"#ed1b2e"];
 }
@@ -849,6 +858,19 @@
 
 + (NKFColor *)belk2 {
 	return [NKFColor colorWithRed:36.0f/255.0f green:64.0f/255.0f blue:143.0f/255.0f alpha:1.0f];
+}
+
+
++ (NKFColor *)bernieandphyls {
+	return [NKFColor colorWithHexString:@"#986832"];
+}
+
++ (NKFColor *)bernieandphyls2 {
+	return [NKFColor colorWithHexString:@"#D0C9B9"];
+}
+
++ (NKFColor *)bernieandphyls3 {
+	return [NKFColor colorWithHexString:@"#000000"];
 }
 
 
@@ -3845,6 +3867,33 @@
 }
 
 
++ (NKFColor *)peets {
+	return [NKFColor colorWithHexString:@"#BB9A6A"];
+}
+
++ (NKFColor *)peets2 {
+	return [NKFColor colorWithHexString:@"#080000"];
+}
+
++ (NKFColor *)peets3 {
+	return [NKFColor colorWithHexString:@"#F5F5E8"];
+}
+
++ (NKFColor *)peetscoffee {
+	return [NKFColor peets];
+}
+
++ (NKFColor *)peetscoffee2 {
+	return [NKFColor peets2];
+}
+
++ (NKFColor *)peetscoffee3 {
+	return [NKFColor peets3];
+}
+
+
+
+
 + (NKFColor *)penguinbooks{
 	return [NKFColor colorWithHexString:@"#ff6900"];
 }
@@ -3865,11 +3914,11 @@
 
 
 + (NKFColor *)petsmart {
-    return [NKFColor blue];
+    return [NKFColor colorWithHexString:@"#0068B3"];
 }
 
 + (NKFColor *)petsmart2 {
-    return [NKFColor red];
+	return [NKFColor colorWithHexString:@"#E51837"];
 }
 
 
@@ -5253,6 +5302,19 @@
 }
 
 
++ (NKFColor *)uber {
+	return [NKFColor colorWithHexString:@"#454351"];
+}
+
++ (NKFColor *)uber2 {
+	return [NKFColor colorWithHexString:@"#18111E"];
+}
+
++ (NKFColor *)uber3 {
+	return [NKFColor colorWithHexString:@"#9FA1A4"];
+}
+
+
 + (NKFColor *)ubuntu{
 	return [NKFColor colorWithHexString:@"#dd4814"];
 }
@@ -5393,6 +5455,15 @@
 
 + (NKFColor *)ups {
 	return [NKFColor pullmanBrownUPSBrown];
+}
+
+
++ (NKFColor *)usps {
+	return [NKFColor colorWithHexString:@"#194881"];
+}
+
++ (NKFColor *)usps2 {
+	return [NKFColor colorWithHexString:@"#D90000"];
 }
 
 
@@ -5684,7 +5755,7 @@
 
 
 + (NKFColor *)wholefoods {
-	return [NKFColor colorWithRed:2.0f/255.0f green:145.0f/255.0f blue:45.0f/255.0f alpha:1.0f];
+	return [NKFColor colorWithHexString:@"#016D55"];
 }
 
 
@@ -5844,6 +5915,11 @@
 
 + (NKFColor *)worldline{
 	return [NKFColor colorWithHexString:@"#0066a1"];
+}
+
+
++ (NKFColor *)worldmark {
+	return [NKFColor colorWithHexString:@"#0E1160"];
 }
 
 

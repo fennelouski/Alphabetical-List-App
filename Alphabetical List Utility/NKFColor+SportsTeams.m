@@ -89,6 +89,23 @@
 }
 
 
++ (NKFColor *)rivercats {
+	return [NKFColor colorWithHexString:@"#98002E"];
+}
+
++ (NKFColor *)rivercats2 {
+	return [NKFColor colorWithHexString:@"#5F6062"];
+}
+
++ (NKFColor *)rivercats3 {
+	return [NKFColor colorWithHexString:@"#005CA7"];
+}
+
++ (NKFColor *)rivercats4 {
+	return [NKFColor colorWithHexString:@"#000000"];
+}
+
+
 + (NKFColor *)chicagocubs {
 	return [NKFColor colorWithHexString:@"#003279"];
 }
