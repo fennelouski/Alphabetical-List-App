@@ -88,8 +88,8 @@
 
 - (CGRect)drawingViewFrame {
     CGFloat sideLength = (SHORTER_SIDE < self.view.bounds.size.height && SHORTER_SIDE < self.navigationController.navigationBar.frame.size.width) ? SHORTER_SIDE : (self.view.bounds.size.height < self.navigationController.navigationBar.frame.size.width) ? self.view.bounds.size.height : self.navigationController.navigationBar.frame.size.width;
-    if (sideLength > 500.0f) {
-        sideLength = 500.0f;
+    if (sideLength > 414.0f) {
+        sideLength = 414.0f;
     }
     
     CGFloat xOrigin = (self.navigationController.navigationBar.frame.size.width - sideLength) * 0.5f;
