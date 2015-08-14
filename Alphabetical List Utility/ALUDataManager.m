@@ -523,7 +523,8 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 									  @"aw"					: @"awrestaurants.com",
 									  @"oculusrift"			: @"oculus.com",
 									  @"benandjerrys"		: @"benjerry.com",
-									  @"benjerrys"			: @"benjerry.com"};
+									  @"benjerrys"			: @"benjerry.com",
+									  @"californiapizzakitchen":@"cpk.com"};
 	
     BOOL replacementFound = NO;
     for (NSString *forwardingWord in forwardingWords.allKeys) {
