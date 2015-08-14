@@ -517,8 +517,14 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                                       @"northeasternuniversity": @"northeastern.edu",
                                       @"northwesternuniversity": @"northwestern.edu",
 									  @"americanairlines"	: @"aa.com",
-									  @"wholefoods"			: @"wholefoodsmarket.com"};
-
+									  @"wholefoods"			: @"wholefoodsmarket.com",
+									  @"unity"				: @"unity3d.com",
+									  @"aandw"				: @"awrestaurants.com",
+									  @"aw"					: @"awrestaurants.com",
+									  @"oculusrift"			: @"oculus.com",
+									  @"benandjerrys"		: @"benjerry.com",
+									  @"benjerrys"			: @"benjerry.com"};
+	
     BOOL replacementFound = NO;
     for (NSString *forwardingWord in forwardingWords.allKeys) {
         if ([companyNameURLString rangeOfString:forwardingWord].location != NSNotFound && !replacementFound && forwardingWord.length * 2 > companyName.length && !replacementFound) {
@@ -533,12 +539,15 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     }
     
     NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city", @"chores", @"officesupplies", @"samsonite", @"packing", @"aaa", @"promise", @"university", @"josh", @"sand"];
-    for (NSString *invalidWord in invalidWords) {
-        if ([companyNameURLString rangeOfString:invalidWord].location != NSNotFound && invalidWord.length * 2 >= companyNameURLString.length && !replacementFound) {
-            return nil;
-        }
-    }
-    
+	
+	if (!replacementFound) {
+		for (NSString *invalidWord in invalidWords) {
+			if ([companyNameURLString rangeOfString:invalidWord].location != NSNotFound && invalidWord.length * 2 >= companyNameURLString.length) {
+				return nil;
+			}
+		}
+	}
+	
     NSArray *universityWords = @[@"university", @"college"];
     
     for (NSString *universityWord in universityWords) {
