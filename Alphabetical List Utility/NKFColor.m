@@ -982,7 +982,7 @@ typedef struct {
 	int greenInt = greenValue * 255.0f;
 	int blueInt = blueValue * 255.0f;
 	
-	NSString *hexString = [NSString stringWithFormat:@"%02x%02x%02x", redInt, greenInt, blueInt];
+	NSString *hexString = [NSString stringWithFormat:@"#%02x%02x%02x", redInt, greenInt, blueInt];
 	if (!hexString) {
 		NSLog(@"What is wrong here?");
 	}
