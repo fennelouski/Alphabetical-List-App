@@ -10,4 +10,6 @@
 
 @interface JSONColorFormatter : NSObject
 
++ (void)logCompanyColorsDictionary;
+
 @end
