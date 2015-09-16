@@ -54,6 +54,7 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 	
 	self.imageView.frame = [self imageViewFrame];
 	self.backgroundView.frame = CGRectMake(0.0f, 0.0f, self.navigationController.navigationBar.frame.size.width, LONGER_SIDE);
+	[self.backgroundView layoutSubviews];
 	self.textField.frame = [self textFieldFrame];
 }
 

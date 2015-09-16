@@ -1159,7 +1159,7 @@ static CGFloat const borderWidth = 10.0f;
     
     if (emails) {
         [formattedName appendString:@"\n"];
-        [self conditionallyAppendString:emails.description toMutableString:formattedName];
+        [self conditionallyAppendString:name toMutableString:formattedName];
     }
     
     NSInteger recordID  =  ABRecordGetRecordID(person);

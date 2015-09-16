@@ -54,6 +54,7 @@
     [super updateViewConstraints];
     
     self.backgroundView.frame = CGRectMake(0.0f, 0.0f, self.navigationController.navigationBar.frame.size.width, LONGER_SIDE);
+	[self.backgroundView layoutSubviews];
     self.drawingView.frame = [self drawingViewFrame];
     self.colorPickerView.frame = [self colorPickerViewFrame];
 	self.baseImageView.frame = self.drawingView.frame;
