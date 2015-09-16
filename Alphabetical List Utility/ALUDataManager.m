@@ -77,7 +77,7 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		_useCardView = (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) || (kScreenHeight > screenSizeUpperLimit && kScreenWidth > screenSizeUpperLimit);
+		_useCardView = (IS_IPHONE_6P);
 		_shouldShowStatusBar = YES;
         
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
@@ -147,8 +147,8 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 		
 		NSString *deviceType = [UIDevice currentDevice].model;
 		DLog(@"deviceType: %@", deviceType);
+		
 		if ([deviceType rangeOfString:@"iPhone"].location != NSNotFound) {
-			
 			if (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) {
 				NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap the + to create a new note.\n\nTap a note title to open that note.\n\nWith a note open, tap on the note title to see settings for that note or tap < to return to a list of all your notes.\n\nPinch this text to adjust the font size.";
 				[_lists addObject:listTitle];
@@ -722,6 +722,10 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 }
 
 - (BOOL)showImageForListTitle:(NSString *)title {
+    if (!title) {
+        return NO;
+    }
+    
 	if ([_lists containsObject:title]) {
 		if ([_showListImages objectForKey:title]) {
 			return [[_showListImages objectForKey:title] boolValue];

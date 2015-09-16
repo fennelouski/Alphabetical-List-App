@@ -109,13 +109,16 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (void)configureNotifications {
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWasShown:)
-                                                 name:UIKeyboardDidShowNotification object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWasHidden:)
-                                                 name:UIKeyboardWillHideNotification object:nil];
+	if (USE_CARDS) {
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(keyboardWasShown:)
+													 name:UIKeyboardDidShowNotification object:nil];
+		
+		[[NSNotificationCenter defaultCenter] addObserver:self
+												 selector:@selector(keyboardWasHidden:)
+													 name:UIKeyboardWillHideNotification object:nil];
+	}
+	
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(appDidBecomeActive:)
 												 name:UIApplicationDidBecomeActiveNotification
@@ -139,25 +142,34 @@ static CGFloat const defaultRowHeight = 44.0f;
     
 	self.addButton.center = CGPointMake(_inputAccessoryView.frame.size.width - _inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
 	self.editButton.center = CGPointMake(_inputAccessoryView.frame.size.height * 0.5f, _inputAccessoryView.frame.size.height * 0.5f);
+	self.tableView.frame = self.view.bounds;
+	[self.tableView reloadData];
+	[self.backgroundView layoutSubviews];
 }
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
 	self.navigationItem.leftBarButtonItem = self.editButtonItem;
-
+	
 	self.objects = [[ALUDataManager sharedDataManager] lists];
 	
 	UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createNewListButtonTouched:)];
 	self.navigationItem.rightBarButtonItem = addButton;
 	self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
-	self.navigationItem.title = @"";
-	self.view.backgroundColor = [NKFColor white];
+	self.navigationItem.title = @"A2Z Notes";
+	self.view.backgroundColor = [NKFColor appColor];
 	self.navigationController.navigationBar.tintColor = [NKFColor appColor];
 	
 	if (self.objects.count > 0) {
 		[self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] animated:YES scrollPosition:UITableViewScrollPositionTop];
 	}
+    
+    for (NSTimeInterval t = 0.0f; t < 20.0f; t +=  ((t > 0) ? 2.1f * t : 2.1f)) {
+        [self performSelector:@selector(delayedReload)
+                   withObject:self
+                   afterDelay:t];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -294,6 +306,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 - (void)reloadList {
 	self.objects = [[ALUDataManager sharedDataManager] lists];
 	[self.tableView reloadData];
+    [self.tableView performSelector:@selector(reloadData)
+                         withObject:self
+                         afterDelay:5.0f];
 }
 
 #pragma mark - Input Accessory View
@@ -634,11 +649,15 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (void)reloadAfterDeleting {
-	if (!_lastReloadDate || [_lastReloadDate timeIntervalSinceNow] < -1) {
-		self.objects = [[ALUDataManager sharedDataManager] lists];
-		[self.tableView reloadData];
-		_lastReloadDate = [NSDate date];
-	}
+    return;
+}
+
+- (void)delayedReload {
+    if (!_lastReloadDate || [_lastReloadDate timeIntervalSinceNow] < -1) {
+        self.objects = [[ALUDataManager sharedDataManager] lists];
+        [self.tableView reloadData];
+        _lastReloadDate = [NSDate date];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
