@@ -77,7 +77,7 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		_useCardView = (IS_IPHONE_6P);
+		_useCardView = !(IS_IPHONE_6P || [[NSProcessInfo processInfo] operatingSystemVersion].majorVersion >= 9);
 		_shouldShowStatusBar = YES;
         
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
