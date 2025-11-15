@@ -26,12 +26,24 @@
 	UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
 	navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
 	splitViewController.delegate = self;
-	
+
 	if (!self.locationManager) {
 		self.locationManager = [[CLLocationManager alloc] init];
 		self.locationManager.delegate = self;
 	}
-	
+
+	// Request notification permissions
+	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+	center.delegate = self;
+	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
+						  completionHandler:^(BOOL granted, NSError * _Nullable error) {
+							  if (granted) {
+								  NSLog(@"Notification permission granted");
+							  } else {
+								  NSLog(@"Notification permission denied: %@", error);
+							  }
+						  }];
+
 	return YES;
 }
 
@@ -119,22 +131,21 @@
 														 }];
 		[alertController addAction:okAction];
 	} else {
-		UILocalNotification *localNotification = [[UILocalNotification alloc] init];
 		NSMutableString *alertBody = [[NSMutableString alloc] init];
-		
+
 		NSString *noteInfo = [[ALUDataManager sharedDataManager] listWithTitle:[region identifier]];
 		if (noteInfo) {
 			// remove extra white space between lines and limits the number of lines to 5
 			NSArray *lines = [noteInfo componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-			
+
 			if (lines.count > 1) {
 				int maxNumberOfLines = 5;
 				int blankLines = 0;
 				NSMutableString *formattedNoteInfo = [[NSMutableString alloc] initWithString:[lines firstObject]];
-				
+
 				for (int i = 1; i < lines.count && i < maxNumberOfLines + blankLines; i++) {
 					NSString *line = [[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-					
+
 					if (line.length > 0) {
 						[formattedNoteInfo appendFormat:@"\n%@", line];
 					} else {
@@ -142,13 +153,13 @@
 					}
 				}
 			}
-			
+
 			[alertBody appendString:noteInfo];
 		} else {
 			[self.locationManager stopMonitoringForRegion:region];
 			return;
 		}
-        
+
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         NSString *lastNotificationDateKey = [NSString stringWithFormat:@"Last Notification Date K£Y%@", [region identifier]];
         NSDate *lastNotificationDate = [defaults objectForKey:lastNotificationDateKey];
@@ -156,19 +167,28 @@
         if (lastNotificationDate && [lastNotificationDate timeIntervalSinceNow] > minimumWaitTime) {
             return;
         }
-        
+
         [defaults setObject:[NSDate date] forKey:lastNotificationDateKey];
-		
-        localNotification.alertAction = @"show note";
-        localNotification.alertTitle = [region identifier];
-        localNotification.alertBody = alertBody;
-		localNotification.soundName = @"Default";
-		localNotification.category = @"showNoteNotificationCategory";
-		
-		
-        NSLog(@"scheduledLocalNotifications: %@", [[UIApplication sharedApplication] scheduledLocalNotifications]);
-        
-		[[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
+
+		// Use modern UserNotifications framework
+		UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+		content.title = [region identifier];
+		content.body = alertBody;
+		content.sound = [UNNotificationSound defaultSound];
+		content.categoryIdentifier = @"showNoteNotificationCategory";
+
+		UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString]
+																			  content:content
+																			  trigger:nil]; // nil trigger means immediate delivery
+
+		UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+		[center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+			if (error) {
+				NSLog(@"Error scheduling notification: %@", error);
+			} else {
+				NSLog(@"Notification scheduled successfully");
+			}
+		}];
 	}
 }
 

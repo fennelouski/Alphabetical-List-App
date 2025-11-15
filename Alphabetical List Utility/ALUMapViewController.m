@@ -111,15 +111,18 @@
     [self addAnnotations];
 }
 
-- (MKOverlayView *)mapView:(MKMapView *)mapView viewForOverlay:(id <MKOverlay>)overlay {
+- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id <MKOverlay>)overlay {
     DLog(@"Overlay: %@", [overlay title]);
-    
-    MKOverlayView *view = [[MKOverlayView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, 1.0f, 1.0f)];
-    view.backgroundColor = [[NKFColor appColor] colorWithAlphaComponent:0.5f];
-    view.layer.cornerRadius = [overlay boundingMapRect].size.width * 0.5f;
-    view.clipsToBounds = YES;
-    
-    return view;
+
+    if ([overlay isKindOfClass:[MKCircle class]]) {
+        MKCircleRenderer *renderer = [[MKCircleRenderer alloc] initWithCircle:(MKCircle *)overlay];
+        renderer.fillColor = [[NKFColor appColor] colorWithAlphaComponent:0.5f];
+        renderer.strokeColor = [[NKFColor appColor] colorWithAlphaComponent:0.7f];
+        renderer.lineWidth = 2.0f;
+        return renderer;
+    }
+
+    return nil;
 }
 
 

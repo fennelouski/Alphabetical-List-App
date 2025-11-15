@@ -19,6 +19,6 @@
 
 - (UIImage *)image;
 
-@property (assign) id <ALUEmojiImageViewControllerDelegate> delegate;
+@property (weak, nonatomic) id <ALUEmojiImageViewControllerDelegate> delegate;
 
 @end
