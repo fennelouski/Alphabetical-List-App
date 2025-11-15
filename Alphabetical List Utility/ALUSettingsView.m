@@ -386,8 +386,10 @@
     } else {
 //        DLog(@"We're good %f \t\t%f", totalTimeTranspired, maxIterationsTotal);
     }
-    
-    [self performSelector:@selector(addCoverUpView) withObject:self afterDelay:duration];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self addCoverUpView];
+    });
 }
 
 - (void)addCoverUpView {
@@ -424,8 +426,10 @@
 							 
 						 }];
 	}
-	
-	[self performSelector:@selector(resetBlurredViews) withObject:self afterDelay:duration];
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self resetBlurredViews];
+	});
 }
 
 - (void)resetBlurredViews {

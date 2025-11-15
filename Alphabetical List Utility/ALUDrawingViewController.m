@@ -45,9 +45,13 @@
 	[self.view addSubview:self.backgroundView];
 	[self.view addSubview:self.drawingView];
 	[self.view addSubview:self.colorPickerView];
-	
-	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.0f];
-	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:1.0f];
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self updateViewConstraints];
+	});
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self updateViewConstraints];
+	});
 }
 
 - (void)updateViewConstraints {

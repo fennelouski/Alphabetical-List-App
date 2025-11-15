@@ -193,7 +193,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 	[defaults removeObjectForKey:listTitle];
 	[self updateListsInStorage];
 	DLog(@"All List titles:\t%@", _lists);
-	[self performSelector:@selector(addDefaultList) withObject:self afterDelay:0.0f];
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self addDefaultList];
+	});
 }
 
 - (void)saveList:(NSString *)list withTitle:(NSString *)title {
@@ -597,11 +599,13 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     [_companyLogos setObject:image forKey:companyNameURLString];
 	
 	imageData = [NSData dataWithContentsOfURL:filePath];
-    
+
     if (!imageData) {
         DLog(@"Image data is not saved for %@", companyName);
     } else {
-        [self performSelector:@selector(checkForDataAtFilePath:) withObject:filePath afterDelay:0.5f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self checkForDataAtFilePath:filePath];
+        });
     }
 }
 

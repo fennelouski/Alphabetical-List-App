@@ -12,44 +12,35 @@ This document tracks the remaining modernization tasks for the Alphabetical List
 - [x] Replaced MKOverlayView with MKOverlayRenderer
 - [x] Fixed delegate property attributes (assign → weak)
 
+### Modern API Replacements (2025-11-15)
+- [x] **Replaced performSelector Calls with Modern APIs** - All `performSelector:withObject:afterDelay:` calls replaced with `dispatch_after` using GCD
+  - Updated MasterViewController.m (7 instances)
+  - Updated DetailViewController.m (7 instances)
+  - Updated ALUSettingsView.m (2 instances)
+  - Updated ALUSplitViewController.m (2 instances)
+  - Updated ALUMasterTableViewCell.m (1 instance)
+  - Updated ALUMapViewController.m (3 instances)
+  - Updated ALUDrawingViewController.m (2 instances)
+  - Updated ALUEmojiImageViewController.m (1 instance)
+  - Updated ALUDataManager.m (2 instances)
+  - Total: 27 instances replaced
+
+### Privacy and App Store Compliance (2025-11-15)
+- [x] **Privacy Manifest Created** - Added `PrivacyInfo.xcprivacy` with API usage declarations
+  - Declared UserDefaults usage (CA92.1)
+  - Declared File Timestamp usage (C617.1)
+  - Declared System Boot Time usage (35F9.1)
+  - Declared Disk Space usage (E174.1)
+- [x] **Privacy Strings Added to Info.plist**
+  - NSLocationWhenInUseUsageDescription
+  - NSLocationAlwaysAndWhenInUseUsageDescription
+  - NSContactsUsageDescription
+  - NSCameraUsageDescription
+  - NSPhotoLibraryUsageDescription
+
 ## High Priority Remaining Tasks
 
-### 1. Replace performSelector Calls with Modern APIs
-**Priority:** HIGH
-**Affected Files:**
-- `Alphabetical List Utility/MasterViewController.m`
-- `Alphabetical List Utility/DetailViewController.m`
-- `Alphabetical List Utility/ALUSettingsView.m`
-- `Alphabetical List Utility/ALUSplitViewController.m`
-- `Alphabetical List Utility/ALUMasterTableViewCell.m`
-- `Alphabetical List Utility/ALUMapViewController.m`
-- `Alphabetical List Utility/ALUDrawingViewController.m`
-- `Alphabetical List Utility/ALUEmojiImageViewController.m`
-- `Alphabetical List Utility/ALUDataManager.m`
-
-**Issue:** `performSelector:withObject:afterDelay:` is deprecated and can cause crashes with certain memory patterns.
-
-**Solution:** Replace with `dispatch_after` using GCD.
-
-**Example Replacements:**
-```objc
-// OLD:
-[self performSelector:@selector(reloadAfterDeleting) withObject:self afterDelay:0.25f];
-
-// NEW:
-dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    [self reloadAfterDeleting];
-});
-```
-
-**Acceptance Criteria:**
-- All `performSelector:withObject:afterDelay:` calls replaced with `dispatch_after`
-- App functionality remains unchanged
-- No crashes related to delayed method calls
-
----
-
-### 2. Update Device Detection to Use Trait Collections
+### 1. Update Device Detection to Use Trait Collections
 **Priority:** HIGH
 **Affected Files:**
 - `Alphabetical List Utility/PrefixHeader.pch` (lines 27-39)
@@ -79,7 +70,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 3. Modernize AFNetworking or Migrate to URLSession
+### 2. Modernize AFNetworking or Migrate to URLSession
 **Priority:** HIGH
 **Affected Files:**
 - `AFNetworking/` (entire directory - vendored library)
@@ -105,7 +96,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 4. Implement Auto Layout Constraints
+### 3. Implement Auto Layout Constraints
 **Priority:** MEDIUM
 **Affected Files:**
 - `Alphabetical List Utility/DetailViewController.m` (lines 22-27)
@@ -130,34 +121,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 5. Add Privacy Manifest and Update Info.plist
-**Priority:** HIGH (Required for App Store)
-**Affected Files:**
-- `Alphabetical List Utility/Info.plist`
-- Create `PrivacyInfo.xcprivacy`
-
-**Issue:** iOS 17 requires privacy manifest for certain APIs and App Store submission.
-
-**Required Privacy Strings (if not present):**
-- `NSLocationWhenInUseUsageDescription` - Location-based reminders
-- `NSLocationAlwaysAndWhenInUseUsageDescription` - Background location
-- `NSContactsUsageDescription` - Contact picker access
-- `NSCameraUsageDescription` - Camera for images (if used)
-- `NSPhotoLibraryUsageDescription` - Photo library access
-
-**Privacy Manifest Required APIs:**
-- UserNotifications (notifications)
-- CoreLocation (geofencing)
-- Contacts (contact picker)
-
-**Acceptance Criteria:**
-- All privacy strings added to Info.plist
-- PrivacyInfo.xcprivacy created with API usage declarations
-- App passes App Store review
-
----
-
-### 6. Update Build Settings for Modern Xcode
+### 4. Update Build Settings for Modern Xcode
 **Priority:** MEDIUM
 **Affected Files:**
 - `Alphabetical List Utility.xcodeproj/project.pbxproj`
@@ -178,7 +142,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ## Medium Priority Tasks
 
-### 7. Modernize Storyboard Segues and Navigation
+### 5. Modernize Storyboard Segues and Navigation
 **Priority:** MEDIUM
 **Affected Files:**
 - `Alphabetical List Utility/Base.lproj/Main.storyboard`
@@ -195,7 +159,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 8. Update Color Management System
+### 6. Update Color Management System
 **Priority:** MEDIUM
 **Affected Files:**
 - `Alphabetical List Utility/NKFColor.m` and category files
@@ -219,7 +183,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 9. Improve Memory Management and Notification Cleanup
+### 7. Improve Memory Management and Notification Cleanup
 **Priority:** MEDIUM
 **Affected Files:**
 - All view controllers using NSNotificationCenter
@@ -242,7 +206,7 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-### 10. Update Prefix Header Usage
+### 8. Update Prefix Header Usage
 **Priority:** LOW
 **Affected Files:**
 - `Alphabetical List Utility/PrefixHeader.pch`
@@ -331,14 +295,14 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ## App Store Submission Checklist
 
-- [ ] Privacy manifest created (PrivacyInfo.xcprivacy)
-- [ ] All privacy usage strings in Info.plist
+- [x] Privacy manifest created (PrivacyInfo.xcprivacy)
+- [x] All privacy usage strings in Info.plist
 - [ ] App builds without warnings
 - [ ] Code signing configured
 - [ ] Screenshots updated for latest iOS
 - [ ] App description mentions iOS 12.0+ requirement
 - [ ] TestFlight testing completed
-- [ ] No deprecated APIs in use
+- [x] No deprecated performSelector APIs in use
 - [ ] Dark mode support (recommended)
 - [ ] Accessibility audit passed
 
@@ -360,7 +324,26 @@ if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact)
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Last Updated:** 2025-11-15
 **iOS Target:** iOS 12.0+ with iOS 17+ compatibility
-**Project Status:** Initial modernization complete, testing and refinement needed
+**Project Status:** Critical modernization tasks complete (performSelector replacement, privacy compliance), ready for testing
+
+## Recent Updates (2025-11-15)
+
+### Completed in This Session
+1. ✅ Replaced all 27 instances of `performSelector:withObject:afterDelay:` with modern `dispatch_after` GCD calls
+2. ✅ Created iOS 17 Privacy Manifest (`PrivacyInfo.xcprivacy`) with required API declarations
+3. ✅ Added all required privacy usage descriptions to Info.plist
+
+### Next Recommended Steps
+1. **Test the application** - Run on iOS 12.0 simulator and iOS 17+ device to verify functionality
+2. **Device Detection Update** - Replace hard-coded device macros with trait collections
+3. **AFNetworking Migration** - Evaluate migration to native URLSession for networking
+4. **Auto Layout** - Migrate from frame-based layout to Auto Layout constraints for better multitasking support
+
+### Known Issues to Address
+- Still using deprecated device detection macros (IS_IPHONE_6, IS_IPHONE_6P, etc.)
+- Old vendored AFNetworking library contains deprecated APIs
+- Frame-based layout doesn't support dynamic type or multitasking optimally
+- 68 NSNotificationCenter observers should be audited for proper cleanup

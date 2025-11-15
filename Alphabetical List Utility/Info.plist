@@ -24,6 +24,16 @@
 	<true/>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>A2Z Notes would like to use your location. Your location will never be shared and only be used to send you notifications that you create.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>A2Z Notes uses your location to set up location-based reminders for your notes.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>A2Z Notes needs access to your location to trigger reminders when you arrive at or leave specific locations.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>A2Z Notes can integrate with your contacts to enhance your note-taking experience.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>A2Z Notes would like to access your camera to add photos to your notes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>A2Z Notes would like to access your photo library to add images to your notes.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>Main</string>
 	<key>UIMainStoryboardFile</key>
