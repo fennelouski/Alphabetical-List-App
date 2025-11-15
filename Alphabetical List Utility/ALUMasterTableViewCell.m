@@ -202,7 +202,9 @@ static CGFloat const ALUMasterTableViewCellTextViewMinFontSize = 6.0f;
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        [self performSelector:@selector(findImage) withObject:self afterDelay:1.0f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self findImage];
+        });
     });
 }
 

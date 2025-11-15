@@ -186,7 +186,9 @@
             [self.mapView setRegion:MKCoordinateRegionMake(coordinate, MKCoordinateSpanMake(0.05, 0.05))];
             _foundUserLocation = YES;
         } else {
-            [self performSelector:@selector(findUserLocation) withObject:self afterDelay:0.05f];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self findUserLocation];
+            });
             _foundUserLocation = NO;
         }
     }
@@ -202,7 +204,9 @@
         [self.mapView setRegion:MKCoordinateRegionMake(self.mapView.userLocation.coordinate, MKCoordinateSpanMake(0.1, 0.1))];
         _foundUserLocation = YES;
     } else {
-        [self performSelector:@selector(findUserLocation) withObject:self afterDelay:0.05f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self findUserLocation];
+        });
     }
 }
 
@@ -210,9 +214,11 @@
     if (!_footerToolbar) {
         _footerToolbar = [[UIToolbar alloc] initWithFrame:[self footerToolbarFrame]];
         [_footerToolbar addSubview:self.radiusSlider];
-        [self performSelector:@selector(sliderTouched:) withObject:self.radiusSlider afterDelay:0.1f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self sliderTouched:self.radiusSlider];
+        });
     }
-    
+
     return _footerToolbar;
 }
 

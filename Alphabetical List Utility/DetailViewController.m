@@ -120,10 +120,14 @@ static CGFloat const borderWidth = 10.0f;
     _previousScreenSize = CGSizeMake(kScreenWidth, kScreenHeight);
 	
 	_isKeyboardShowing = NO;
-	
+
 	[self updateViewConstraints];
-	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.0f];
-	[self performSelector:@selector(updateViewConstraints) withObject:self afterDelay:0.5f];
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self updateViewConstraints];
+	});
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self updateViewConstraints];
+	});
 	[self findTextView];
 	
 	[self checkForActionButtonAbility];
@@ -201,9 +205,11 @@ static CGFloat const borderWidth = 10.0f;
 			}
 		}
 	}
-	
+
     [self checkForNavBarColor];
-    [self performSelector:@selector(checkForNavBarColor) withObject:self afterDelay:1.35f];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self checkForNavBarColor];
+    });
 }
 
 - (void)checkForNavBarColor {
@@ -453,7 +459,10 @@ static CGFloat const borderWidth = 10.0f;
 													 handler:^(UIAlertAction * __nonnull action) {
 														 if (_alertTextField.text.length > 0) {
 															 if ([[ALUDataManager sharedDataManager] addList:_alertTextField.text]) {
-																 [self performSelector:@selector(listAlreadyExistsWarning:) withObject:_alertTextField.text afterDelay:0.1f];
+																 NSString *textFieldText = _alertTextField.text;
+																 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+																	 [self listAlreadyExistsWarning:textFieldText];
+																 });
 															 } else {
 																 if ([[ALUDataManager sharedDataManager] geolocationReminderExistsForTitle:_detailItem]) {
 																	 ALUPointAnnotation *annotation = [[ALUDataManager sharedDataManager] annotationForTitle:_detailItem];
@@ -732,8 +741,10 @@ static CGFloat const borderWidth = 10.0f;
 		
 		self.listItemTextView.selectedRange = textRange;
 	}
-	
-	[self performSelector:@selector(delayedScroll:) withObject:@(NO) afterDelay:0.0f];
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self delayedScroll:@(NO)];
+	});
 }
 
 - (void)delayedScroll:(NSNumber *)animated {
@@ -858,8 +869,10 @@ static CGFloat const borderWidth = 10.0f;
 			[self.actionButton setEnabled:NO];
 		}
 	}
-	
-	[self performSelector:@selector(checkForActionButtonAbility) withObject:self afterDelay:0.1f];
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self checkForActionButtonAbility];
+	});
 }
 
 #pragma mark - Status Bar
@@ -964,7 +977,9 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)listRenameSelected {
-	[self performSelector:@selector(renameList) withObject:self afterDelay:0.1f];
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	    [self renameList];
+	});
 }
 
 - (void)alphabetize {

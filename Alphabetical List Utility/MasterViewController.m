@@ -91,21 +91,27 @@ static CGFloat const defaultRowHeight = 44.0f;
 
 - (void)setup {
     [self configureNotifications];
-    [self performSelector:@selector(reloadAfterDeleting) withObject:self afterDelay:0.25f];
-    [self performSelector:@selector(moveHeaderForward) withObject:self afterDelay:0.35f];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self reloadAfterDeleting];
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self moveHeaderForward];
+    });
 }
 
 - (void)moveHeaderForward {
     if (USE_CARDS) {
         [self.view.superview addSubview:self.headerToolbar];
         [self.view.superview bringSubviewToFront:self.headerToolbar];
-        
+
         if (!self.backgroundView.superview) {
             [self.tableView.superview insertSubview:self.backgroundView belowSubview:self.tableView];
         }
     }
-    
-    [self performSelector:@selector(moveHeaderForward) withObject:self afterDelay:0.35f];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self moveHeaderForward];
+    });
 }
 
 - (void)configureNotifications {
@@ -166,9 +172,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 	}
     
     for (NSTimeInterval t = 0.0f; t < 20.0f; t +=  ((t > 0) ? 2.1f * t : 2.1f)) {
-        [self performSelector:@selector(delayedReload)
-                   withObject:self
-                   afterDelay:t];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(t * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self delayedReload];
+        });
     }
 }
 
@@ -196,7 +202,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 		[self.headerToolbar removeFromSuperview];
 	}
     
-    [self performSelector:@selector(adjustTableViewFrame) withObject:self afterDelay:0.1f];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self adjustTableViewFrame];
+    });
 	[self adjustTableViewFrame];
 }
 
@@ -306,9 +314,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 - (void)reloadList {
 	self.objects = [[ALUDataManager sharedDataManager] lists];
 	[self.tableView reloadData];
-    [self.tableView performSelector:@selector(reloadData)
-                         withObject:self
-                         afterDelay:5.0f];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+    });
 }
 
 #pragma mark - Input Accessory View
@@ -615,7 +623,9 @@ static CGFloat const defaultRowHeight = 44.0f;
     } else if ([[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]
 			   &&
 			   !cell.hasSearchedForImage) {
-        [cell performSelector:@selector(findImage) withObject:self afterDelay:2.0f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [cell findImage];
+        });
 		cell.hasSearchedForImage = YES;
 		cell.accessoryView.hidden = YES;
 		cell.accessoryImage = nil;
@@ -638,7 +648,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 		[[ALUDataManager sharedDataManager] removeReminderForListTitle:self.objects[indexPath.row]];
 		self.objects = [[ALUDataManager sharedDataManager] lists];
 	    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-		[self performSelector:@selector(reloadAfterDeleting) withObject:self afterDelay:0.35f];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+		    [self reloadAfterDeleting];
+		});
 	} else if (editingStyle == UITableViewCellEditingStyleInsert) {
 	    // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
 	}
@@ -764,7 +776,9 @@ static CGFloat const defaultRowHeight = 44.0f;
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
 	if ([scrollView isEqual:self.tableView]) {
 		for (NSTimeInterval delayTime = 0.0f; delayTime < 0.35f; delayTime += 0.01f) {
-			[self performSelector:@selector(updateCellContentOffset) withObject:self afterDelay:delayTime];
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayTime * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			    [self updateCellContentOffset];
+			});
 		}
 	}
 }

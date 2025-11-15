@@ -32,13 +32,17 @@
 
 - (BOOL)shouldAutorotate {
 	for (UIViewController *viewController in self.childViewControllers) {
-		[viewController performSelector:@selector(updateViewConstraints) withObject:nil afterDelay:0.1f];
-		
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+		    [viewController updateViewConstraints];
+		});
+
 		for (UIViewController *subViewController in viewController.childViewControllers) {
-			[subViewController performSelector:@selector(updateViewConstraints) withObject:nil afterDelay:0.1f];
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			    [subViewController updateViewConstraints];
+			});
 		}
 	}
-	
+
 	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] &&
 			![[ALUDataManager sharedDataManager] menuShowing] &&
 			(IS_IPHONE_6P || IS_IPAD));

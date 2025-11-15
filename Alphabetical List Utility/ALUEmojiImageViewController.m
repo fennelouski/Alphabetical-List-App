@@ -255,11 +255,13 @@ static CGFloat const ALUEmojiImageViewControllerTextFieldHeight = 44.0f;
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    
+
     if ([textField isEqual:self.textField]) {
-        [self performSelector:@selector(updateImageWithText) withObject:self afterDelay:0.1f];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self updateImageWithText];
+        });
     }
-    
+
     return YES;
 }
 
