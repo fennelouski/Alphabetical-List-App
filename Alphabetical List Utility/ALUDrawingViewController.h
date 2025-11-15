@@ -21,7 +21,7 @@
 
 - (void)setBaseImage:(UIImage *)baseImage;
 
-@property (assign) id <ALUDrawingViewControllerDelegate> delegate;
+@property (weak, nonatomic) id <ALUDrawingViewControllerDelegate> delegate;
 
 @property (nonatomic, strong) UIColor *currentColor;
 

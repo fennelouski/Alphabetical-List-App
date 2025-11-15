@@ -17,6 +17,6 @@
 
 @interface ALUColorPickerView : UIImageView
 
-@property (assign) id <ALUColorPickerViewDelegate> delegate;
+@property (weak, nonatomic) id <ALUColorPickerViewDelegate> delegate;
 
 @end

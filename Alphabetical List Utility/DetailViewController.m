@@ -999,33 +999,19 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)selectContact {
     DLog(@"Select Contact");
-    
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    BOOL addressBookAccessRequested = [defaults boolForKey:@"addressBookAccessRequestedK£Y"];
-    
-    if (!addressBookAccessRequested) {
-        ABAddressBookRef _addressBook;
-        CFErrorRef error;
-        _addressBook = ABAddressBookCreateWithOptions(nil, &error);
-        
-        ABAddressBookRequestAccessWithCompletion(_addressBook, ^(bool granted, CFErrorRef error) {
-            if (granted) {
-                ABAddressBookRegisterExternalChangeCallback (_addressBook, nil, NULL);
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    ABAddressBookRegisterExternalChangeCallback (_addressBook, nil, NULL);
-                    [self selectContact];
-                });
-            }
-        });
-        
-        [defaults setBool:YES forKey:@"addressBookAccessRequestedK£Y"];
-        return;
-    }
-    
-    ABPeoplePickerNavigationController *peoplePickerNavigationController = [[ABPeoplePickerNavigationController alloc] init];
-    [peoplePickerNavigationController setPeoplePickerDelegate:self];
-    [self presentViewController:peoplePickerNavigationController animated:YES completion:^{
-//        DLog(@"Showing people picker");
+
+    CNContactStore *contactStore = [[CNContactStore alloc] init];
+
+    [contactStore requestAccessForEntityType:CNEntityTypeContacts completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        if (granted) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                CNContactPickerViewController *contactPickerViewController = [[CNContactPickerViewController alloc] init];
+                contactPickerViewController.delegate = self;
+                [self presentViewController:contactPickerViewController animated:YES completion:nil];
+            });
+        } else {
+            DLog(@"Contact access denied: %@", error);
+        }
     }];
 }
 
@@ -1121,53 +1107,36 @@ static CGFloat const borderWidth = 10.0f;
 
 #pragma mark - Contact Delegate
 
-- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person {
-    
-    DLog(@"Got a person %@", [self formattedNameForContact:person]);
+- (void)contactPicker:(CNContactPickerViewController *)picker didSelectContact:(CNContact *)contact {
+    DLog(@"Got a person %@", [self formattedNameForContact:contact]);
 }
 
-- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
-    DLog(@"Got a person with property and identifier");
-}
-
-- (void)peoplePickerNavigationControllerDidCancel:(ABPeoplePickerNavigationController *)peoplePicker {
-    [peoplePicker dismissViewControllerAnimated:YES
+- (void)contactPickerDidCancel:(CNContactPickerViewController *)picker {
+    [picker dismissViewControllerAnimated:YES
                                      completion:^{
                                          DLog(@"Cancelled people picker");
                                      }];
 }
 
-- (NSString *)formattedNameForContact:(ABRecordRef)person {
+- (NSString *)formattedNameForContact:(CNContact *)contact {
     NSMutableString *formattedName = [[NSMutableString alloc] init];
-    
-    NSString *firstName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonFirstNameProperty);
-    [self conditionallyAppendString:firstName toMutableString:formattedName];
-    
-    NSString *nickName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonNicknameProperty);
-    [self conditionallyAppendString:nickName toMutableString:formattedName];
-    
-    NSString *lastName = (__bridge NSString *)ABRecordCopyValue(person, kABPersonLastNameProperty);
-    [self conditionallyAppendString:lastName toMutableString:formattedName];
-    
-    NSArray *emails = (__bridge NSArray *)ABRecordCopyValue(person, kABPersonEmailProperty);
-    NSString *name = (__bridge NSString *)ABRecordCopyCompositeName(person);
+
+    [self conditionallyAppendString:contact.givenName toMutableString:formattedName];
+    [self conditionallyAppendString:contact.nickname toMutableString:formattedName];
+    [self conditionallyAppendString:contact.familyName toMutableString:formattedName];
+
+    NSString *name = [CNContactFormatter stringFromContact:contact style:CNContactFormatterStyleFullName];
     DLog(@"Name: %@", name);
-    
-    if (![emails respondsToSelector:@selector(count)]) {
-        DLog(@"I don't even know...%@", [emails class]);
-    }
-    
-    if (emails) {
+
+    if (contact.emailAddresses.count > 0) {
         [formattedName appendString:@"\n"];
         [self conditionallyAppendString:name toMutableString:formattedName];
     }
-    
-    NSInteger recordID  =  ABRecordGetRecordID(person);
-    NSString *personId = [NSString stringWithFormat:@"%zd", recordID];
+
+    NSString *personId = contact.identifier;
     [formattedName appendString:@"\n"];
     [self conditionallyAppendString:personId toMutableString:formattedName];
 
-    
     return formattedName;
 }
 
