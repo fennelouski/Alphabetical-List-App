@@ -15,6 +15,7 @@
 		278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255581B62A6F000309E6F /* ALUTableViewCell.m */; };
 		27A8C2291B4AD62800E5A3D9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2281B4AD62800E5A3D9 /* main.m */; };
 		27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */; };
+		27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */; };
 		27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */; };
 		27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */; };
 		27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27A8C2331B4AD62800E5A3D9 /* Main.storyboard */; };
@@ -110,6 +111,7 @@
 		27A8C2281B4AD62800E5A3D9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUNotePolisher.swift; sourceTree = "<group>"; };
 		27A8C22D1B4AD62800E5A3D9 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
 		27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
 		27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 			children = (
 				27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */,
 				27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */,
+				27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */,
 				803127941B77E80400033031 /* View Controllers */,
 				803127951B77E81900033031 /* Views */,
 				803127961B77E82300033031 /* Data */,
@@ -638,6 +641,7 @@
 				805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */,
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
 				27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */,
+				27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */,
 				27E6D82C1B5D9ED000D7CC19 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
 				27E6D8311B5D9ED000D7CC19 /* UIRefreshControl+AFNetworking.m in Sources */,
 				27E6D82E1B5D9ED000D7CC19 /* UIButton+AFNetworking.m in Sources */,
@@ -817,6 +821,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Alphabetical List Utility/PrefixHeader.pch";
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
+				SWIFT_VERSION = 5.0;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.nathanfennel.A2Z";
@@ -839,6 +844,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Alphabetical List Utility/PrefixHeader.pch";
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
+				SWIFT_VERSION = 5.0;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.nathanfennel.A2Z";

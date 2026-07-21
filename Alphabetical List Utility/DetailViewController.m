@@ -19,6 +19,9 @@
 #import "ALUEmojiImageViewController.h"
 #import "ALUDrawingViewController.h"
 
+// Generated interface for ALUNotePolisher.swift, which wraps the on-device foundation model.
+#import "Alphabetical_List_Utility-Swift.h"
+
 // kScreenWidth / kScreenHeight / kStatusBarHeight come from PrefixHeader.pch. They used to be
 // redefined here, which shadowed the shared versions and kept this screen on the deprecated
 // -statusBarFrame math that evaluates to 0 on every notched / Dynamic Island device.
@@ -452,6 +455,13 @@ static CGFloat const borderWidth = 10.0f;
 		return;
 	}
 
+	// Prefer the on-device foundation model: unlike Writing Tools, which can route to Private
+	// Cloud Compute, it never sends the note off the device.
+	if ([ALUNotePolisher isAvailable]) {
+		[self polishNoteOnDevice];
+		return;
+	}
+
 	if (@available(iOS 18.2, *)) {
 		// Writing Tools works on the selection; with an empty selection, offer the whole note.
 		if (textView.selectedRange.length == 0) {
@@ -471,6 +481,62 @@ static CGFloat const borderWidth = 10.0f;
 	}
 
 	[self tidyNoteFormatting];
+}
+
+// Run the note through Apple's on-device foundation model. The text never leaves the device.
+- (void)polishNoteOnDevice {
+	UITextView *textView = self.listItemTextView;
+	NSAttributedString *originalText = [textView.attributedText copy];
+
+	// The model takes a moment; make it obvious the button is working and can't be re-triggered.
+	self.polishButton.enabled = NO;
+
+	__weak typeof(self) weakSelf = self;
+	[ALUNotePolisher polishNote:textView.text
+					 completion:^(NSString * _Nullable polishedNote, NSError * _Nullable error) {
+		__strong typeof(weakSelf) strongSelf = weakSelf;
+		if (!strongSelf) {
+			return;
+		}
+
+		strongSelf.polishButton.enabled = YES;
+
+		if (!polishedNote) {
+			DLog(@"On-device polish failed: %@", error);
+			// Rather than dead-end, fall back to the tidy so the tap still achieves something.
+			[strongSelf tidyNoteFormatting];
+			return;
+		}
+
+		if ([polishedNote isEqualToString:originalText.string]) {
+			return;
+		}
+
+		[strongSelf replaceNoteTextWithPolishedText:polishedNote originalText:originalText];
+	}];
+}
+
+// Swap in the polished text while keeping the note's formatting attributes, and register an undo
+// so a polish the user dislikes is one shake (or Cmd-Z) away from being reverted.
+- (void)replaceNoteTextWithPolishedText:(NSString *)polishedNote
+						   originalText:(NSAttributedString *)originalText {
+	UITextView *textView = self.listItemTextView;
+
+	// Carry the note's existing typing attributes across so the polished text matches the rest of
+	// the note rather than reverting to system defaults.
+	NSDictionary *attributes = textView.typingAttributes;
+	if (originalText.length > 0) {
+		attributes = [originalText attributesAtIndex:0 effectiveRange:NULL];
+	}
+
+	NSAttributedString *polishedText = [[NSAttributedString alloc] initWithString:polishedNote
+																	  attributes:attributes];
+
+	[[textView.undoManager prepareWithInvocationTarget:textView] setAttributedText:originalText];
+	[textView.undoManager setActionName:NSLocalizedString(@"Polish", nil)];
+
+	textView.attributedText = polishedText;
+	[self saveList];
 }
 
 // Structural clean-up that needs no model at all, so it works on every device: normalise bullet

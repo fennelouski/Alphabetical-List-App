@@ -66,11 +66,32 @@ still rebuild the note by assigning `.text`, which **flattens inline formatting*
 lost — the plain mirror is always saved — but bold/italic applied before toggling List Mode will
 not survive. Converting those two paths to operate on the attributed string is the next step.
 
-**Foundation Models is not started.** It's Swift-only (no Objective-C headers in the SDK), so it
-needs Swift added to this pure-ObjC target: `SWIFT_VERSION`, a bridging header, and a new file in
-`project.pbxproj`. That's the only remaining piece of the "Writing Tools now, Foundation Models
-next" plan, and it's what would back a strict "never leaves your device" claim — Writing Tools may
-use Private Cloud Compute.
+### Foundation Models (on-device polish) — done
+`ALUNotePolisher.swift` is the app's only Swift file: FoundationModels ships Swift-only, so it
+bridges the on-device model to Objective-C via an `@objc` class with completion handlers (Swift
+`async` isn't directly callable from ObjC). Adding it required the pbxproj surgery avoided
+elsewhere — a file reference, a build file, a Sources entry, a group entry, and `SWIFT_VERSION`
+on both app-target configs.
+
+The Polish button now prefers the on-device model, because unlike Writing Tools it never routes
+to Private Cloud Compute — the note stays on the device. The chain is: on-device model →
+Writing Tools → deterministic tidy, so the button does something useful on every device.
+
+Details worth keeping:
+- Availability is read from `SystemLanguageModel.availability`, and each `UnavailableReason`
+  (`deviceNotEligible`, `appleIntelligenceNotEnabled`, `modelNotReady`) maps to its own message.
+- Long notes are rejected up front — the on-device context window is small, and failing late is
+  worse than falling back to the tidy.
+- Temperature 0.2, with instructions that forbid adding or removing content and demand the note
+  back with no preamble.
+- Replacing the text registers an **undo** (`Polish`), so an unwanted result is one Cmd-Z away.
+  Formatting attributes carry across rather than reverting to system defaults.
+
+> Build-log note: adding Swift makes `appintentsmetadataprocessor` log
+> `warning: Metadata extraction skipped. No AppIntents.framework dependency found.` That's tool
+> stdout, not a compiler diagnostic — it has no file or line and can't be attributed to our code.
+> Silencing it would mean linking AppIntents.framework purely for the notice. Compiler
+> diagnostics remain **0 warnings, 0 errors** in both configurations.
 
 ---
 

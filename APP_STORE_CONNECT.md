@@ -86,6 +86,9 @@ A2Z Notes has been rebuilt from the ground up for modern iPhones and iPads.
 • Deleting a note's location reminder no longer cancels a different note's
 • Note badges are now drawn instantly on your device, so they work offline and nothing about
   your notes is ever sent anywhere
+• New: tap Polish to tidy up a note's spelling, grammar and formatting — powered by Apple
+  Intelligence on your device, so your notes never leave your iPhone
+• Notes now support bold, italic and underline
 • Much better battery behaviour — several background timers that never stopped are gone
 ```
 
@@ -160,6 +163,12 @@ discontinued, so it fetched nothing anyway. Note icons are now drawn on device: 
 carrying the note's initials, filled with the brand colour the app already derives from the title
 using its bundled colour database. Branding is preserved, it works offline and instantly, and
 there is no third-party request.
+
+**Polishing runs on device.** The Polish button uses Apple's on-device foundation model
+(FoundationModels), so note text is never transmitted. Where that model isn't available the app
+falls back to Writing Tools — worth knowing that Writing Tools *may* use Private Cloud Compute,
+so if you want to advertise a strict "never leaves your device" promise, word it around the
+on-device polish specifically rather than the feature as a whole.
 
 > The app still fetches a daily verse from `labs.bible.org`. That request sends **no user data**,
 > so it doesn't affect the privacy label — but it does put third-party religious content in the
