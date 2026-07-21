@@ -92,31 +92,38 @@ A2Z Notes has been rebuilt from the ground up for modern iPhones and iPads.
 • Much better battery behaviour — several background timers that never stopped are gone
 ```
 
-### URLs
+### URLs — paste-ready
 
-| Field | Notes |
+These pages are live on nathanfennel.com (deployed from the `a2z-notes` pages in that site's
+repo, commit `47298b4c`):
+
+| Field | Value |
 |---|---|
-| Support URL | **Required.** Needs a real page you control (a simple contact page is fine). |
-| Marketing URL | Optional. |
-| Privacy Policy URL | **Required.** Must be reachable before submission — see §4. |
+| Support URL | `https://nathanfennel.com/a2z-notes/support` |
+| Marketing URL | `https://nathanfennel.com/a2z-notes` |
+| Privacy Policy URL | `https://nathanfennel.com/a2z-notes/privacy` |
+
+The privacy page matches the app's actual behaviour: Data Not Collected, everything on device,
+the one anonymous daily-verse request disclosed, and the Writing Tools / Private Cloud Compute
+nuance worded carefully.
 
 ---
 
-## 2. Screenshots
+## 2. Screenshots & marketing images
 
-Captured from the Release build at Apple's exact required sizes. They are **not** committed to
-the repo; they're at:
+All committed to the repo under `Graphics/AppStore/`, at Apple's exact required sizes.
 
-```
-/private/tmp/claude-501/-Users-nathan-Documents-GitHub-Alphabetical-List-App/e901546b-6cd5-40f7-a63c-e5ad0256bb8b/scratchpad/appstore/
-```
+**Upload the marketing versions** (`Graphics/AppStore/marketing/`) — each raw capture composed
+on the app's brand-blue gradient with a headline caption and the screenshot in a rounded,
+shadowed tile. The raw, uncaptioned captures sit alongside them if you prefer plain screenshots,
+and `Graphics/AppStore/shots.sh` regenerates the seeded simulator state that produced them.
 
-| File | Device class | Pixels | Shows |
+| File (prefix `marketing_` for the captioned version) | Device class | Pixels | Caption |
 |---|---|---|---|
-| `iphone_69_01_list_light.png` | iPhone 6.9" (**required**) | 1320 × 2868 | Notes list, colour-coded, light |
-| `iphone_69_02_list_dark.png` | iPhone 6.9" | 1320 × 2868 | Same list in dark mode |
-| `ipad_13_01_split_light.png` | iPad 13" (**required for iPad**) | 2064 × 2752 | Split view, list + open note |
-| `ipad_13_02_split_dark.png` | iPad 13" | 2064 × 2752 | Split view in dark mode |
+| `iphone_69_01_list_light.png` | iPhone 6.9" (**required**) | 1320 × 2868 | "Every note gets its own colour" |
+| `iphone_69_02_list_dark.png` | iPhone 6.9" | 1320 × 2868 | "Dark mode, tuned to stay readable" |
+| `ipad_13_01_split_light.png` | iPad 13" (**required for iPad**) | 2064 × 2752 | "Your list and your note, side by side" |
+| `ipad_13_02_split_dark.png` | iPad 13" | 2064 × 2752 | "Beautiful on iPad, day and night" |
 
 These two size classes are the only ones App Store Connect still requires — Apple scales them
 down for smaller devices automatically.
@@ -217,6 +224,16 @@ These are the remaining human steps — none of them are code problems.
 
 ### Verified for you
 - Clean **Debug** and **Release** builds: 0 warnings, 0 errors.
+- **Unit tests pass**: 9 tests covering list save/load/remove, per-list settings, rich-text
+  round-trips, on-device monogram generation (including a pixel check that the tile is filled
+  with the title's brand colour), and the colour engine. Run them with
+  `xcodebuild test -project "Alphabetical List Utility.xcodeproj" -scheme "Alphabetical List Utility" -destination "platform=iOS Simulator,name=A2Z-Test"`.
+  The scheme is now shared (committed in `xcshareddata`), so this works on any machine.
+- **There is no backend.** Nothing to deploy, monitor, or pay for: the app has no server
+  component of ours at all. The only network endpoints it ever touches are Apple's own services
+  and the anonymous `labs.bible.org` daily-verse request. The "backend" for App Store purposes
+  is the static pages on nathanfennel.com (§1 URLs), which deploy automatically from that
+  site's repo via Vercel.
 - App icon set is complete, including the 1024×1024 marketing icon and the iPad 83.5×83.5@2x
   size Apple requires. The icon is opaque (no alpha), as required.
 - `armv7` was removed from `UIRequiredDeviceCapabilities` — with it present the app could not
