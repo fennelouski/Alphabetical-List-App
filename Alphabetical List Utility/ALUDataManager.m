@@ -10,6 +10,7 @@
 #import "ALUVerse.h"
 #import "ALUPassage.h"
 #import "NKFColor+Universities.h"
+#import "NKFColor+Companies.h"
 #import <UserNotifications/UserNotifications.h>
 
 static NSString * const separator = @"%&&^AB)*971";
@@ -28,7 +29,6 @@ static CGFloat const screenSizeLimit = 668.0f;
 	NSMutableArray *_lists;
 	NSMutableDictionary *_dictionaryOfLists;
 	NSMutableDictionary *_companyLogos;
-	NSMutableArray *_failedDomains;
 	NSMutableDictionary *_listModes;
 	NSMutableDictionary *_showListImages;
     NSMutableDictionary *_useWebIcon;
@@ -69,7 +69,6 @@ static CGFloat const screenSizeLimit = 668.0f;
 		NSString *stringOfListTitles = [defaults objectForKey:masterListKey];
 		NSArray *listTitles = [stringOfListTitles componentsSeparatedByString:separator];
 		_companyLogos = [[NSMutableDictionary alloc] init];
-		_failedDomains = [[NSMutableArray alloc] init];
 		_listModes = [[NSMutableDictionary alloc] init];
 		_showListImages = [[NSMutableDictionary alloc] init];
 		_apiURLDictionary = [NSMutableDictionary dictionaryWithDictionary:[self urlDictionary]];
@@ -254,88 +253,110 @@ static CGFloat const screenSizeLimit = 668.0f;
 #pragma mark - Images
 
 - (UIImage *)imageForCompanyName:(NSString *)companyName {
-	
+	if (companyName.length == 0) {
+		return nil;
+	}
+
 	if ([_companyLogos objectForKey:companyName]) {
 		return [_companyLogos objectForKey:companyName];
 	}
-	
+
 	NSString *companyNameURLString = [self companyNameURLStringForCompanyName:companyName];
-    
-    if (!companyNameURLString && ![self imageSavedLocallyForCompanyName:companyName]) {
-        return nil;
-    } else if (!companyNameURLString) {
-        companyNameURLString = [self formattedListTitle:companyName];
-    }
-	
-    if ([_companyLogos objectForKey:companyNameURLString]) {
-        return [_companyLogos objectForKey:companyNameURLString];
-    }
-    
-    if (companyNameURLString.length >= 30) {
-        DLog(@"Company name is too long: %@", companyNameURLString);
-        return nil;
-    }
-
-	NSString *baseURLString = @"https://logo.clearbit.com/";
-	NSString *urlString = [NSString stringWithFormat:@"%@%@", baseURLString, companyNameURLString];
-	NSURL *imageURL = [NSURL URLWithString:urlString];
-	if (!imageURL) {
-		return nil;
+	if (!companyNameURLString) {
+		companyNameURLString = [self formattedListTitle:companyName];
 	}
-	NSURLRequest *request = [NSURLRequest requestWithURL:imageURL];
 
-	// If the logo is already cached on disk, use it immediately.
+	if (companyNameURLString && [_companyLogos objectForKey:companyNameURLString]) {
+		return [_companyLogos objectForKey:companyNameURLString];
+	}
+
+	// An icon the user chose themselves (camera, photo library, drawing or emoji) always wins.
 	NSURL *saveLocation = [self saveLocationForCompanyNameURLString:companyNameURLString];
 	if (saveLocation) {
-		NSData *cachedData = [NSData dataWithContentsOfURL:saveLocation];
-		UIImage *cachedImage = cachedData ? [UIImage imageWithData:cachedData] : nil;
-		if (cachedImage) {
-			[_companyLogos setObject:cachedImage forKey:companyNameURLString];
-			[_companyLogos setObject:cachedImage forKey:companyName];
-			return cachedImage;
+		NSData *savedData = [NSData dataWithContentsOfURL:saveLocation];
+		UIImage *savedImage = savedData ? [UIImage imageWithData:savedData] : nil;
+		if (savedImage) {
+			[_companyLogos setObject:savedImage forKey:companyNameURLString];
+			[_companyLogos setObject:savedImage forKey:companyName];
+			return savedImage;
 		}
 	}
 
-	// Otherwise download the logo with URLSession and cache it for next time.
-	NSURL *documentsDirectoryURL = [self documentsDirectoryURL];
-	NSURL *destination = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
-	NSURLSessionDownloadTask *task = [[NSURLSession sharedSession] downloadTaskWithRequest:request
-																 completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-		NSData *imageData = (location && !error) ? [NSData dataWithContentsOfURL:location] : nil;
-		UIImage *image = imageData ? [UIImage imageWithData:imageData] : nil;
-		if (image) {
-			[imageData writeToURL:destination atomically:YES];
+	// Otherwise draw a monogram in the note's own brand colour, on device.
+	//
+	// This replaces a logo.clearbit.com lookup. That API has been discontinued, so it fetched
+	// nothing, and it sent the note's title — user content — to a third party, which meant the
+	// App Store privacy label could not honestly say "Data Not Collected". The brand colours
+	// themselves are bundled with the app, so the branding survives with no network at all.
+	UIImage *monogram = [self monogramImageForCompanyName:companyName];
+	if (monogram) {
+		[_companyLogos setObject:monogram forKey:companyName];
+		if (companyNameURLString) {
+			[_companyLogos setObject:monogram forKey:companyNameURLString];
 		}
-		dispatch_async(dispatch_get_main_queue(), ^{
-			if (image) {
-				[_companyLogos setObject:image forKey:companyNameURLString];
-				[_companyLogos setObject:image forKey:companyName];
-			} else {
-				[_failedDomains addObject:companyNameURLString];
-			}
-		});
-	}];
-	[task resume];
+	}
 
-	return nil;
+	return monogram;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath
-					  ofObject:(id)object
-						change:(NSDictionary *)change
-					   context:(void *)context {
-	// We only care about updates to fractionCompleted
-	if ([keyPath isEqualToString:NSStringFromSelector(@selector(fractionCompleted))]) {
-//		NSProgress *progress = (NSProgress *)object;
-		// localizedDescription gives a string appropriate for display to the user, i.e. "42% completed"
-//		self.progressLabel.text = progress.localizedDescription;
-//		DLog(@"%@", progress.localizedDescription);
-	} else {
-		[super observeValueForKeyPath:keyPath
-							 ofObject:object
-							   change:change
-							  context:context];
+// A rounded tile carrying the note's initials, filled with the colour the app already derives
+// from the note's title. Rendered once and cached in _companyLogos.
+- (UIImage *)monogramImageForCompanyName:(NSString *)companyName {
+	NSString *initials = [self initialsForCompanyName:companyName];
+	if (initials.length == 0) {
+		return nil;
 	}
+
+	UIColor *backgroundColor = [NKFColor colorForCompanyName:companyName];
+	if (!backgroundColor) {
+		return nil;
+	}
+
+	// Pick a legible foreground from the fill's luminance rather than trusting a fixed colour.
+	UIColor *foregroundColor = [UIColor whiteColor];
+	CGFloat red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 0.0f;
+	if ([backgroundColor getRed:&red green:&green blue:&blue alpha:&alpha]) {
+		CGFloat luminance = 0.299f * red + 0.587f * green + 0.114f * blue;
+		foregroundColor = (luminance > 0.6f) ? [UIColor blackColor] : [UIColor whiteColor];
+	}
+
+	CGFloat side = 120.0f;
+	UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(side, side)];
+
+	return [renderer imageWithActions:^(UIGraphicsImageRendererContext *rendererContext) {
+		UIBezierPath *tile = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0.0f, 0.0f, side, side)
+													   cornerRadius:side * 0.2237f];
+		[backgroundColor setFill];
+		[tile fill];
+
+		UIFont *font = [UIFont systemFontOfSize:side * 0.42f weight:UIFontWeightSemibold];
+		NSDictionary *attributes = @{NSFontAttributeName : font,
+									 NSForegroundColorAttributeName : foregroundColor};
+		CGSize textSize = [initials sizeWithAttributes:attributes];
+		CGPoint textOrigin = CGPointMake((side - textSize.width) * 0.5f,
+										 (side - textSize.height) * 0.5f);
+		[initials drawAtPoint:textOrigin withAttributes:attributes];
+	}];
+}
+
+// "Home Improvement" -> "HI", "Groceries" -> "G". At most two letters.
+- (NSString *)initialsForCompanyName:(NSString *)companyName {
+	NSMutableString *initials = [[NSMutableString alloc] init];
+	NSCharacterSet *nonAlphanumeric = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+
+	for (NSString *word in [companyName componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]) {
+		NSString *trimmedWord = [word stringByTrimmingCharactersInSet:nonAlphanumeric];
+		if (trimmedWord.length == 0) {
+			continue;
+		}
+
+		[initials appendString:[[trimmedWord substringToIndex:1] uppercaseString]];
+		if (initials.length == 2) {
+			break;
+		}
+	}
+
+	return initials;
 }
 
 - (NSURL *)documentsDirectoryURL {
@@ -470,10 +491,6 @@ static CGFloat const screenSizeLimit = 668.0f;
             replacementFound = YES;
             break;
         }
-    }
-    
-    if ([_failedDomains containsObject:companyNameURLString]) {
-        return nil;
     }
     
     NSArray *invalidWords = @[@"tacos", @"buff", @"cardinals", @"bills", @"eagles", @"chargers", @"buffalo", @"as", @"dodgers", @"brewers", @"twins", @"rockies", @"city", @"chores", @"officesupplies", @"samsonite", @"packing", @"aaa", @"promise", @"university", @"josh", @"sand"];

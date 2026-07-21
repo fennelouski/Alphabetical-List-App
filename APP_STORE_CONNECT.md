@@ -55,7 +55,8 @@ WRITE THE WAY YOU THINK
 
 BUILT FOR LISTS
 • Notes sort themselves A to Z, so you always know where to look
-• Give a note its own icon: a photo, a drawing, or an emoji
+• Every note gets a matching colour badge, generated automatically from its title
+• Prefer your own? Use a photo, a drawing, or an emoji instead
 • Share or email any note in a couple of taps
 
 REMEMBER IT WHERE IT MATTERS
@@ -83,6 +84,8 @@ A2Z Notes has been rebuilt from the ground up for modern iPhones and iPads.
 • iPad: your note is no longer hidden behind the notes list
 • Notes with emoji or accented characters are no longer truncated when synced
 • Deleting a note's location reminder no longer cancels a different note's
+• Note badges are now drawn instantly on your device, so they work offline and nothing about
+  your notes is ever sent anywhere
 • Much better battery behaviour — several background timers that never stopped are gone
 ```
 
@@ -146,25 +149,21 @@ details to a note, and only ever after the user taps that specific control.
 
 ## 4. Privacy — read this before filling in the nutrition label
 
-**Answer for the app as it stands: "Data Not Collected"**, with one genuine caveat you need to
-resolve first.
+**Answer: "Data Not Collected".** This is now accurate — no user content leaves the device.
 
 Notes, images and location are all held on device (plus the user's own iCloud). Nothing is sent
 to any server you operate, and there is no analytics or tracking SDK in the binary.
 
-> ⚠️ **The caveat — resolve before submitting.** The note-icon feature sends the *note's title*
-> to a third-party host (`logo.clearbit.com`) to look up a matching company logo. A note title is
-> user content, so strictly speaking that is user data leaving the device to a third party, and
-> "Data Not Collected" would be inaccurate while it's enabled.
->
-> Clearbit's free logo API has been **discontinued**, so these requests fail and no logos load
-> anyway. **Recommended: remove the logo lookup** (`ALUDataManager.m`, `imageForCompanyName:` —
-> the `logo.clearbit.com` request). Then "Data Not Collected" is accurate and you avoid a
-> privacy-review question about a dead endpoint.
->
-> The app also fetches a daily verse from `labs.bible.org`. That request sends no user data, so
-> it doesn't affect the label — but note it does put third-party religious content in the app,
-> which is worth a sentence in the review notes if you keep it.
+**The Clearbit logo lookup has been removed.** It previously sent the *note's title* — user
+content — to `logo.clearbit.com`, which would have made "Data Not Collected" untrue. That API was
+discontinued, so it fetched nothing anyway. Note icons are now drawn on device: a rounded tile
+carrying the note's initials, filled with the brand colour the app already derives from the title
+using its bundled colour database. Branding is preserved, it works offline and instantly, and
+there is no third-party request.
+
+> The app still fetches a daily verse from `labs.bible.org`. That request sends **no user data**,
+> so it doesn't affect the privacy label — but it does put third-party religious content in the
+> app, which is worth a sentence in the review notes if you keep the feature.
 
 Already handled in the project:
 - `PrivacyInfo.xcprivacy` declares the required-reason APIs (UserDefaults, file timestamp, system
@@ -205,8 +204,7 @@ These are the remaining human steps — none of them are code problems.
    container fails the archive step. Note the iCloud sync path in the app is only half-wired
    (see `MODERNIZATION_TODO.md`), so removing it is defensible for this release.
 3. **Archive** with a Generic iOS Device destination and upload via Xcode Organizer.
-4. **Decide on the Clearbit logo lookup** (§4) — this is the only item that changes what you tell
-   Apple about privacy.
+4. Nothing else — the Clearbit privacy question is resolved (§4).
 
 ### Verified for you
 - Clean **Debug** and **Release** builds: 0 warnings, 0 errors.
@@ -217,3 +215,5 @@ These are the remaining human steps — none of them are code problems.
 - Bundle identifier in `Info.plist` and `PRODUCT_BUNDLE_IDENTIFIER` now match.
 - Launch screen points at `LaunchScreen.storyboard` instead of rendering a blank split view.
 - Verified running on iPhone and iPad, in light and dark mode.
+- No user content leaves the device: the third-party logo lookup is gone, replaced by on-device
+  brand-coloured monograms.

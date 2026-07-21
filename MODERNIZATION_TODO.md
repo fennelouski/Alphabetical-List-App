@@ -5,7 +5,7 @@
 **Last updated:** 2026-07-21
 
 See [APP_STORE_CONNECT.md](APP_STORE_CONNECT.md) for the submission guide, listing copy and the
-remaining human steps (signing, iCloud entitlement, the Clearbit privacy decision).
+remaining human steps (signing, iCloud entitlement, support/privacy URLs).
 
 ## Submission-readiness pass (2026-07-21)
 
@@ -27,6 +27,11 @@ remaining human steps (signing, iCloud entitlement, the Clearbit privacy decisio
   split view (`requires initializing with -initWithStyle:`). Reverted; `preferredDisplayMode`
   alone is safe.
 - Storyboard placeholder colours switched to semantic (`systemBackground` / `label`).
+- **Removed the Clearbit logo lookup.** It sent the note title (user content) to a third party,
+  and the API is discontinued so it fetched nothing. Note icons are now rendered on device as a
+  rounded tile with the note's initials, filled with the brand colour the bundled colour database
+  already derives from the title — so branding survives, works offline, and the App Store privacy
+  label can honestly say "Data Not Collected".
 
 This replaces the earlier TODO, which was written against assumptions that no longer hold (it
 listed AFNetworking migration and privacy work as pending, and did not know the app failed to
@@ -124,10 +129,7 @@ Ordered by value. Nothing here blocks building or running.
    the manager's internal key strings collides with app state, and the master list is joined with a
    fixed separator so a title containing it splits into phantom notes. Needs a real store keyed by
    UUID. *Requires a data migration — do not change the keys casually.*
-2. **Decide on the Clearbit logo lookup.** It sends the note title to a third party, which affects
-   the App Store privacy label, and the API is discontinued so it fails anyway. See
-   [APP_STORE_CONNECT.md](APP_STORE_CONNECT.md) §4.
-3. **Settings panel still does up to 50 synchronous full-screen blur passes** on the main thread
+2. **Settings panel still does up to 50 synchronous full-screen blur passes** on the main thread
    when opening, retaining dozens of retina images. Should be a single `UIVisualEffectView`.
    (The deprecated `keyWindow` lookups there are already fixed.)
 
@@ -147,8 +149,6 @@ Ordered by value. Nothing here blocks building or running.
    (+ the AddressBook import, which reviewers flag).
 
 ### Low
-10. **Clearbit's free logo API has been discontinued**, so note logos no longer load regardless of
-    the code. Either swap providers (needs a key) or drop the feature.
 11. Dead code to delete: `ALUMapView`, `ALUGeolocationReminder`, `ALUTableViewCell`,
     `UIFont+Custom`, `insertNewObject:`.
 12. The half-wired iCloud/`ALUDocument` path fetches a document but never merges it back — either
