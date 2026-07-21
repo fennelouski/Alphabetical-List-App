@@ -14,16 +14,31 @@
 
 - (void)viewDidLoad {
 	[super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+
+	// Show the notes list beside the note rather than floating over it. The default on iPad is
+	// an overlay sidebar, which covers the left edge of the note text.
+	// NB: do not set preferredSplitBehavior here — that API requires a column-style split view
+	// controller (-initWithStyle:) and throws for this storyboard-instantiated one.
+	self.preferredDisplayMode = UISplitViewControllerDisplayModeOneBesideSecondary;
+
 	[self setNeedsStatusBarAppearanceUpdate];
 }
 
+// Contrast the status bar against whatever colour the navigation bar is currently showing.
+// ALUApplyNavigationBarColor sets barStyle from the bar's luminance, so we just read it back.
 - (UIStatusBarStyle)preferredStatusBarStyle {
+	for (UIViewController *viewController in self.viewControllers) {
+		if ([viewController isKindOfClass:[UINavigationController class]]) {
+			UINavigationBar *navigationBar = ((UINavigationController *)viewController).navigationBar;
+			return (navigationBar.barStyle == UIBarStyleBlack) ? UIStatusBarStyleLightContent : UIStatusBarStyleDarkContent;
+		}
+	}
+
 	if ([ALUDataManager sharedDataManager].currentColorIsDark) {
 		return UIStatusBarStyleLightContent;
 	}
-	
-	return UIStatusBarStyleDefault;
+
+	return UIStatusBarStyleDarkContent;
 }
 
 - (BOOL)prefersStatusBarHidden {
@@ -31,21 +46,26 @@
 }
 
 - (BOOL)shouldAutorotate {
-	for (UIViewController *viewController in self.childViewControllers) {
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-		    [viewController updateViewConstraints];
-		});
+	// Previously gated on IS_IPHONE_6P, which is false on every modern iPhone, so rotation
+	// was effectively disabled on all current hardware.
+	return ![[ALUDataManager sharedDataManager] menuShowing];
+}
 
-		for (UIViewController *subViewController in viewController.childViewControllers) {
-			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			    [subViewController updateViewConstraints];
-			});
-		}
-	}
+// Relayout children after a rotation/size change. This used to be driven as a side effect
+// of -shouldAutorotate, which the system calls at unpredictable times.
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
 
-	return ([[ALUDataManager sharedDataManager] noteHasBeenSelectedOnce] &&
-			![[ALUDataManager sharedDataManager] menuShowing] &&
-			(IS_IPHONE_6P || IS_IPAD));
+	[coordinator animateAlongsideTransition:nil
+								 completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+									 for (UIViewController *viewController in self.childViewControllers) {
+										 [viewController updateViewConstraints];
+
+										 for (UIViewController *subViewController in viewController.childViewControllers) {
+											 [subViewController updateViewConstraints];
+										 }
+									 }
+								 }];
 }
 
 @end

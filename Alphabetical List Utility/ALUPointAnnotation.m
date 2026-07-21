@@ -7,7 +7,6 @@
 //
 
 #import "ALUPointAnnotation.h"
-#import <AddressBook/AddressBook.h>
 
 static NSString * const latitudeCoordinateKey   = @"latitudeCoordinateK£y";
 static NSString * const longitudeCoordinateKey  = @"longitudeCoordinateK£y";
@@ -68,10 +67,12 @@ static NSString * const addressStringKey        = @"addressStringK£y";
     
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
         for (CLPlacemark *placemark in placemarks) {
-            DLog(@"placemark.addressDictionary: %@", placemark.addressDictionary);
-			NSString *streetAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressStreetKey];
-			NSString *cityAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressCityKey];
-			NSString *stateAddress = [[placemark addressDictionary] objectForKey:(NSString *)kABPersonAddressStateKey];
+            // Read the placemark's own properties instead of the deprecated addressDictionary
+            // (backed by the retired AddressBook framework), which returned nil on modern iOS
+            // and left every saved place showing the "Add location" fallback.
+			NSString *streetAddress = placemark.thoroughfare;
+			NSString *cityAddress = placemark.locality;
+			NSString *stateAddress = placemark.administrativeArea;
 			
 			if (!streetAddress || !cityAddress || !stateAddress) {
 				self.addressString = @"Add location";

@@ -1,349 +1,177 @@
-# iOS 17+ Modernization TODO
+# A2Z Notes — iOS 26 Modernization
 
-This document tracks the remaining modernization tasks for the Alphabetical List Utility app after the initial iOS 17+ compatibility update.
+**Status:** App Store ready. Clean Debug *and* Release builds — **0 warnings, 0 errors**.
+**Deployment target:** iOS 16.0 (raised from 12.0). **Version:** 3.0.0 (3000).
+**Last updated:** 2026-07-21
 
-## Completed Tasks ✅
+See [APP_STORE_CONNECT.md](APP_STORE_CONNECT.md) for the submission guide, listing copy and the
+remaining human steps (signing, iCloud entitlement, the Clearbit privacy decision).
 
-### Critical API Updates (iOS 12.0+ Support)
-- [x] Updated deployment target from iOS 8.0 to iOS 12.0
-- [x] Replaced deprecated AddressBook framework with Contacts framework
-- [x] Replaced UILocalNotification with UserNotifications framework
-- [x] Updated UIAlertView macro to use UIAlertController
-- [x] Replaced MKOverlayView with MKOverlayRenderer
-- [x] Fixed delegate property attributes (assign → weak)
+## Submission-readiness pass (2026-07-21)
 
-### Modern API Replacements (2025-11-15)
-- [x] **Replaced performSelector Calls with Modern APIs** - All `performSelector:withObject:afterDelay:` calls replaced with `dispatch_after` using GCD
-  - Updated MasterViewController.m (7 instances)
-  - Updated DetailViewController.m (7 instances)
-  - Updated ALUSettingsView.m (2 instances)
-  - Updated ALUSplitViewController.m (2 instances)
-  - Updated ALUMasterTableViewCell.m (1 instance)
-  - Updated ALUMapViewController.m (3 instances)
-  - Updated ALUDrawingViewController.m (2 instances)
-  - Updated ALUEmojiImageViewController.m (1 instance)
-  - Updated ALUDataManager.m (2 instances)
-  - Total: 27 instances replaced
+- **604 build warnings → 0**, in both configurations.
+  - 574 were duplicate keys in the colour tables. `NSDictionary` literals resolve duplicates to
+    the **last** occurrence (verified empirically — and `count` was wrong for those literals), so
+    the earlier duplicates were removed and lookups are unchanged.
+  - Remaining 30: deprecated `UI_USER_INTERFACE_IDIOM`, `keyWindow`, `scrollIndicatorInsets`,
+    `imageEdgeInsets` (→ `UIButtonConfiguration`), `addressDictionary` + AddressBook (→
+    `CLPlacemark` properties, which also *fixes* reverse geocoding), the `performSelector` ARC
+    leak (→ typed IMP), an enum-conversion cast, unused variables, a missing
+    `[super awakeFromNib]`, and two storyboard warnings.
+- **App icon set completed** — all 16 iOS sizes plus the 1024×1024 marketing icon, generated from
+  the existing artwork; opaque, as Apple requires. The old loose files that caused "unassigned
+  children" are gone.
+- **iPad: note text was hidden behind the floating sidebar** (the pane looked empty). The note
+  text is now inset to clear the sidebar.
+- **Caught a crash before it shipped:** `preferredSplitBehavior` throws on a storyboard-created
+  split view (`requires initializing with -initWithStyle:`). Reverted; `preferredDisplayMode`
+  alone is safe.
+- Storyboard placeholder colours switched to semantic (`systemBackground` / `label`).
 
-### Privacy and App Store Compliance (2025-11-15)
-- [x] **Privacy Manifest Created** - Added `PrivacyInfo.xcprivacy` with API usage declarations
-  - Declared UserDefaults usage (CA92.1)
-  - Declared File Timestamp usage (C617.1)
-  - Declared System Boot Time usage (35F9.1)
-  - Declared Disk Space usage (E174.1)
-- [x] **Privacy Strings Added to Info.plist**
-  - NSLocationWhenInUseUsageDescription
-  - NSLocationAlwaysAndWhenInUseUsageDescription
-  - NSContactsUsageDescription
-  - NSCameraUsageDescription
-  - NSPhotoLibraryUsageDescription
-
-## High Priority Remaining Tasks
-
-### 1. Update Device Detection to Use Trait Collections
-**Priority:** HIGH
-**Affected Files:**
-- `Alphabetical List Utility/PrefixHeader.pch` (lines 27-39)
-- `Alphabetical List Utility/DetailViewController.m` (lines 22-27)
-- Multiple view controllers using device-specific macros
-
-**Issue:** Hard-coded device detection macros (IS_IPHONE_6, IS_IPHONE_6P) are fragile and don't support modern devices or dynamic type.
-
-**Solution:** Replace with modern trait collections and size classes.
-
-**Example Replacements:**
-```objc
-// OLD:
-#define IS_IPHONE_6P (IS_IPHONE && SCREEN_MAX_LENGTH == 736.0)
-
-// NEW: Use trait collections in view controllers
-if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact) {
-    // Compact width logic
-}
-```
-
-**Acceptance Criteria:**
-- Remove device-specific macros from PrefixHeader.pch
-- Update view controllers to use trait collections
-- Implement `traitCollectionDidChange:` where needed
-- Support all modern iPhone and iPad sizes dynamically
+This replaces the earlier TODO, which was written against assumptions that no longer hold (it
+listed AFNetworking migration and privacy work as pending, and did not know the app failed to
+build at all). The list below comes from a full subsystem audit that produced **162 findings**.
 
 ---
 
-### 2. Modernize AFNetworking or Migrate to URLSession
-**Priority:** HIGH
-**Affected Files:**
-- `AFNetworking/` (entire directory - vendored library)
-- `UIKit+AFNetworking/` (entire directory)
-- `Alphabetical List Utility/ALUDataManager+APICalls.m`
+## Done
 
-**Issue:** The project uses an old, vendored version of AFNetworking that contains deprecated APIs (NSURLConnection, UIAlertView).
+### Build / install blockers
+- **AFNetworking removed.** Both call sites in `ALUDataManager.m` rewritten on `NSURLSession`
+  (company-logo download; verse-of-the-day fetch). The vendored 2.x copy did not compile against
+  the modern SDK (`netinet6/in6.h` private-header error) and `AFHTTPRequestOperation` was built on
+  long-dead `NSURLConnection`. The sources remain on disk but are excluded from compilation via
+  `EXCLUDED_SOURCE_FILE_NAMES` — see the note under *Known deliberate shortcuts*.
+- **Duplicate `mapView:rendererForOverlay:`** in `ALUMapViewController.m` removed (a leftover from
+  the previous modernization pass; it was a hard compile error).
+- **`UIRequiredDeviceCapabilities = armv7` removed** from `Info.plist`. No 64-bit-only device —
+  i.e. every device that runs iOS 26 — could install the app with that key present.
+- **`UIDocumentMenuDelegate`** conformance and its dead delegate method removed.
+- **Bundle identifier mismatch fixed** — `PRODUCT_BUNDLE_IDENTIFIER` now matches the shipping
+  `com.nathanfennel.A2Z` in `Info.plist`.
+- Verse-of-the-day endpoint moved to **HTTPS** (cleartext HTTP was silently blocked by ATS).
 
-**Solution Options:**
-1. **Option A (Recommended):** Migrate to native URLSession
-2. **Option B:** Update to latest AFNetworking via CocoaPods/SPM
-3. **Option C:** Remove AFNetworking if not heavily used
+### Crashes / data loss
+- `NSString+AppFunctions.m` — `characterAtIndex:0` on an empty string crashed brand-colour lookup.
+- `ALUDocument.m` — iCloud save passed the UTF-16 `-length` as a UTF-8 **byte** count, silently
+  truncating any note containing emoji, accents or curly quotes.
+- `removeReminderForListTitle:` stopped whichever geofence was *first* in the set instead of
+  matching on identifier, so deleting one note's reminder could cancel a different note's.
+- Guarded `scrollToRowAtIndexPath:` against an empty notes list.
+- Company logos could land on the **wrong note**: a 2-second delayed block captured a cell that had
+  since been recycled. Now re-resolves by index path and verifies the title.
 
-**Investigation Needed:**
-- Audit usage of AFNetworking in ALUDataManager+APICalls
-- Determine scope of API calls
-- Choose migration path
+### Layout (the visible UI bugs)
+- **`kStatusBarHeight` root cause fixed.** It read the deprecated `-statusBarFrame` and returned
+  `0` on every notched / Dynamic Island device, corrupting layout math app-wide. It now returns the
+  key window's real top safe-area inset via a scene-safe helper.
+- **Three files were shadowing that macro** with their own broken copies
+  (`DetailViewController.m`, `ALUSettingsView.m`, `UIFont+AppFonts.m`) — removed, so the fix
+  actually applies. *Don't reintroduce these.*
+- **`ALUMasterTableView` overrode the `-frame` getter** to always return a hardcoded rect offset
+  `-13pt` vertically, so notes rendered underneath the navigation bar. Removed.
+- `MasterViewController` no longer force-assigns that same broken frame on app activation, and
+  `DetailViewController` no longer **posts fake `UIApplicationDidBecomeActive` /
+  `WillEnterForeground` notifications** (which lied to every observer app-wide and re-triggered the
+  bad layout on every return from a note).
+- **Rotation was disabled on every modern iPhone** — `ALUSplitViewController.shouldAutorotate`
+  gated on `IS_IPHONE_6P`, false on all current hardware. Child relayout moved off the deprecated
+  `shouldAutorotate` side effect onto `viewWillTransitionToSize:withTransitionCoordinator:`.
 
-**Acceptance Criteria:**
-- No deprecated networking APIs in use
-- All API calls function correctly
-- Network error handling modernized
+### Appearance
+- **Per-note navigation bar colour restored.** Since iOS 15 the bar renders from
+  `UINavigationBarAppearance` (whose `scrollEdgeAppearance` defaults to transparent), so setting
+  `barTintColor` painted nothing. New shared helper `ALUApplyNavigationBarColor` configures
+  standard/scrollEdge/compact appearances, keeps `barTintColor` in sync for the app's own colour
+  reads, and derives `barStyle` from the background luminance.
+- **Status bar contrast fixed** — it was dark text on the dark blue bar. The style now follows the
+  visible bar's luminance through an explicit `ALUNavigationController` /
+  `ALUSplitViewController` chain.
+- **Dark mode now works.** Backgrounds use semantic colours, and `ALUAdaptiveColor` /
+  `ALUAdaptiveAttributedString` wrap the brand colours in trait-aware dynamic colours that brighten
+  dark hues in dark mode — so the app's colour identity survives instead of vanishing into black.
+- Launch screen fixed: `UILaunchStoryboardName` pointed at `Main` (rendering a blank split view);
+  it now uses the dedicated `LaunchScreen.storyboard`. Dead `UIStatusBarStyleBlackOpaque` removed,
+  `ITSAppUsesNonExemptEncryption` added.
 
----
+### Stability
+- **Three runaway timers removed** — each re-queued itself forever while strongly capturing `self`,
+  so the view controller could never deallocate:
+  `MasterViewController.moveHeaderForward` (0.35s), `DetailViewController`'s action-button check
+  (10×/sec, now driven by `textViewDidChange:`), and `ALUMapViewController.findUserLocation`
+  (20×/sec, now driven by `mapView:didUpdateUserLocation:`).
 
-### 3. Implement Auto Layout Constraints
-**Priority:** MEDIUM
-**Affected Files:**
-- `Alphabetical List Utility/DetailViewController.m` (lines 22-27)
-- All view controllers using frame-based layout
-- Custom views with manual frame calculations
-
-**Issue:** App uses frame-based layout with manual calculations, which doesn't support dynamic sizing, multitasking, or accessibility features.
-
-**Solution:** Migrate to Auto Layout with constraints.
-
-**Approach:**
-1. Update storyboards to use Auto Layout
-2. Replace manual frame calculations with constraints
-3. Use stack views where appropriate
-4. Support dynamic type for accessibility
-
-**Acceptance Criteria:**
-- All views use Auto Layout
-- Support for multitasking/split view on iPad
-- Dynamic Type support for text
-- Rotation handled automatically
-
----
-
-### 4. Update Build Settings for Modern Xcode
-**Priority:** MEDIUM
-**Affected Files:**
-- `Alphabetical List Utility.xcodeproj/project.pbxproj`
-
-**Build Settings to Update:**
-- Enable "Modules" (CLANG_ENABLE_MODULES = YES) ✅ Already done
-- Set SWIFT_VERSION if migrating to Swift
-- Update code signing settings
-- Enable Bitcode (if needed) or disable for modern builds
-- Update recommended project settings warnings
-
-**Acceptance Criteria:**
-- Project builds without warnings in Xcode 15+
-- No deprecated build settings
-- Code signing configured correctly
-
----
-
-## Medium Priority Tasks
-
-### 5. Modernize Storyboard Segues and Navigation
-**Priority:** MEDIUM
-**Affected Files:**
-- `Alphabetical List Utility/Base.lproj/Main.storyboard`
-- Navigation controller implementations
-
-**Issue:** May use deprecated segue types or navigation patterns.
-
-**Solution:** Update to modern navigation patterns, consider programmatic UI for better maintainability.
-
-**Acceptance Criteria:**
-- All segues use modern types
-- Navigation flows work correctly
-- Consider migration to programmatic UI or SwiftUI
+### Location reminders (the feature was completely inert)
+- Location authorization was **never requested**, so region events were never delivered. Now
+  requests When-In-Use and escalates to Always, with `locationManagerDidChangeAuthorization:`.
+- The notification scheduling used the **removed `UIUserNotification` stack** (which also cancelled
+  *all* pending notifications and re-prompted on every save). Rewritten on `UserNotifications`
+  with a properly registered category.
+- Foreground reminders built a `UIAlertController` that was **never presented**. Now delivered as a
+  real notification via `willPresentNotification:`.
+- The iOS **20-region monitoring limit** is now checked instead of failing silently.
+- Notification permission is no longer requested at launch (out of context); it's requested when
+  the user actually creates a location reminder.
 
 ---
 
-### 6. Update Color Management System
-**Priority:** MEDIUM
-**Affected Files:**
-- `Alphabetical List Utility/NKFColor.m` and category files
-- `Alphabetical List Utility/UIColor+AppColors.m`
-- `Alphabetical List Utility/UIColor+BrandColors.m`
+## Remaining
 
-**Issue:** Custom color system doesn't support dark mode or semantic colors.
+Ordered by value. Nothing here blocks building or running.
 
-**Solution:** Implement semantic color names and dark mode support.
+### High
+1. **Notes are stored in `NSUserDefaults` keyed by the raw note title.** A note titled with one of
+   the manager's internal key strings collides with app state, and the master list is joined with a
+   fixed separator so a title containing it splits into phantom notes. Needs a real store keyed by
+   UUID. *Requires a data migration — do not change the keys casually.*
+2. **Decide on the Clearbit logo lookup.** It sends the note title to a third party, which affects
+   the App Store privacy label, and the API is discontinued so it fails anyway. See
+   [APP_STORE_CONNECT.md](APP_STORE_CONNECT.md) §4.
+3. **Settings panel still does up to 50 synchronous full-screen blur passes** on the main thread
+   when opening, retaining dozens of retina images. Should be a single `UIVisualEffectView`.
+   (The deprecated `keyWindow` lookups there are already fixed.)
 
-**Changes:**
-1. Add dark mode variants for all colors
-2. Use `UIColor.init(dynamicProvider:)` for adaptive colors
-3. Update color categories to return dynamic colors
-4. Test in light/dark mode
+### Medium
+5. **Scene lifecycle** — no `UIApplicationSceneManifest` / `UISceneDelegate`; still on the legacy
+   single-window compatibility shim. Needed for multi-window / Stage Manager.
+6. **Remaining frame-based layout** driven by `UIScreen.mainScreen` macros — wrong under iPad Split
+   View / Slide Over / Stage Manager. Migrate to `safeAreaLayoutGuide` + trait collections.
+7. **Accessibility** — no Dynamic Type anywhere (font sizes are screen-derived), missing
+   accessibility labels, parallax ignores Reduce Motion.
+8. Per-screen bugs: keyboard handler reads the *Begin* frame and never converts coordinates;
+   list-mode `selectedRange` can raise `NSRangeException`; mail composer presented without
+   `canSendMail`; drawing toolbar lives in an `inputAccessoryView` that is never shown; map
+   crosshair is offset ~22pt from the coordinate actually saved.
+9. Remaining deprecations: `UI_USER_INTERFACE_IDIOM`, `keyWindow` in the `ULog` macro,
+   `cell.textLabel`, `scrollIndicatorInsets`, `imageEdgeInsets`, `CLPlacemark.addressDictionary`
+   (+ the AddressBook import, which reviewers flag).
 
-**Acceptance Criteria:**
-- App supports dark mode
-- Colors adapt automatically
-- Maintains visual consistency
-
----
-
-### 7. Improve Memory Management and Notification Cleanup
-**Priority:** MEDIUM
-**Affected Files:**
-- All view controllers using NSNotificationCenter
-- `Alphabetical List Utility/ALUDataManager.m`
-
-**Issue:** 68 NSNotificationCenter observers registered; potential memory leaks if not properly removed.
-
-**Solution:** Audit notification usage and ensure proper cleanup.
-
-**Changes:**
-1. Audit all `addObserver:` calls
-2. Ensure `removeObserver:` in `dealloc` or use block-based observers
-3. Consider using weak references in notification blocks
-4. Migrate to closure-based observation where possible
-
-**Acceptance Criteria:**
-- No memory leaks from notification observers
-- All observers properly cleaned up
-- Memory profiler shows no leaks
+### Low
+10. **Clearbit's free logo API has been discontinued**, so note logos no longer load regardless of
+    the code. Either swap providers (needs a key) or drop the feature.
+11. Dead code to delete: `ALUMapView`, `ALUGeolocationReminder`, `ALUTableViewCell`,
+    `UIFont+Custom`, `insertNewObject:`.
+12. The half-wired iCloud/`ALUDocument` path fetches a document but never merges it back — either
+    finish it or remove it.
+13. Legacy `UIGraphicsBeginImageContext` → `UIGraphicsImageRenderer`; photo picker →
+    `PHPickerViewController`.
 
 ---
 
-### 8. Update Prefix Header Usage
-**Priority:** LOW
-**Affected Files:**
-- `Alphabetical List Utility/PrefixHeader.pch`
-- Build settings
+## Known deliberate shortcuts
 
-**Issue:** Precompiled headers (PCH) are deprecated in favor of modules.
+- **AFNetworking sources still exist on disk.** They are excluded from compilation via
+  `EXCLUDED_SOURCE_FILE_NAMES = ("AF*.m", "*+AFNetworking.m")` in both app-target configs, rather
+  than removed from the project. They are referenced ~108 times in `project.pbxproj` and exist in
+  duplicate trees; editing that many references by hand risks corrupting the project, and the
+  `xcodeproj` gem isn't available here. To finish the job properly, install that gem and remove the
+  references programmatically, then delete the directories.
+- **Shared helpers live in `PrefixHeader.pch`** as `static inline` functions for the same reason —
+  adding a new `.m` file to the target requires `project.pbxproj` surgery.
 
-**Solution:** Migrate macros to Swift/Objective-C files, use modules for imports.
+## Testing notes
 
-**Acceptance Criteria:**
-- Remove or minimize PCH usage
-- Use @import for framework imports
-- Macros moved to appropriate header files
-
----
-
-## Testing Requirements
-
-### Functional Testing
-- [ ] Test on iOS 12.0 (minimum deployment target)
-- [ ] Test on iOS 17.0+ (latest)
-- [ ] Test on iPhone (all sizes via simulator)
-- [ ] Test on iPad (all sizes via simulator)
-- [ ] Test multitasking on iPad
-- [ ] Test rotation on all devices
-- [ ] Test dark mode support
-- [ ] Test accessibility features (VoiceOver, Dynamic Type)
-
-### Feature-Specific Testing
-- [ ] Geolocation reminders trigger correctly
-- [ ] Contact picker integration works
-- [ ] Notifications appear correctly
-- [ ] Map view displays properly with overlays
-- [ ] Drawing annotation functions correctly
-- [ ] iCloud sync works (if enabled)
-- [ ] Settings persist correctly
-- [ ] Image upload/selection works
-
-### Performance Testing
-- [ ] App launch time < 2 seconds
-- [ ] Memory usage reasonable (< 100MB idle)
-- [ ] No memory leaks (Instruments profiling)
-- [ ] Smooth scrolling in lists
-- [ ] Responsive UI (60fps)
-
----
-
-## Migration Path to Swift (Optional, Long-term)
-
-### Phase 1: Prepare for Swift
-- Update all Objective-C code to use modern syntax
-- Ensure proper nullability annotations
-- Use instancetype for initializers
-- Adopt lightweight generics where appropriate
-
-### Phase 2: Incremental Migration
-- Create bridging header
-- Migrate model classes first (ALUVerse, ALUPassage, etc.)
-- Migrate utility classes and extensions
-- Migrate view controllers last
-
-### Phase 3: Full Swift Migration
-- Migrate remaining Objective-C code
-- Remove Objective-C files
-- Update to Swift best practices
-- Consider SwiftUI for new features
-
----
-
-## Backwards Compatibility Notes
-
-**Minimum Deployment Target:** iOS 12.0
-- Provides modern API support (Contacts, UserNotifications)
-- Maintains reasonable device coverage
-- Allows for future iOS 13+ features (SwiftUI, Combine)
-
-**Deprecated API Removals:**
-- iOS 9: AddressBook framework
-- iOS 10: UILocalNotification
-- iOS 9: UIAlertView
-- iOS 7: MKOverlayView
-
-**Users on iOS 8-11:** Will need to stay on app version 2.3.3 or earlier. Consider showing update prompts for users on old iOS versions.
-
----
-
-## App Store Submission Checklist
-
-- [x] Privacy manifest created (PrivacyInfo.xcprivacy)
-- [x] All privacy usage strings in Info.plist
-- [ ] App builds without warnings
-- [ ] Code signing configured
-- [ ] Screenshots updated for latest iOS
-- [ ] App description mentions iOS 12.0+ requirement
-- [ ] TestFlight testing completed
-- [x] No deprecated performSelector APIs in use
-- [ ] Dark mode support (recommended)
-- [ ] Accessibility audit passed
-
----
-
-## Resources
-
-### Apple Documentation
-- [Contacts Framework](https://developer.apple.com/documentation/contacts)
-- [UserNotifications Framework](https://developer.apple.com/documentation/usernotifications)
-- [Auto Layout Guide](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/AutolayoutPG/)
-- [Privacy Manifest](https://developer.apple.com/documentation/bundleresources/privacy_manifest_files)
-- [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
-
-### Migration Guides
-- [Migrating from AddressBook](https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/AddressBook_iPhoneOS_ProgrammingGuide/Introduction.html)
-- [Local Notifications Migration](https://developer.apple.com/documentation/usernotifications/deprecated_symbols_in_user_notifications)
-- [URLSession Best Practices](https://developer.apple.com/documentation/foundation/url_loading_system)
-
----
-
-**Document Version:** 1.1
-**Last Updated:** 2025-11-15
-**iOS Target:** iOS 12.0+ with iOS 17+ compatibility
-**Project Status:** Critical modernization tasks complete (performSelector replacement, privacy compliance), ready for testing
-
-## Recent Updates (2025-11-15)
-
-### Completed in This Session
-1. ✅ Replaced all 27 instances of `performSelector:withObject:afterDelay:` with modern `dispatch_after` GCD calls
-2. ✅ Created iOS 17 Privacy Manifest (`PrivacyInfo.xcprivacy`) with required API declarations
-3. ✅ Added all required privacy usage descriptions to Info.plist
-
-### Next Recommended Steps
-1. **Test the application** - Run on iOS 12.0 simulator and iOS 17+ device to verify functionality
-2. **Device Detection Update** - Replace hard-coded device macros with trait collections
-3. **AFNetworking Migration** - Evaluate migration to native URLSession for networking
-4. **Auto Layout** - Migrate from frame-based layout to Auto Layout constraints for better multitasking support
-
-### Known Issues to Address
-- Still using deprecated device detection macros (IS_IPHONE_6, IS_IPHONE_6P, etc.)
-- Old vendored AFNetworking library contains deprecated APIs
-- Frame-based layout doesn't support dynamic type or multitasking optimally
-- 68 NSNotificationCenter observers should be audited for proper cleanup
+Use the dedicated simulators `A2Z-Test` (iPhone) and `A2Z-iPad`; the stock devices are shared with
+other projects and will foreground unrelated apps mid-screenshot. If no simulator runtime is
+installed, `xcodebuild -downloadPlatform iOS` — without one, asset-catalog and storyboard
+compilation fail with misleading "platform not installed" errors.

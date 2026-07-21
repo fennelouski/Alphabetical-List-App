@@ -19,9 +19,9 @@
 #import "ALUEmojiImageViewController.h"
 #import "ALUDrawingViewController.h"
 
-#define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
-#define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
+// kScreenWidth / kScreenHeight / kStatusBarHeight come from PrefixHeader.pch. They used to be
+// redefined here, which shadowed the shared versions and kept this screen on the deprecated
+// -statusBarFrame math that evaluates to 0 on every notched / Dynamic Island device.
 
 #define kViewControllerWidth self.view.frame.size.width
 #define kViewControllerHeight self.view.frame.size.height
@@ -146,7 +146,9 @@ static CGFloat const borderWidth = 10.0f;
     [super viewDidAppear:animated];
     
     if (!self.navigationController.navigationBar.barTintColor) {
-        self.navigationController.navigationBar.barTintColor = [NKFColor appColor];
+        ALUApplyNavigationBarColor(self.navigationController.navigationBar,
+                                   [NKFColor appColor],
+                                   [(NKFColor *)[NKFColor appColor] oppositeBlackOrWhite]);
     }
 }
 
@@ -154,9 +156,6 @@ static CGFloat const borderWidth = 10.0f;
 	[super viewWillDisappear:animated];
 	
 	[self saveList];
-    
-    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationDidBecomeActiveNotification object:self];
-    [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationWillEnterForegroundNotification object:self];
 }
 
 - (void)findTextView {
@@ -170,6 +169,30 @@ static CGFloat const borderWidth = 10.0f;
 - (void)saveList {
 	NSString *list = self.listItemTextView.text;
 	[[ALUDataManager sharedDataManager] saveList:list withTitle:_detailItem];
+}
+
+// On iPad the notes list is presented as a sidebar floating over the note. The note text view
+// spans the full width underneath it, so short lines were rendered behind the sidebar and the
+// note looked blank. Inset the text so it always begins clear of the sidebar.
+- (void)viewDidLayoutSubviews {
+	[super viewDidLayoutSubviews];
+
+	UISplitViewController *splitViewController = self.splitViewController;
+	CGFloat sidebarClearance = 0.0f;
+
+	if (splitViewController &&
+		!splitViewController.isCollapsed &&
+		splitViewController.displayMode != UISplitViewControllerDisplayModeSecondaryOnly) {
+		// Only inset where the sidebar actually overlaps this view.
+		CGRect sidebarFrame = [self.view convertRect:self.view.bounds toView:nil];
+		sidebarClearance = MAX(0.0f, splitViewController.primaryColumnWidth - sidebarFrame.origin.x);
+	}
+
+	UIEdgeInsets textInsets = self.listItemTextView.textContainerInset;
+	if (fabs(textInsets.left - sidebarClearance) > 0.5f) {
+		textInsets.left = sidebarClearance;
+		self.listItemTextView.textContainerInset = textInsets;
+	}
 }
 
 - (void)updateViewConstraints {
@@ -229,10 +252,8 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)resetNavBarColors {
     DLog(@"Resetting nav bar colors");
-    self.navigationController.navigationBar.barTintColor = [NKFColor appColor];
-    self.navigationController.navigationBar.tintColor = [NKFColor whiteColor];
-    self.navigationController.navigationController.navigationBar.barTintColor = self.navigationController.navigationBar.barTintColor;
-    self.navigationController.navigationController.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+    ALUApplyNavigationBarColor(self.navigationController.navigationBar, [NKFColor appColor], [NKFColor whiteColor]);
+    ALUApplyNavigationBarColor(self.navigationController.navigationController.navigationBar, [NKFColor appColor], [NKFColor whiteColor]);
 }
 
 - (void)orientationChanged:(NSNotification *)notification{
@@ -628,6 +649,8 @@ static CGFloat const borderWidth = 10.0f;
 		
 		[self.actionButton setEnabled:YES];
 	}
+
+	[self checkForActionButtonAbility];
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
@@ -869,10 +892,6 @@ static CGFloat const borderWidth = 10.0f;
 			[self.actionButton setEnabled:NO];
 		}
 	}
-
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-	    [self checkForActionButtonAbility];
-	});
 }
 
 #pragma mark - Status Bar
@@ -994,15 +1013,26 @@ static CGFloat const borderWidth = 10.0f;
 - (void)selectLocation {
     [[self settingsView] hide];
     
-    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined) {
-        if ([[[ALUDataManager sharedDataManager] locationManager] respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-            [[[ALUDataManager sharedDataManager] locationManager] requestAlwaysAuthorization];
-        }
-    } else if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
-        DLog(@"Ask user to grant location permission");
-        return;
-    } else {
-        [[ALUDataManager sharedDataManager] locationManager];
+    // Use the instance property (the class method is deprecated) and escalate correctly:
+    // iOS only offers When-In-Use from NotDetermined, with Always as a later escalation.
+    CLLocationManager *locationManager = [[ALUDataManager sharedDataManager] locationManager];
+
+    switch (locationManager.authorizationStatus) {
+        case kCLAuthorizationStatusNotDetermined:
+            [locationManager requestWhenInUseAuthorization];
+            break;
+
+        case kCLAuthorizationStatusDenied:
+        case kCLAuthorizationStatusRestricted:
+            DLog(@"Location access denied — cannot attach a location reminder.");
+            return;
+
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            [locationManager requestAlwaysAuthorization];
+            break;
+
+        default:
+            break;
     }
     
     DLog(@"Select Location");

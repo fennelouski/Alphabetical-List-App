@@ -13,7 +13,7 @@
 #import "ALUPointAnnotation.h"
 #import "ALUDocument.h"
 
-@interface ALUDataManager : NSObject <CLLocationManagerDelegate, UIDocumentMenuDelegate>
+@interface ALUDataManager : NSObject <CLLocationManagerDelegate>
 
 - (CLLocationManager *)locationManager;
 

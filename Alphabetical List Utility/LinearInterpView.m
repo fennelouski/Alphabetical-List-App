@@ -3,8 +3,6 @@
 #import "LinearInterpView.h"
 #import "NKFColor.h"
 
-static CGFloat const LinearInterpViewLineWidth = 15.0f;
-
 @interface LinearInterpView ()
 
 @end

@@ -1,1 +1,4 @@
 Certificates.p12
+build/
+DerivedData/
+*.xcuserstate

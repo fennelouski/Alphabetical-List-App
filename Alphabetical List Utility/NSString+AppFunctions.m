@@ -136,8 +136,11 @@
 }
 
 - (int)firstAlphabeticalCharacterIndex {
+	if (self.length == 0) {
+		return 0;
+	}
 	NSCharacterSet *charactersInBrandNames = [NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz"];
-	char c = [self characterAtIndex:0];
+	unichar c = [self characterAtIndex:0];
 	int firstNonNumericCharacterIndex = 0;
 	for (; ![charactersInBrandNames characterIsMember:c] && firstNonNumericCharacterIndex < self.length; firstNonNumericCharacterIndex++) {
 		c = [self characterAtIndex:firstNonNumericCharacterIndex];

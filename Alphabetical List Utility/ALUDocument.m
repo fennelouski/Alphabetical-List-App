@@ -30,9 +30,9 @@
         self.noteContent = @" ";
     }
     
-    return [NSData dataWithBytes:[self.noteContent UTF8String]
-                          length:[self.noteContent length]];
-    
+    // -length is a UTF-16 unit count, not a UTF-8 byte count. Using it as the byte length
+    // silently truncated any note containing emoji, accents or curly quotes.
+    return [self.noteContent dataUsingEncoding:NSUTF8StringEncoding];
 }
 
 

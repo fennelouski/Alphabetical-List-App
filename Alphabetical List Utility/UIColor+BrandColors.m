@@ -16,8 +16,12 @@
 	NSString *lowerCaseCompanyName = [companyName lowercaseString];
 	NSString *formattedCompanyName = [[[lowerCaseCompanyName stringByReplacingOccurrencesOfString:@"&" withString:@"and"] componentsSeparatedByCharactersInSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]] componentsJoinedByString:@""];
 	
-	if ([self respondsToSelector:NSSelectorFromString(formattedCompanyName)]) {
-		return [self performSelector:NSSelectorFromString(formattedCompanyName) withObject:nil];
+	SEL brandColorSelector = NSSelectorFromString(formattedCompanyName);
+	if ([self respondsToSelector:brandColorSelector]) {
+		// Call through a typed function pointer rather than -performSelector:, whose return
+		// value has unknown memory-management semantics under ARC.
+		UIColor *(*brandColorFunction)(id, SEL) = (UIColor *(*)(id, SEL))[self methodForSelector:brandColorSelector];
+		return brandColorFunction(self, brandColorSelector);
 	} else if ([self firstAlphabeticalCharacterIndex:lowerCaseCompanyName]) {
 		return [self colorForCompanyName:[self stringWithoutNumbersInTheBeginning:lowerCaseCompanyName]];
 	} else {

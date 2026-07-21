@@ -7,10 +7,10 @@
 //
 
 #import "ALUDataManager.h"
-#import "AFNetworking.h"
 #import "ALUVerse.h"
 #import "ALUPassage.h"
 #import "NKFColor+Universities.h"
+#import <UserNotifications/UserNotifications.h>
 
 static NSString * const separator = @"%&&^AB)*971";
 static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
@@ -23,7 +23,6 @@ static NSString * const fontSizeKey = @"This is my font size Key and don't forge
 static NSString * const adjustedFontSizeKey = @"This is my font size Key for changing the font size of the card view";
 
 static CGFloat const screenSizeLimit = 668.0f;
-static CGFloat const screenSizeUpperLimit = 767.0f;
 
 @implementation ALUDataManager {
 	NSMutableArray *_lists;
@@ -77,7 +76,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		_useCardView = !(IS_IPHONE_6P || [[NSProcessInfo processInfo] operatingSystemVersion].majorVersion >= 9);
+		// Load the user's saved choice. The old expression tested majorVersion >= 9, which is
+		// always true now, so the stored preference was discarded on every launch.
+		_useCardView = [[NSUserDefaults standardUserDefaults] boolForKey:useCardViewKey];
 		_shouldShowStatusBar = YES;
         
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
@@ -114,6 +115,16 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     if (!_locationManager) {
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
+
+        // Authorization was never requested, so the manager stayed at "notDetermined" and
+        // region-entry events were never delivered — the reminder feature was inert.
+        // Geofencing needs Always, which iOS only grants as an escalation from When-In-Use.
+        if (_locationManager.authorizationStatus == kCLAuthorizationStatusNotDetermined) {
+            [_locationManager requestWhenInUseAuthorization];
+        } else if (_locationManager.authorizationStatus == kCLAuthorizationStatusAuthorizedWhenInUse) {
+            [_locationManager requestAlwaysAuthorization];
+        }
+
         [_locationManager startUpdatingLocation];
 		
 		NSSet *monitoredRegions = [NSSet setWithSet:_locationManager.monitoredRegions];
@@ -265,121 +276,47 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
         return nil;
     }
 
-	// Use the default session configuration for the manager (background downloads must use the delegate APIs)
-	NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-	// Use AFNetworking's NSURLSessionManager to manage a NSURLSession.
-	AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-	
 	NSString *baseURLString = @"https://logo.clearbit.com/";
 	NSString *urlString = [NSString stringWithFormat:@"%@%@", baseURLString, companyNameURLString];
-	// Create the image URL from some known string.
 	NSURL *imageURL = [NSURL URLWithString:urlString];
-	// Create a request object for the given URL.
+	if (!imageURL) {
+		return nil;
+	}
 	NSURLRequest *request = [NSURLRequest requestWithURL:imageURL];
-	// Create a pointer for a NSProgress object to be used to determining download progress.
-	NSProgress *progress = nil;
-	
-    NSURL *saveLocation = [self saveLocationForCompanyNameURLString:companyNameURLString];
-    
-    
-    
+
+	// If the logo is already cached on disk, use it immediately.
+	NSURL *saveLocation = [self saveLocationForCompanyNameURLString:companyNameURLString];
 	if (saveLocation) {
-		// Get the data for the image we just saved.
-		NSData *imageData = [NSData dataWithContentsOfURL:saveLocation];
-		
-		if (!imageData) {
-//			DLog(@"No image data!");
-		} else {
-			// Get a UIImage object from the image data.
-			UIImage *image = [UIImage imageWithData:imageData];
-			if (image) {
-				if (companyNameURLString) {
-					[_companyLogos setObject:image forKey:companyNameURLString];
-                    [_companyLogos setObject:image forKey:companyName];
-					return image;
-				} else {
-					DLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
-				}
-			} else {
-				DLog(@"I'm missing the image for %@", companyNameURLString);
-			}
+		NSData *cachedData = [NSData dataWithContentsOfURL:saveLocation];
+		UIImage *cachedImage = cachedData ? [UIImage imageWithData:cachedData] : nil;
+		if (cachedImage) {
+			[_companyLogos setObject:cachedImage forKey:companyNameURLString];
+			[_companyLogos setObject:cachedImage forKey:companyName];
+			return cachedImage;
 		}
 	}
-	
-	// Create the callback block responsible for determining the location to save the downloaded file to.
-	NSURL *(^destinationBlock)(NSURL *targetPath, NSURLResponse *response) = ^NSURL *(NSURL *targetPath, NSURLResponse *response) {
-		// Get the path of the application's documents directory.
-		NSURL *documentsDirectoryURL = [self documentsDirectoryURL];
-		NSURL *saveLocation = nil;
-		
-		// Check if the response contains a suggested file name
-		if (response.suggestedFilename) {
-			// Append the suggested file name to the documents directory path.
-			saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:response.suggestedFilename];
-		} else {
-			// Append the desired file name to the documents directory path.
-			saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
+
+	// Otherwise download the logo with URLSession and cache it for next time.
+	NSURL *documentsDirectoryURL = [self documentsDirectoryURL];
+	NSURL *destination = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
+	NSURLSessionDownloadTask *task = [[NSURLSession sharedSession] downloadTaskWithRequest:request
+																 completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+		NSData *imageData = (location && !error) ? [NSData dataWithContentsOfURL:location] : nil;
+		UIImage *image = imageData ? [UIImage imageWithData:imageData] : nil;
+		if (image) {
+			[imageData writeToURL:destination atomically:YES];
 		}
-        
-        saveLocation = [documentsDirectoryURL URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.png", companyNameURLString]];
-		
-		return saveLocation;
-	};
-	
-	
-	// Create the completion block that will be called when the image is done downloading/saving.
-	void (^completionBlock)(NSURLResponse *response, NSURL *filePath, NSError *error) = ^void (NSURLResponse *response, NSURL *filePath, NSError *error) {
 		dispatch_async(dispatch_get_main_queue(), ^{
-			// There is no longer any reason to observe progress, the download has finished or cancelled.
-			[progress removeObserver:self
-						  forKeyPath:NSStringFromSelector(@selector(fractionCompleted))];
-			
-			if (error) {
-//				DLog(@"Error in downloading image: %@",error.localizedDescription);
-				// Something went wrong downloading or saving the file. Figure out what went wrong and handle the error.
-				[_failedDomains addObject:companyNameURLString];
+			if (image) {
+				[_companyLogos setObject:image forKey:companyNameURLString];
+				[_companyLogos setObject:image forKey:companyName];
 			} else {
-				// Get the data for the image we just saved.
-				NSData *imageData = [NSData dataWithContentsOfURL:filePath];
-				
-				if (!filePath) {
-					DLog(@"No filepath");
-				}
-				
-				if (!imageData) {
-					DLog(@"No image data!");
-				}
-				
-				// Get a UIImage object from the image data.
-				UIImage *image = [UIImage imageWithData:imageData];
-				if (image) {
-					if (companyNameURLString) {
-						[_companyLogos setObject:image forKey:companyNameURLString];
-                        [_companyLogos setObject:image forKey:companyName];
-					} else {
-						DLog(@"So, I have the filepath, imageData, and image but the companyURLString is null!");
-					}
-				} else {
-					DLog(@"I'm missing the image for %@", companyNameURLString);
-				}
+				[_failedDomains addObject:companyNameURLString];
 			}
 		});
-	};
-	
-	// Create the download task for the image.
-	NSURLSessionDownloadTask *task = [manager downloadTaskWithRequest:request
-															 progress:&progress
-														  destination:destinationBlock
-													completionHandler:completionBlock];
-	// Start the download task.
+	}];
 	[task resume];
-	
-	// Begin observing changes to the download task's progress to display to the user.
-	[progress addObserver:self
-			   forKeyPath:NSStringFromSelector(@selector(fractionCompleted))
-				  options:NSKeyValueObservingOptionNew
-				  context:NULL];
-	
+
 	return nil;
 }
 
@@ -489,12 +426,10 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
                                       @"harvard"            : @"harvard.edu",
                                       @"apu"                : @"apu.edu",
                                       @"calpoly"            : @"calpoly.edu",
-                                      @"mit"                : @"mit.edu",
                                       @"ucla"               : @"ucla.edu",
                                       @"usc"                : @"usc.edu",
 									  @"bible"              : @"bible.com",
 									  @"bibleverseoftheday" : @"bible.com",
-									  @"verseoftheday"      : @"bible.com",
 									  @"bibleversedaily"	: @"bible.com",
 									  @"dailybibleverse"    : @"bible.com",
 									  @"dailyscripture"		: @"bible.com",
@@ -807,11 +742,9 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 }
 
 - (void)makeCallForListTitle:(NSString *)listTitle {
-	NSString *urlString = [_apiURLDictionary objectForKey:[self formattedListTitle:listTitle]];
-	
-    NSURL *url = [NSURL URLWithString:urlString];
-    
-    DLog(@"I'm ready to call \"%@\"", url);
+	// Not implemented — ALUDataManager+APICalls is an empty category. Kept as the entry point.
+	// No locals here: DLog compiles out in Release, which would leave them unused.
+	DLog(@"I'm ready to call \"%@\"", [_apiURLDictionary objectForKey:[self formattedListTitle:listTitle]]);
 }
 
 - (NSDictionary *)dictionaryForTitle:(NSString *)listTitle {
@@ -849,29 +782,37 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     [annotation save];
 	
 	
-	UIUserNotificationType notificationTypes = UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound;
-	UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationTypes categories:nil];
-	
-	UIMutableUserNotificationAction *showNoteAction = [[UIMutableUserNotificationAction alloc] init];
-	showNoteAction.identifier = @"showNote";
-	showNoteAction.title = @"Show Note";
-	showNoteAction.activationMode = UIUserNotificationActivationModeBackground;
-	showNoteAction.destructive = false;
-	showNoteAction.authenticationRequired = false;
-	
-	UIMutableUserNotificationCategory *notificationCategory = [[UIMutableUserNotificationCategory alloc] init];
-	notificationCategory.identifier = @"showNoteNotificationCategory";
-	[notificationCategory setActions:@[showNoteAction] forContext:UIUserNotificationActionContextDefault];
-	[notificationCategory setActions:@[showNoteAction] forContext:UIUserNotificationActionContextMinimal];
-	
-	[[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-	[[UIApplication sharedApplication] cancelAllLocalNotifications];
-	
-	
-	CLCircularRegion *region = [[CLCircularRegion alloc] initWithCenter:coordinate radius:radiusInMeters identifier:listTitle];
-	region.notifyOnEntry = YES;
-	region.notifyOnExit = NO;
-	[[self locationManager] startMonitoringForRegion:region];
+	// Register the reminder category and ask for notification permission here — this is the
+	// moment the user actually opts in to a location reminder. (The old UIUserNotification
+	// stack was removed in iOS 10 and did nothing; it also cancelled every pending
+	// notification and re-prompted on each save.)
+	UNNotificationAction *showNoteAction = [UNNotificationAction actionWithIdentifier:@"showNote"
+																			   title:@"Show Note"
+																			 options:UNNotificationActionOptionForeground];
+	UNNotificationCategory *notificationCategory = [UNNotificationCategory categoryWithIdentifier:@"showNoteNotificationCategory"
+																						  actions:@[showNoteAction]
+																				intentIdentifiers:@[]
+																						  options:UNNotificationCategoryOptionNone];
+	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+	[center setNotificationCategories:[NSSet setWithObject:notificationCategory]];
+	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
+						  completionHandler:^(BOOL granted, NSError * _Nullable error) {
+							  if (!granted) {
+								  DLog(@"Notification permission not granted: %@", error);
+							  }
+						  }];
+
+	// iOS monitors at most 20 regions per app; past that startMonitoringForRegion: fails
+	// silently, so surface it rather than pretending the reminder was set.
+	if ([self locationManager].monitoredRegions.count >= 20 &&
+		![self geolocationReminderExistsForTitle:listTitle]) {
+		DLog(@"Region monitoring limit (20) reached — not monitoring \"%@\"", listTitle);
+	} else {
+		CLCircularRegion *region = [[CLCircularRegion alloc] initWithCenter:coordinate radius:radiusInMeters identifier:listTitle];
+		region.notifyOnEntry = YES;
+		region.notifyOnExit = NO;
+		[[self locationManager] startMonitoringForRegion:region];
+	}
 	
     [_geolocationReminders setObject:annotation forKey:formattedListTitle];
     [_geolocationExists setObject:@(YES) forKey:formattedListTitle];
@@ -936,10 +877,13 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 	if (annotation) {
 		[annotation remove];
 		
+		// Match the region by identifier. This used to stop whichever region happened to be
+		// first in the set, so deleting one note's reminder could cancel a different note's.
 		NSSet *regions = [self.locationManager monitoredRegions];
 		for (CLRegion *region in regions) {
-			[self.locationManager stopMonitoringForRegion:region];
-			break;
+			if ([region.identifier isEqualToString:listTitle]) {
+				[self.locationManager stopMonitoringForRegion:region];
+			}
 		}
 	} else {
 		DLog(@"The annotation doesn't exist for the listTitle %@", listTitle);
@@ -951,6 +895,25 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 
 
 #pragma mark - Location Manager Delegate
+
+// React to the user's authorization decision. Region monitoring requires Always, which iOS
+// only offers as an escalation once When-In-Use has been granted.
+- (void)locationManagerDidChangeAuthorization:(CLLocationManager *)manager {
+	switch (manager.authorizationStatus) {
+		case kCLAuthorizationStatusAuthorizedWhenInUse:
+			[manager requestAlwaysAuthorization];
+			[manager startUpdatingLocation];
+			break;
+
+		case kCLAuthorizationStatusAuthorizedAlways:
+			[manager startUpdatingLocation];
+			break;
+
+		default:
+			DLog(@"Location access not granted; location reminders are unavailable.");
+			break;
+	}
+}
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
     CLLocation *userLocation = [locations lastObject];
@@ -1113,20 +1076,25 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
 	
 	if (![today isEqualToDate:lastVerseOfTheDayDate] ||
 		[self listWithTitle:_verseOfTheDayListTitle].length == 0) {
-		NSURL *URL = [NSURL URLWithString:@"http://labs.bible.org/api/?passage=votd&type=json"];
+		NSURL *URL = [NSURL URLWithString:@"https://labs.bible.org/api/?passage=votd&type=json"];
 		NSURLRequest *request = [NSURLRequest requestWithURL:URL];
-		AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:request];
-		op.responseSerializer = [AFJSONResponseSerializer serializer];
-		NSMutableSet *acceptableContentTypes = [NSMutableSet setWithObject:op.responseSerializer.acceptableContentTypes];
-		[acceptableContentTypes addObject:@"application/x-javascript"];
-		[acceptableContentTypes addObject:@"text/html"];
-		op.responseSerializer.acceptableContentTypes = acceptableContentTypes;
-		[op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-			[self analyzeBibleVerseResponseObject:responseObject];
-		} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-			DLog(@"Error: %@", error);
+		NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request
+																			 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+			if (error || !data) {
+				DLog(@"Error retrieving verse of the day: %@", error);
+				return;
+			}
+			NSError *jsonError = nil;
+			id responseObject = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+			if (jsonError || !responseObject) {
+				DLog(@"Error parsing verse of the day: %@", jsonError);
+				return;
+			}
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self analyzeBibleVerseResponseObject:responseObject];
+			});
 		}];
-		[[NSOperationQueue mainQueue] addOperation:op];
+		[task resume];
 	} else {
 		DLog(@"Verse does not need to be updated %@", lastVerseOfTheDayDate);
 	}
@@ -1305,9 +1273,6 @@ static CGFloat const screenSizeUpperLimit = 767.0f;
     }
 }
 
-- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker {
-	DLog(@"\n- (void)documentMenu:(UIDocumentMenuViewController *)documentMenu didPickDocumentPicker:(UIDocumentPickerViewController *)documentPicker\n\t\tDOES NOTHING\n");
-}
 
 
 @end

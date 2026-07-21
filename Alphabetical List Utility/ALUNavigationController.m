@@ -15,4 +15,15 @@
 	[super viewDidLoad];
 }
 
+// Decide the status bar style here rather than deferring to the pushed view controller:
+// ALUApplyNavigationBarColor sets barStyle from the current bar colour's luminance, so the
+// status bar always contrasts with the bar behind it.
+- (UIViewController *)childViewControllerForStatusBarStyle {
+	return nil;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+	return (self.navigationBar.barStyle == UIBarStyleBlack) ? UIStatusBarStyleLightContent : UIStatusBarStyleDarkContent;
+}
+
 @end

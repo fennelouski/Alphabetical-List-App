@@ -9,8 +9,6 @@
 #import "ALUMasterTableView.h"
 #import "ALUDataManager.h"
 
-static CGFloat const tableViewInset = 0.0f;
-
 @implementation ALUMasterTableView
 
 /*
@@ -32,14 +30,6 @@ static CGFloat const tableViewInset = 0.0f;
 			[cell.layer setZPosition:path.row];
 		}
 	}
-}
-
-- (CGRect)frame {
-    if (self.superview) {
-        return CGRectOffset(CGRectMake(0.0f, -tableViewInset, self.superview.frame.size.width, self.superview.frame.size.height + tableViewInset + 14.0f), 0.0f, -13.0f);
-    }
-    
-    return CGRectMake(0.0f, 0.0f, 200.0f, 300.0f);
 }
 
 @end

@@ -108,10 +108,6 @@ static CGFloat const defaultRowHeight = 44.0f;
             [self.tableView.superview insertSubview:self.backgroundView belowSubview:self.tableView];
         }
     }
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self moveHeaderForward];
-    });
 }
 
 - (void)configureNotifications {
@@ -136,11 +132,11 @@ static CGFloat const defaultRowHeight = 44.0f;
 }
 
 - (void)appDidBecomeActive:(NSNotification *)notification {
-	self.tableView.frame = CGRectOffset(CGRectMake(0.0f, -tableViewInset, self.view.frame.size.width, self.view.frame.size.height + tableViewInset + 14.0f), 0.0f, -13.0f);
+	[self.tableView reloadData];
 }
 
 - (void)appWillEnterForeground:(NSNotification *)notification {
-	self.tableView.frame = CGRectOffset(CGRectMake(0.0f, -tableViewInset, self.view.frame.size.width, self.view.frame.size.height + tableViewInset + 14.0f), 0.0f, -13.0f);
+	[self.tableView reloadData];
 }
 
 - (void)updateViewConstraints {
@@ -165,7 +161,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 	self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
 	self.navigationItem.title = @"A2Z Notes";
 	self.view.backgroundColor = [NKFColor appColor];
-	self.navigationController.navigationBar.tintColor = [NKFColor appColor];
+	ALUApplyNavigationBarColor(self.navigationController.navigationBar, [NKFColor appColor], [NKFColor whiteColor]);
 	
 	if (self.objects.count > 0) {
 		[self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] animated:YES scrollPosition:UITableViewScrollPositionTop];
@@ -180,8 +176,8 @@ static CGFloat const defaultRowHeight = 44.0f;
 
 - (void)viewWillAppear:(BOOL)animated {
 	self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
-	self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
-	self.navigationController.navigationBar.translucent = YES;
+	// Note: barStyle is set by ALUApplyNavigationBarColor based on the bar's luminance,
+	// so it correctly drives light/dark status-bar content. Don't override it here.
 	[self.splitViewController setNeedsStatusBarAppearanceUpdate];
 	[self.tableView reloadData];
 	[super viewWillAppear:animated];
@@ -241,7 +237,10 @@ static CGFloat const defaultRowHeight = 44.0f;
                             
                              static dispatch_once_t onceToken;
                              dispatch_once(&onceToken, ^{
-                                 [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+                                 // Guard: scrolling to row 0 raises when there are no notes yet.
+                                 if (self.objects.count > 0) {
+                                     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+                                 }
                              });
                          }];
 //        self.tableView.frame = CGRectOffset(CGRectMake(0.0f, -tableViewInset, self.view.frame.size.width, self.view.frame.size.height + tableViewInset + 14.0f), 0.0f, -13.0f);
@@ -349,14 +348,21 @@ static CGFloat const defaultRowHeight = 44.0f;
 																 buttonSize.width,
 																 buttonSize.height)];
 		[_addButton addTarget:self action:@selector(createNewListButtonTouched:) forControlEvents:UIControlEventTouchUpInside];
-		[_addButton setImage:[UIImage imageNamed:@"Plus-icon"] forState:UIControlStateNormal];
-		[_addButton setTitleColor:[NKFColor white] forState:UIControlStateNormal];
+
+		// imageEdgeInsets is ignored under UIButtonConfiguration; express the inset as
+		// contentInsets instead. The background stays on the layer so the circular shape and
+		// border below still apply.
+		CGFloat imageInset = 10.0f;
+		UIButtonConfiguration *configuration = [UIButtonConfiguration plainButtonConfiguration];
+		configuration.image = [UIImage imageNamed:@"Plus-icon"];
+		configuration.contentInsets = NSDirectionalEdgeInsetsMake(imageInset, imageInset, imageInset, imageInset);
+		configuration.baseForegroundColor = [NKFColor white];
+		configuration.background.backgroundColor = [UIColor clearColor];
+		_addButton.configuration = configuration;
+
 		[_addButton setBackgroundColor:[NKFColor appColor]];
 		_addButton.layer.cornerRadius = _addButton.frame.size.width * 0.5f;
-		_addButton.titleLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
 		_addButton.layer.borderWidth = 1.0f;
-		CGFloat imageInset = 10.0f;
-		_addButton.imageEdgeInsets = UIEdgeInsetsMake(imageInset, imageInset, imageInset, imageInset);
 		_addButton.layer.borderColor = [[NKFColor appColor] lightenColor].CGColor;
 	}
 	
@@ -369,13 +375,16 @@ static CGFloat const defaultRowHeight = 44.0f;
 																 0.0f,
 																 buttonSize.width,
 																 buttonSize.height)];
-		[_editButton setImage:[UIImage imageNamed:@"Edit-icon"] forState:UIControlStateNormal];
-		[_editButton setTitleColor:[NKFColor white] forState:UIControlStateNormal];
+		CGFloat imageInset = 10.0f;
+		UIButtonConfiguration *configuration = [UIButtonConfiguration plainButtonConfiguration];
+		configuration.image = [UIImage imageNamed:@"Edit-icon"];
+		configuration.contentInsets = NSDirectionalEdgeInsetsMake(imageInset, imageInset, imageInset, imageInset);
+		configuration.baseForegroundColor = [NKFColor white];
+		configuration.background.backgroundColor = [UIColor clearColor];
+		_editButton.configuration = configuration;
+
 		[_editButton setBackgroundColor:[NKFColor appColor]];
 		_editButton.layer.cornerRadius = _editButton.frame.size.width * 0.5f;
-		_editButton.titleLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
-		CGFloat imageInset = 10.0f;
-		_editButton.imageEdgeInsets = UIEdgeInsetsMake(imageInset, imageInset, imageInset, imageInset);
 		[_editButton addTarget:self action:[self.navigationController.editButtonItem action] forControlEvents:UIControlEventTouchUpInside];
 		_editButton.layer.borderWidth = 1.0f;
 		_editButton.layer.borderColor = [[NKFColor appColor] lightenColor].CGColor;
@@ -449,21 +458,18 @@ static CGFloat const defaultRowHeight = 44.0f;
 	    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
 	    NSString *object = self.objects[indexPath.row];
 		
-		self.navigationController.navigationBar.barTintColor = [NKFColor colorForCompanyName:object];
-		self.navigationController.navigationBar.backgroundColor = self.navigationController.navigationBar.barTintColor;
-		self.navigationController.navigationBar.tintColor = [(NKFColor *)self.navigationController.navigationBar.barTintColor oppositeBlackOrWhite];
-		[self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName : self.navigationController.navigationBar.tintColor}];
-		
+		NKFColor *noteColor = (NKFColor *)[NKFColor colorForCompanyName:object];
+		UIColor *contrastColor = [noteColor oppositeBlackOrWhite];
+		ALUApplyNavigationBarColor(self.navigationController.navigationBar, noteColor, contrastColor);
+
 		DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
 		[controller setDelegate:self];
 	    [controller setDetailItem:object];
 	    controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
 	    controller.navigationItem.leftItemsSupplementBackButton = YES;
-		controller.navigationController.navigationBar.barTintColor = [NKFColor colorForCompanyName:object];
-		controller.navigationController.navigationBar.backgroundColor = controller.navigationController.navigationBar.barTintColor;
-		controller.navigationController.navigationBar.tintColor = [(NKFColor *)self.navigationController.navigationBar.barTintColor oppositeBlackOrWhite];
-		
-		if ([(NKFColor *)self.navigationController.navigationBar.barTintColor isDark]) {
+		ALUApplyNavigationBarColor(controller.navigationController.navigationBar, noteColor, contrastColor);
+
+		if ([noteColor isDark]) {
 			[ALUDataManager sharedDataManager].currentColorIsDark = YES;
 		} else {
 			[ALUDataManager sharedDataManager].currentColorIsDark = NO;
@@ -511,20 +517,12 @@ static CGFloat const defaultRowHeight = 44.0f;
 					 }];
 }
 
-- (UIViewController *)childViewControllerForStatusBarStyle {
-	return self.navigationController.visibleViewController;
-}
-
-- (UIViewController *)childViewControllerForStatusBarHidden {
-	return self.navigationController.visibleViewController;
-}
-
 - (UIStatusBarStyle)preferredStatusBarStyle {
 	if ([(NKFColor *)self.navigationController.navigationBar.barTintColor isDark]) {
 		return UIStatusBarStyleLightContent;
 	}
-	
-	return UIStatusBarStyleLightContent;
+
+	return UIStatusBarStyleDarkContent;
 }
 
 - (BOOL)prefersStatusBarHidden {
@@ -542,7 +540,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 	} else {
 		self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
 		self.tableView.showsHorizontalScrollIndicator = YES;
-		self.view.backgroundColor = [UIColor whiteColor];
+		self.view.backgroundColor = [UIColor systemBackgroundColor];
 	}
 	
 	return 1;
@@ -571,7 +569,7 @@ static CGFloat const defaultRowHeight = 44.0f;
 	
 	NSString *object = self.objects[indexPath.row];
 	cell.textLabel.font = [UIFont boldSystemFontOfSize:DEFAULT_FONT_SIZE];
-	cell.textLabel.attributedText = [NKFColor attributedStringForCompanyName:[object description]];
+	cell.textLabel.attributedText = ALUAdaptiveAttributedString([NKFColor attributedStringForCompanyName:[object description]]);
 	
 	if (USE_CARDS) {
 		cell.noteTitle = self.objects[indexPath.row];
@@ -623,8 +621,14 @@ static CGFloat const defaultRowHeight = 44.0f;
     } else if ([[ALUDataManager sharedDataManager] showImageForListTitle:cell.textLabel.text]
 			   &&
 			   !cell.hasSearchedForImage) {
+        // Re-resolve the cell by index path when the delay elapses: capturing `cell` meant a
+        // recycled cell could receive another note's logo.
+        NSString *titleAwaitingImage = cell.textLabel.text;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [cell findImage];
+            ALUMasterTableViewCell *currentCell = (ALUMasterTableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
+            if (currentCell && [currentCell.textLabel.text isEqualToString:titleAwaitingImage]) {
+                [currentCell findImage];
+            }
         });
 		cell.hasSearchedForImage = YES;
 		cell.accessoryView.hidden = YES;
@@ -754,10 +758,11 @@ static CGFloat const defaultRowHeight = 44.0f;
 		CGFloat overScrolledDistance = scrollView.contentSize.height - scrollView.contentOffset.y - scrollView.frame.size.height + scrollView.contentInset.bottom;
 		
 		if (scrollView.contentOffset.y > _previousContentOffset.y && overScrolledDistance > 0.0f && scrollView.contentOffset.y > -30.0f) {
-			self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(scrollView.scrollIndicatorInsets.top,
-																	scrollView.scrollIndicatorInsets.left,
-																	0.0f,
-																	scrollView.scrollIndicatorInsets.right);
+			UIEdgeInsets indicatorInsets = scrollView.verticalScrollIndicatorInsets;
+			self.tableView.verticalScrollIndicatorInsets = UIEdgeInsetsMake(indicatorInsets.top,
+																			indicatorInsets.left,
+																			0.0f,
+																			indicatorInsets.right);
 			[self resignFirstResponder];
 		} else if (overScrolledDistance > 0.0f) {
 			[self becomeFirstResponder];

@@ -16,9 +16,9 @@
 #import "UIColor+AppColors.h"
 #import "NGAParallaxMotion.h"
 
-#define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
-#define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
+// kScreenWidth / kScreenHeight / kStatusBarHeight come from PrefixHeader.pch. Redefining them
+// here shadowed the shared versions and kept this view on the deprecated -statusBarFrame math,
+// which evaluates to 0 on every notched / Dynamic Island device.
 
 @implementation ALUSettingsView {
 	NSDictionary *_settingsTitles;
@@ -328,7 +328,7 @@
     NSDate *beforeDate = [NSDate date];
 	for (float i = 1.0f; i <= iterations; i++) {
 		CGRect screenCaptureRect = [UIScreen mainScreen].bounds;
-		UIView *viewWhereYouWantToScreenCapture = [[UIApplication sharedApplication] keyWindow];
+		UIView *viewWhereYouWantToScreenCapture = ALUKeyWindow();
 		
 		//screen capture code
 		UIGraphicsBeginImageContextWithOptions(screenCaptureRect.size, NO, [UIScreen mainScreen].scale);
@@ -356,7 +356,7 @@
 							  delay:(duration / iterations * (i - 1))
 							options:UIViewAnimationOptionCurveLinear
 						 animations:^{
-							 [[[UIApplication sharedApplication] keyWindow] addSubview:self];
+							 [ALUKeyWindow() addSubview:self];
 							 [self.superview insertSubview:blurredImageView
                                               belowSubview:self];
 							 blurredImageView.alpha = 1.0f;
@@ -420,7 +420,7 @@
 							  delay:(duration / iterations * (iterations - i - 1))
 							options:UIViewAnimationOptionCurveLinear
 						 animations:^{
-							 [[[UIApplication sharedApplication] keyWindow] addSubview:self];
+							 [ALUKeyWindow() addSubview:self];
 							 blurredImageView.alpha = 0.0f;
 						 } completion:^(BOOL finished) {
 							 

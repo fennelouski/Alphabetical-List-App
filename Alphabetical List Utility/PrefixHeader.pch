@@ -9,6 +9,112 @@
 #ifndef Alphabetical_List_Utility_PrefixHeader_pch
 #define Alphabetical_List_Utility_PrefixHeader_pch
 
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+
+// Scene-safe replacement for the deprecated -[UIApplication keyWindow].
+static inline UIWindow *ALUKeyWindow(void) {
+	UIWindow *fallbackWindow = nil;
+	for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+		if (![scene isKindOfClass:[UIWindowScene class]]) {
+			continue;
+		}
+		for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+			if (!fallbackWindow) {
+				fallbackWindow = window;
+			}
+			if (window.isKeyWindow) {
+				return window;
+			}
+		}
+	}
+	return fallbackWindow;
+}
+
+// Top safe-area inset (status bar / notch / Dynamic Island height) — correct on all
+// modern devices, unlike the deprecated -statusBarFrame this used to read.
+static inline CGFloat ALUStatusBarHeight(void) {
+	return ALUKeyWindow().safeAreaInsets.top;
+}
+
+// Wrap a fixed colour in a trait-aware dynamic colour: used as-is in light mode, and
+// brightened in dark mode so the app's per-note brand colours stay legible on a dark
+// background instead of disappearing into it.
+static inline UIColor *ALUAdaptiveColor(UIColor *color) {
+	if (!color) {
+		return color;
+	}
+	return [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traitCollection) {
+		if (traitCollection.userInterfaceStyle != UIUserInterfaceStyleDark) {
+			return color;
+		}
+		CGFloat hue = 0.0f, saturation = 0.0f, brightness = 0.0f, alpha = 0.0f;
+		if ([color getHue:&hue saturation:&saturation brightness:&brightness alpha:&alpha] && brightness < 0.7f) {
+			return [UIColor colorWithHue:hue
+							  saturation:MAX(0.0f, saturation - 0.15f)
+							  brightness:MIN(1.0f, brightness + 0.45f)
+								   alpha:alpha];
+		}
+		return color;
+	}];
+}
+
+// Remap every foreground colour in an attributed string through ALUAdaptiveColor so the
+// whole string adapts to light/dark mode, whichever branch of the colour engine built it.
+static inline NSAttributedString *ALUAdaptiveAttributedString(NSAttributedString *attributedString) {
+	if (!attributedString) {
+		return attributedString;
+	}
+	NSMutableAttributedString *adapted = [attributedString mutableCopy];
+	[adapted enumerateAttribute:NSForegroundColorAttributeName
+						inRange:NSMakeRange(0, adapted.length)
+						options:0
+					 usingBlock:^(id value, NSRange range, BOOL *stop) {
+						 if ([value isKindOfClass:[UIColor class]]) {
+							 [adapted addAttribute:NSForegroundColorAttributeName
+											 value:ALUAdaptiveColor((UIColor *)value)
+											 range:range];
+						 }
+					 }];
+	return adapted;
+}
+
+// Tint a navigation bar with an opaque background + contrasting foreground using
+// UINavigationBarAppearance. Since iOS 15 the bar's scrollEdgeAppearance defaults to
+// transparent, so directly setting barTintColor no longer paints the bar — this does.
+static inline void ALUApplyNavigationBarColor(UINavigationBar *navigationBar, UIColor *backgroundColor, UIColor *foregroundColor) {
+	if (!navigationBar || !backgroundColor) {
+		return;
+	}
+	// Keep barTintColor in sync: it no longer paints the bar, but the app reads it back
+	// in several places as the "current note color".
+	navigationBar.barTintColor = backgroundColor;
+
+	// Drive the status bar text: a dark bar needs light status-bar content.
+	CGFloat red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 0.0f;
+	if ([backgroundColor getRed:&red green:&green blue:&blue alpha:&alpha]) {
+		CGFloat luminance = 0.299f * red + 0.587f * green + 0.114f * blue;
+		navigationBar.barStyle = (luminance < 0.6f) ? UIBarStyleBlack : UIBarStyleDefault;
+	}
+
+	UINavigationBarAppearance *appearance = [[UINavigationBarAppearance alloc] init];
+	[appearance configureWithOpaqueBackground];
+	appearance.backgroundColor = backgroundColor;
+	appearance.shadowColor = [UIColor clearColor];
+	if (foregroundColor) {
+		appearance.titleTextAttributes = @{NSForegroundColorAttributeName : foregroundColor};
+		appearance.largeTitleTextAttributes = @{NSForegroundColorAttributeName : foregroundColor};
+		navigationBar.tintColor = foregroundColor;
+	}
+	navigationBar.standardAppearance = appearance;
+	navigationBar.scrollEdgeAppearance = appearance;
+	navigationBar.compactAppearance = appearance;
+
+	// The bar's luminance may have flipped the required status-bar style; ask for a refresh.
+	[ALUKeyWindow().rootViewController setNeedsStatusBarAppearanceUpdate];
+}
+#endif
+
 // improved NSLog functions
 #ifdef DEBUG
 #   define DLog(fmt, ...) NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
@@ -34,8 +140,8 @@
 
 #define USE_CARDS [[ALUDataManager sharedDataManager] useCardView]
 
-#define IS_IPAD (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-#define IS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+#define IS_IPAD ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad)
+#define IS_IPHONE ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone)
 #define IS_RETINA ([[UIScreen mainScreen] scale] >= 2.0)
 
 #define SCREEN_WIDTH ([[UIScreen mainScreen] bounds].size.width)
@@ -49,7 +155,7 @@
 #define IS_IPHONE_6P (IS_IPHONE && SCREEN_MAX_LENGTH == 736.0)
 
 #define kScreenWidth (([UIScreen mainScreen].bounds.size.width > [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
+#define kStatusBarHeight (ALUStatusBarHeight())
 #define kScreenHeight (([UIScreen mainScreen].bounds.size.width < [UIScreen mainScreen].bounds.size.height) ? [UIScreen mainScreen].bounds.size.width : [UIScreen mainScreen].bounds.size.height)
 #define LONGER_SIDE ((kScreenHeight > kScreenWidth) ? kScreenHeight : kScreenWidth)
 #define SHORTER_SIDE ((kScreenHeight < kScreenWidth) ? kScreenHeight : kScreenWidth)

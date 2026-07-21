@@ -9,7 +9,8 @@
 #import "UIFont+AppFonts.h"
 #import "UIFont+Custom.h"
 
-#define kStatusBarHeight (([[UIApplication sharedApplication] statusBarFrame].size.height == 20.0f) ? 20.0f : (([[UIApplication sharedApplication] statusBarFrame].size.height == 40.0f) ? 20.0f : 0.0f))
+// kStatusBarHeight comes from PrefixHeader.pch (safe-area based); the local redefinition here
+// shadowed it with deprecated -statusBarFrame math that returns 0 on modern devices.
 
 @implementation UIFont (AppFonts)
 

@@ -144,18 +144,6 @@
     return annotationView;
 }
 
-- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay {
-    if ([overlay isKindOfClass:[MKCircle class]]) {
-        MKCircleRenderer *circleRenderer = [[MKCircleRenderer alloc] initWithCircle:overlay];
-        circleRenderer.fillColor = [[NKFColor appColor] colorWithAlphaComponent:0.5f];
-        circleRenderer.strokeColor = [NKFColor appColor1];
-        circleRenderer.lineWidth = 1.0f;
-        return circleRenderer;
-    }
-    
-    return nil;
-}
-
 - (void)showSlider {
 	[UIView animateWithDuration:0.35f
 					 animations:^{
@@ -186,13 +174,10 @@
             [self.mapView setRegion:MKCoordinateRegionMake(coordinate, MKCoordinateSpanMake(0.05, 0.05))];
             _foundUserLocation = YES;
         } else {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self findUserLocation];
-            });
             _foundUserLocation = NO;
         }
     }
-    
+
     return _mapView;
 }
 
@@ -203,10 +188,16 @@
         self.mapView.centerCoordinate = self.mapView.userLocation.coordinate;
         [self.mapView setRegion:MKCoordinateRegionMake(self.mapView.userLocation.coordinate, MKCoordinateSpanMake(0.1, 0.1))];
         _foundUserLocation = YES;
-    } else {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self findUserLocation];
-        });
+    }
+}
+
+// Center on the user once their location resolves, instead of polling in a tight loop.
+- (void)mapView:(MKMapView *)mapView didUpdateUserLocation:(MKUserLocation *)userLocation {
+    if (!_foundUserLocation &&
+        userLocation.coordinate.latitude != 0.0 &&
+        userLocation.coordinate.longitude != 0.0) {
+        [self.mapView setRegion:MKCoordinateRegionMake(userLocation.coordinate, MKCoordinateSpanMake(0.1, 0.1))];
+        _foundUserLocation = YES;
     }
 }
 

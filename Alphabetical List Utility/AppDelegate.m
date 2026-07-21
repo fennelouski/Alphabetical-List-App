@@ -32,17 +32,10 @@
 		self.locationManager.delegate = self;
 	}
 
-	// Request notification permissions
-	UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-	center.delegate = self;
-	[center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
-						  completionHandler:^(BOOL granted, NSError * _Nullable error) {
-							  if (granted) {
-								  NSLog(@"Notification permission granted");
-							  } else {
-								  NSLog(@"Notification permission denied: %@", error);
-							  }
-						  }];
+	// Become the notification delegate so we can present/handle reminders, but defer the
+	// authorization prompt until the user actually creates a location-based reminder
+	// (requesting permissions at launch, out of context, is an anti-pattern).
+	[UNUserNotificationCenter currentNotificationCenter].delegate = self;
 
 	return YES;
 }
@@ -107,6 +100,24 @@
 	}
 }
 
+#pragma mark - User Notifications
+
+// Without this, notifications delivered while the app is foregrounded are silently
+// suppressed — which is exactly when a geofence reminder tends to fire.
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+	   willPresentNotification:(UNNotification *)notification
+		 withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+	completionHandler(UNNotificationPresentationOptionBanner |
+					  UNNotificationPresentationOptionList |
+					  UNNotificationPresentationOptionSound);
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+		 withCompletionHandler:(void (^)(void))completionHandler {
+	completionHandler();
+}
+
 #pragma mark - Location Notifications
 
 - (void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region {
@@ -122,15 +133,9 @@
 }
 
 - (void)handleRegionEvent:(CLRegion *)region {
-	if ([[UIApplication sharedApplication] applicationState] == UIApplicationStateActive) {
-		UIAlertController *alertController = [UIAlertController alertControllerWithTitle:[region identifier] message:@"" preferredStyle:UIAlertControllerStyleAlert];
-		UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
-														   style:UIAlertActionStyleDefault
-														 handler:^(UIAlertAction *action) {
-															 
-														 }];
-		[alertController addAction:okAction];
-	} else {
+	// Always deliver through UserNotifications. The old foreground branch built a
+	// UIAlertController and never presented it, so nothing was shown while the app was
+	// open; -willPresentNotification: below now surfaces it as a banner instead.
 		NSMutableString *alertBody = [[NSMutableString alloc] init];
 
 		NSString *noteInfo = [[ALUDataManager sharedDataManager] listWithTitle:[region identifier]];
@@ -189,7 +194,6 @@
 				NSLog(@"Notification scheduled successfully");
 			}
 		}];
-	}
 }
 
 @end
