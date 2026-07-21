@@ -33,6 +33,47 @@ remaining human steps (signing, iCloud entitlement, support/privacy URLs).
   already derives from the title — so branding survives, works offline, and the App Store privacy
   label can honestly say "Data Not Collected".
 
+## Rich text + Apple Intelligence (2026-07-21)
+
+The editor was plain text only — `UITextView.text`, stored as an `NSString`, one uniform font.
+"List Mode" and "Alphabetize" were string manipulation, not formatting.
+
+- **Polish button** (wand icon, next to Share). Calls `-[UIResponder showWritingTools:]`, which is
+  plain Objective-C, so this needed no Swift. Where Writing Tools is unavailable — older device,
+  or Apple Intelligence switched off — it falls back to a deterministic tidy (normalised bullets,
+  trimmed whitespace, collapsed blank lines, capitalised lines) so the button always does
+  something. Availability is decided by asking `canPerformAction:` rather than guessing at
+  device eligibility.
+- **Autosave hazard fixed.** The app saves aggressively; saving while Writing Tools is mid-rewrite
+  would commit a suggestion the user hasn't accepted. `-saveList` now bails while
+  `isWritingToolsActive`, and `-textViewWritingToolsDidEnd:` saves once they've decided.
+- **Rich text storage.** Notes now persist as RTF under a namespaced `ALURichText::<title>` key,
+  *alongside* the existing plain text. The plain string stays the source of truth for sharing,
+  email, reminder bodies and the master list, so nothing downstream changed. Loading prefers RTF,
+  verifies it still matches the plain text, and otherwise falls back — which doubles as the
+  migration path for existing notes. Round-trip verified: text, bold runs and plain runs all
+  survive.
+- **Editor**: `allowsEditingTextAttributes = YES`, so Bold/Italic/Underline appear in the
+  selection menu. Font colour is forced to `labelColor` on load, because RTF carries an explicit
+  black that would be unreadable in dark mode.
+- **Pinch-to-resize no longer flattens formatting** — it scales each run and keeps its traits,
+  rather than assigning `.font` across the whole note.
+- **Alphabetize** sorts whole attributed lines, so each line keeps its formatting.
+
+### Known gap
+`List Mode` (`updateTextWithLineNumbersRange:`, `removeListModeNumbers…`) and the tidy fallback
+still rebuild the note by assigning `.text`, which **flattens inline formatting**. No text is ever
+lost — the plain mirror is always saved — but bold/italic applied before toggling List Mode will
+not survive. Converting those two paths to operate on the attributed string is the next step.
+
+**Foundation Models is not started.** It's Swift-only (no Objective-C headers in the SDK), so it
+needs Swift added to this pure-ObjC target: `SWIFT_VERSION`, a bridging header, and a new file in
+`project.pbxproj`. That's the only remaining piece of the "Writing Tools now, Foundation Models
+next" plan, and it's what would back a strict "never leaves your device" claim — Writing Tools may
+use Private Cloud Compute.
+
+---
+
 This replaces the earlier TODO, which was written against assumptions that no longer hold (it
 listed AFNetworking migration and privacy work as pending, and did not know the app failed to
 build at all). The list below comes from a full subsystem audit that produced **162 findings**.

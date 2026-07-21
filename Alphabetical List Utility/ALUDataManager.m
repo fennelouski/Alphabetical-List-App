@@ -201,6 +201,7 @@ static CGFloat const screenSizeLimit = 668.0f;
 	[_dictionaryOfLists removeObjectForKey:listTitle];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults removeObjectForKey:listTitle];
+	[self removeRichTextForListTitle:listTitle];
 	[self updateListsInStorage];
 	DLog(@"All List titles:\t%@", _lists);
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -223,6 +224,82 @@ static CGFloat const screenSizeLimit = 668.0f;
 	
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults setObject:list forKey:cleanedTitle];
+}
+
+#pragma mark - Rich Text
+
+// Rich text is stored as RTF under a namespaced key, deliberately separate from the plain-text
+// value. Two reasons: the plain text stays the source of truth for everything that needs a
+// string (sharing, email, reminder bodies, the master list), and a note written by an older
+// build — or one whose RTF fails to decode — still opens correctly.
+static NSString *ALURichTextKeyForTitle(NSString *title) {
+	return [NSString stringWithFormat:@"ALURichText::%@", title];
+}
+
+- (void)saveAttributedList:(NSAttributedString *)attributedList withTitle:(NSString *)title {
+	if (!attributedList || title.length == 0) {
+		return;
+	}
+
+	NSString *cleanedTitle = [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+	// Always mirror the plain text first, so a failure below can never lose the note's content.
+	[self saveList:attributedList.string withTitle:cleanedTitle];
+
+	NSError *error = nil;
+	NSData *richTextData = [attributedList dataFromRange:NSMakeRange(0, attributedList.length)
+									  documentAttributes:@{NSDocumentTypeDocumentAttribute : NSRTFTextDocumentType}
+												   error:&error];
+
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	if (richTextData && !error) {
+		[defaults setObject:richTextData forKey:ALURichTextKeyForTitle(cleanedTitle)];
+	} else {
+		// Don't leave stale formatting behind that no longer matches the text.
+		DLog(@"Could not encode rich text for \"%@\": %@", cleanedTitle, error);
+		[defaults removeObjectForKey:ALURichTextKeyForTitle(cleanedTitle)];
+	}
+}
+
+- (NSAttributedString *)attributedListWithTitle:(NSString *)title {
+	if (title.length == 0) {
+		return nil;
+	}
+
+	NSString *cleanedTitle = [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	NSData *richTextData = [[NSUserDefaults standardUserDefaults] dataForKey:ALURichTextKeyForTitle(cleanedTitle)];
+
+	if (richTextData) {
+		NSError *error = nil;
+		NSAttributedString *attributedList = [[NSAttributedString alloc] initWithData:richTextData
+																			 options:@{NSDocumentTypeDocumentAttribute : NSRTFTextDocumentType}
+																  documentAttributes:nil
+																			   error:&error];
+		NSString *plainText = [self listWithTitle:cleanedTitle];
+
+		// Only trust the RTF if it still matches the plain text. If another code path wrote the
+		// plain value without updating the formatting, the plain text wins.
+		if (attributedList && !error &&
+			(!plainText || [attributedList.string isEqualToString:plainText])) {
+			return attributedList;
+		}
+	}
+
+	// No rich text yet (or it was stale): fall back to plain text. Saving will upgrade it.
+	NSString *plainText = [self listWithTitle:cleanedTitle];
+	if (!plainText) {
+		return nil;
+	}
+
+	return [[NSAttributedString alloc] initWithString:plainText];
+}
+
+- (void)removeRichTextForListTitle:(NSString *)title {
+	if (title.length == 0) {
+		return;
+	}
+	NSString *cleanedTitle = [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:ALURichTextKeyForTitle(cleanedTitle)];
 }
 
 - (void)updateListsInStorage {

@@ -36,6 +36,8 @@ static NSString * const numericDelimeter = @".) ";
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
 
+@property (nonatomic, strong) UIBarButtonItem *polishButton;
+
 @property (nonatomic, strong) UIButton *titleViewButton;
 
 @end
@@ -80,8 +82,8 @@ static CGFloat const borderWidth = 10.0f;
 		}
 	}
 	
-	self.navigationItem.rightBarButtonItem = self.actionButton;
-	
+	self.navigationItem.rightBarButtonItems = @[self.actionButton, self.polishButton];
+
 	[self.navigationItem setTitleView:self.titleViewButton];
 	[self.titleViewButton setTitleColor:[[NKFColor colorForCompanyName:_detailItem] oppositeBlackOrWhite] forState:UIControlStateNormal];
 	[self.titleViewButton setTitle:_detailItem forState:UIControlStateNormal];
@@ -167,8 +169,19 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)saveList {
-	NSString *list = self.listItemTextView.text;
-	[[ALUDataManager sharedDataManager] saveList:list withTitle:_detailItem];
+	// While Writing Tools is mid-rewrite the text view's contents are a transient preview that
+	// the user has not accepted yet. Persisting it here would commit a suggestion they may
+	// reject; -textViewWritingToolsDidEnd: saves once they've decided.
+	if (@available(iOS 18.0, *)) {
+		if (self.listItemTextView.isWritingToolsActive) {
+			return;
+		}
+	}
+
+	// Saves rich text, and mirrors the plain string so sharing, email, reminder bodies and the
+	// master list keep working exactly as before.
+	[[ALUDataManager sharedDataManager] saveAttributedList:self.listItemTextView.attributedText
+												 withTitle:_detailItem];
 }
 
 // On iPad the notes list is presented as a sidebar floating over the note. The note text view
@@ -295,13 +308,73 @@ static CGFloat const borderWidth = 10.0f;
 
 #pragma mark - Subviews
 
+// Load the note as rich text. Notes written before rich text existed come back with no attributes
+// at all, so those get the editor's base font rather than rendering at RTF defaults.
+- (void)loadNoteTextWithBaseFont:(UIFont *)baseFont {
+	NSAttributedString *storedText = [[ALUDataManager sharedDataManager] attributedListWithTitle:_detailItem];
+
+	if (storedText.length == 0) {
+		_listItemTextView.text = @"";
+		return;
+	}
+
+	NSMutableAttributedString *noteText = [storedText mutableCopy];
+	NSRange fullRange = NSMakeRange(0, noteText.length);
+
+	[noteText enumerateAttribute:NSFontAttributeName
+						 inRange:fullRange
+						 options:0
+					  usingBlock:^(UIFont *font, NSRange range, BOOL *stop) {
+						  if (!font) {
+							  [noteText addAttribute:NSFontAttributeName value:baseFont range:range];
+						  }
+					  }];
+
+	// Force the semantic label colour: RTF carries an explicit (usually black) colour, which
+	// would be unreadable in dark mode.
+	[noteText addAttribute:NSForegroundColorAttributeName value:[UIColor labelColor] range:fullRange];
+
+	_listItemTextView.attributedText = noteText;
+}
+
+// Resize without flattening formatting. Assigning -font would collapse every bold/italic run to
+// one uniform font, so scale each run instead and keep its traits.
+- (void)applyNoteFontSize:(CGFloat)fontSize {
+	UITextView *textView = self.listItemTextView;
+	UIFont *baseFont = [UIFont systemFontOfSize:fontSize];
+
+	if (textView.attributedText.length == 0) {
+		textView.font = baseFont;
+	} else {
+		NSMutableAttributedString *scaledText = [textView.attributedText mutableCopy];
+		NSRange fullRange = NSMakeRange(0, scaledText.length);
+
+		[scaledText enumerateAttribute:NSFontAttributeName
+							   inRange:fullRange
+							   options:0
+							usingBlock:^(UIFont *font, NSRange range, BOOL *stop) {
+								UIFont *runFont = font ?: baseFont;
+								[scaledText addAttribute:NSFontAttributeName
+												   value:[runFont fontWithSize:fontSize]
+												   range:range];
+							}];
+
+		NSRange selectedRange = textView.selectedRange;
+		textView.attributedText = scaledText;
+		textView.selectedRange = selectedRange;
+	}
+
+	NSMutableDictionary *typingAttributes = [textView.typingAttributes mutableCopy];
+	typingAttributes[NSFontAttributeName] = baseFont;
+	textView.typingAttributes = typingAttributes;
+}
+
 - (UITextView *)listItemTextView {
 	if (!_listItemTextView) {
 		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectInset(self.view.bounds, borderWidth, 0.0f)];
 		_listItemTextView.tag = 17;
 		_listItemTextView.keyboardAppearance = UIKeyboardAppearanceDefault;
 		_listItemTextView.keyboardType = UIKeyboardTypeAlphabet;
-		_listItemTextView.text = [[ALUDataManager sharedDataManager] listWithTitle:_detailItem];
 		_listItemTextView.tintColor = [NKFColor appColor];
 		_listItemTextView.clipsToBounds = NO;
 		_listItemTextView.delegate = self;
@@ -322,8 +395,17 @@ static CGFloat const borderWidth = 10.0f;
 			}
 		}
 		
-		[_listItemTextView setFont:[UIFont boldSystemFontOfSize:_tempFontSize]];
-		
+		UIFont *baseFont = [UIFont boldSystemFontOfSize:_tempFontSize];
+		[_listItemTextView setFont:baseFont];
+
+		// Rich text: users get Bold/Italic/Underline from the selection menu, and Writing Tools
+		// can hand back formatted results (such as lists).
+		_listItemTextView.allowsEditingTextAttributes = YES;
+		_listItemTextView.typingAttributes = @{NSFontAttributeName : baseFont,
+											   NSForegroundColorAttributeName : [UIColor labelColor]};
+
+		[self loadNoteTextWithBaseFont:baseFont];
+
 		UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinch:)];
 		[_listItemTextView addGestureRecognizer:pinch];
 
@@ -342,6 +424,119 @@ static CGFloat const borderWidth = 10.0f;
 	}
 	
 	return _actionButton;
+}
+
+- (UIBarButtonItem *)polishButton {
+	if (!_polishButton) {
+		UIImage *icon = [UIImage systemImageNamed:@"wand.and.sparkles"];
+		_polishButton = [[UIBarButtonItem alloc] initWithImage:icon
+														 style:UIBarButtonItemStylePlain
+														target:self
+														action:@selector(polishButtonTouched:)];
+		_polishButton.accessibilityLabel = NSLocalizedString(@"Polish Note", nil);
+		_polishButton.accessibilityHint = NSLocalizedString(@"Proofreads and rewrites this note, or tidies its formatting", nil);
+	}
+
+	return _polishButton;
+}
+
+#pragma mark - Polish
+
+// Hand the note to Apple's Writing Tools (proofread / rewrite / summarise). Where Writing Tools
+// isn't available — an older device, or Apple Intelligence switched off — fall back to a
+// deterministic tidy so the button always does something useful.
+- (void)polishButtonTouched:(id)sender {
+	UITextView *textView = self.listItemTextView;
+
+	if ([textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length == 0) {
+		return;
+	}
+
+	if (@available(iOS 18.2, *)) {
+		// Writing Tools works on the selection; with an empty selection, offer the whole note.
+		if (textView.selectedRange.length == 0) {
+			textView.selectedRange = NSMakeRange(0, textView.text.length);
+		}
+
+		if (![textView isFirstResponder]) {
+			[textView becomeFirstResponder];
+		}
+
+		// Ask the system rather than guessing at device eligibility: this returns NO when
+		// Apple Intelligence is unavailable or switched off.
+		if ([textView canPerformAction:@selector(showWritingTools:) withSender:sender]) {
+			[textView showWritingTools:sender];
+			return;
+		}
+	}
+
+	[self tidyNoteFormatting];
+}
+
+// Structural clean-up that needs no model at all, so it works on every device: normalise bullet
+// glyphs, drop trailing whitespace, collapse runs of blank lines, and capitalise each line.
+- (void)tidyNoteFormatting {
+	UITextView *textView = self.listItemTextView;
+	NSArray<NSString *> *lines = [textView.text componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+	NSMutableArray<NSString *> *tidiedLines = [[NSMutableArray alloc] initWithCapacity:lines.count];
+	NSCharacterSet *bulletCharacters = [NSCharacterSet characterSetWithCharactersInString:@"*-–—•"];
+	NSInteger consecutiveBlankLines = 0;
+
+	for (NSString *line in lines) {
+		NSString *tidiedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+
+		if (tidiedLine.length == 0) {
+			// Keep paragraph breaks, but collapse longer runs of blank lines down to one.
+			consecutiveBlankLines++;
+			if (consecutiveBlankLines == 1 && tidiedLines.count > 0) {
+				[tidiedLines addObject:@""];
+			}
+			continue;
+		}
+		consecutiveBlankLines = 0;
+
+		// Normalise whatever bullet character was used to a single consistent one.
+		if (tidiedLine.length > 1 && [bulletCharacters characterIsMember:[tidiedLine characterAtIndex:0]]) {
+			NSString *body = [[tidiedLine substringFromIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			if (body.length > 0) {
+				tidiedLine = [NSString stringWithFormat:@"• %@", body];
+			}
+		}
+
+		// Capitalise the first letter without touching the rest (which may be an acronym).
+		NSUInteger firstLetterIndex = [tidiedLine rangeOfCharacterFromSet:[NSCharacterSet letterCharacterSet]].location;
+		if (firstLetterIndex != NSNotFound) {
+			NSString *firstLetter = [tidiedLine substringWithRange:NSMakeRange(firstLetterIndex, 1)];
+			tidiedLine = [tidiedLine stringByReplacingCharactersInRange:NSMakeRange(firstLetterIndex, 1)
+															withString:[firstLetter uppercaseString]];
+		}
+
+		[tidiedLines addObject:tidiedLine];
+	}
+
+	// Drop any trailing blank line the collapse may have left behind.
+	while (tidiedLines.count > 0 && [[tidiedLines lastObject] length] == 0) {
+		[tidiedLines removeLastObject];
+	}
+
+	NSString *tidiedText = [tidiedLines componentsJoinedByString:@"\n"];
+	if ([tidiedText isEqualToString:textView.text]) {
+		return;
+	}
+
+	textView.text = tidiedText;
+	[self saveList];
+}
+
+#pragma mark - Writing Tools
+
+- (void)textViewWritingToolsDidEnd:(UITextView *)textView {
+	// The user has accepted or rejected the suggestion, so the text is settled — persist it.
+	[self saveList];
+
+	if ([[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
+		[self updateTextWithLineNumbersRange:NSMakeRange(0, 0) replacementText:@""];
+	}
 }
 
 - (UIButton *)titleViewButton {
@@ -598,7 +793,7 @@ static CGFloat const borderWidth = 10.0f;
         }
     }
     
-    [self.listItemTextView setFont:[UIFont systemFontOfSize:_tempFontSize]];
+    [self applyNoteFontSize:_tempFontSize];
 	
 	if (sender.state == UIGestureRecognizerStateEnded) {
 		_currentFontSize = _tempFontSize;
@@ -872,9 +1067,36 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)alphabetizeList {
     [self removeListModeNumbersCurrentSelectedTextRange:self.listItemTextView.selectedRange replacementText:@""];
-    NSArray *lines = [self.listItemTextView.text componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-    NSArray *sortedLines = [lines sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
-    self.listItemTextView.text = [sortedLines componentsJoinedByString:@"\n"];
+
+    // Sort whole attributed lines rather than plain substrings, so each line keeps whatever
+    // formatting it carries instead of the sort flattening the note.
+    NSAttributedString *noteText = self.listItemTextView.attributedText;
+    NSMutableArray<NSAttributedString *> *lines = [[NSMutableArray alloc] init];
+    __block NSUInteger lineStart = 0;
+    NSString *plainText = noteText.string;
+
+    for (NSUInteger index = 0; index <= plainText.length; index++) {
+        BOOL atEnd = (index == plainText.length);
+        if (atEnd || [[NSCharacterSet newlineCharacterSet] characterIsMember:[plainText characterAtIndex:index]]) {
+            [lines addObject:[noteText attributedSubstringFromRange:NSMakeRange(lineStart, index - lineStart)]];
+            lineStart = index + 1;
+        }
+    }
+
+    [lines sortUsingComparator:^NSComparisonResult(NSAttributedString *first, NSAttributedString *second) {
+        return [first.string localizedCaseInsensitiveCompare:second.string];
+    }];
+
+    NSMutableAttributedString *sortedText = [[NSMutableAttributedString alloc] init];
+    NSAttributedString *newline = [[NSAttributedString alloc] initWithString:@"\n"];
+    for (NSAttributedString *line in lines) {
+        if (sortedText.length > 0) {
+            [sortedText appendAttributedString:newline];
+        }
+        [sortedText appendAttributedString:line];
+    }
+
+    self.listItemTextView.attributedText = sortedText;
     [self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
 }
 

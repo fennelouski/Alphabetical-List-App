@@ -31,6 +31,14 @@
 
 - (void)saveList:(NSString *)list withTitle:(NSString *)title;
 
+// Rich text. Formatting is stored as RTF alongside the plain text, which remains the source of
+// truth for sharing, email, reminder bodies and the master list.
+- (void)saveAttributedList:(NSAttributedString *)attributedList withTitle:(NSString *)title;
+
+- (NSAttributedString *)attributedListWithTitle:(NSString *)title;
+
+- (void)removeRichTextForListTitle:(NSString *)title;
+
 - (UIImage *)imageForCompanyName:(NSString *)companyName;
 
 
