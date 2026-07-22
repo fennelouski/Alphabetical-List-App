@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "DetailViewController.h"
 #import "ALUDataManager.h"
+#import "ALUExternalDisplayController.h"
 #import "UIColor+AppColors.h"
 
 @interface AppDelegate () <UISplitViewControllerDelegate>
@@ -36,6 +37,9 @@
 	// authorization prompt until the user actually creates a location-based reminder
 	// (requesting permissions at launch, out of context, is an anti-pattern).
 	[UNUserNotificationCenter currentNotificationCenter].delegate = self;
+
+	// AirPlay / HDMI: show a non-interactive reading view instead of mirroring.
+	[[ALUExternalDisplayController sharedController] start];
 
 	return YES;
 }

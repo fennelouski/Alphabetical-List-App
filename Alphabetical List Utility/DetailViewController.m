@@ -18,6 +18,8 @@
 #import "ALUSettingsView.h"
 #import "ALUEmojiImageViewController.h"
 #import "ALUDrawingViewController.h"
+#import "ALUNoteCardView.h"
+#import "ALUExternalDisplayController.h"
 
 // Generated interface for ALUNotePolisher.swift, which wraps the on-device foundation model.
 #import "Alphabetical_List_Utility-Swift.h"
@@ -41,6 +43,8 @@ static NSString * const numericDelimeter = @".) ";
 
 @property (nonatomic, strong) UIBarButtonItem *polishButton;
 
+@property (nonatomic, strong) UIBarButtonItem *overflowButton;
+
 @property (nonatomic, strong) UIButton *titleViewButton;
 
 @end
@@ -48,7 +52,9 @@ static NSString * const numericDelimeter = @".) ";
 @implementation DetailViewController {
 	CGFloat _tempFontSize, _currentFontSize;
 	BOOL _isKeyboardShowing;
+	BOOL _pickingPhotoForNoteBody;
 	UITextField *_alertTextField;
+	BOOL _noteWasDeleted;
 	ALUSettingsView *_settingsView;
     CGSize _previousScreenSize;
     NSDate *_lastOrientationChangeCheckDate;
@@ -85,7 +91,7 @@ static CGFloat const borderWidth = 10.0f;
 		}
 	}
 	
-	self.navigationItem.rightBarButtonItems = @[self.actionButton, self.polishButton];
+	self.navigationItem.rightBarButtonItems = @[self.overflowButton];
 
 	[self.navigationItem setTitleView:self.titleViewButton];
 	[self.titleViewButton setTitleColor:[[NKFColor colorForCompanyName:_detailItem] oppositeBlackOrWhite] forState:UIControlStateNormal];
@@ -134,14 +140,17 @@ static CGFloat const borderWidth = 10.0f;
 	    [self updateViewConstraints];
 	});
 	[self findTextView];
-	
+
 	[self checkForActionButtonAbility];
     [self cameraWarning];
+	[self applyCardStyleToEditor];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
-	
+
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:nil];
+
 	[self setNeedsStatusBarAppearanceUpdate];
 	
 	[self.splitViewController setNeedsStatusBarAppearanceUpdate];
@@ -159,8 +168,19 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)viewWillDisappear:(BOOL)animated {
 	[super viewWillDisappear:animated];
-	
+
 	[self saveList];
+
+	// Back to the list: the external screen falls back to the idle view.
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil];
+}
+
+// Bottom edge of the navigation bar in this controller's coordinate space. Pushed
+// normally, the bar sits below the status bar; embedded in the card UI it sits at the
+// card's top edge — measuring the bar's actual frame handles both, where the old
+// "bar height + status bar height" formula assumed the pushed layout.
+- (CGFloat)topBarBottom {
+	return CGRectGetMaxY(self.navigationController.navigationBar.frame);
 }
 
 - (void)findTextView {
@@ -172,6 +192,11 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)saveList {
+	// Saving after the note was deleted from the overflow menu would recreate it.
+	if (_noteWasDeleted) {
+		return;
+	}
+
 	// While Writing Tools is mid-rewrite the text view's contents are a transient preview that
 	// the user has not accepted yet. Persisting it here would commit a suggestion they may
 	// reject; -textViewWritingToolsDidEnd: saves once they've decided.
@@ -230,17 +255,17 @@ static CGFloat const borderWidth = 10.0f;
     }
 	
 	self.listItemTextView.frame = CGRectMake(borderWidth,
-											 self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth,
+											 [self topBarBottom] + borderWidth,
 											 kViewControllerWidth - borderWidth * 2.0f,
-											 kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+											 kViewControllerHeight - ([self topBarBottom] + borderWidth));
 	
 	for (UITextView *subview in self.view.subviews) {
 		if ([subview isKindOfClass:[UITextView class]]) {
 			if (![subview isEqual:self.listItemTextView] && [subview respondsToSelector:@selector(text)]) {
 				subview.frame = CGRectMake(borderWidth,
-										   self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth,
+										   [self topBarBottom] + borderWidth,
 										   kViewControllerWidth - borderWidth * 2.0f,
-										   kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+										   kViewControllerHeight - ([self topBarBottom] + borderWidth));
 			}
 		}
 	}
@@ -441,6 +466,91 @@ static CGFloat const borderWidth = 10.0f;
 	}
 
 	return _polishButton;
+}
+
+// The single "…" menu in the top-right corner: Share, Polish, and Delete. Built
+// uncached so the Share row's enabled state always reflects the current note text.
+- (UIBarButtonItem *)overflowButton {
+	if (!_overflowButton) {
+		__weak typeof(self) weakSelf = self;
+		UIDeferredMenuElement *items = [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
+			__strong typeof(weakSelf) strongSelf = weakSelf;
+			if (!strongSelf) {
+				completion(@[]);
+				return;
+			}
+
+			UIAction *shareAction = [UIAction actionWithTitle:NSLocalizedString(@"Share", nil)
+														image:[UIImage systemImageNamed:@"square.and.arrow.up"]
+												   identifier:nil
+													  handler:^(UIAction *action) {
+				[strongSelf actionButtonTouched:strongSelf.overflowButton];
+			}];
+			shareAction.attributes = strongSelf.actionButton.enabled ? 0 : UIMenuElementAttributesDisabled;
+
+			UIAction *polishAction = [UIAction actionWithTitle:NSLocalizedString(@"Polish Note", nil)
+														 image:[UIImage systemImageNamed:@"wand.and.sparkles"]
+													identifier:nil
+													   handler:^(UIAction *action) {
+				[strongSelf polishButtonTouched:strongSelf.overflowButton];
+			}];
+
+			UIAction *deleteAction = [UIAction actionWithTitle:NSLocalizedString(@"Delete Note", nil)
+														 image:[UIImage systemImageNamed:@"trash"]
+													identifier:nil
+													   handler:^(UIAction *action) {
+				[strongSelf confirmDeleteNote];
+			}];
+			deleteAction.attributes = UIMenuElementAttributesDestructive;
+
+			completion(@[shareAction, polishAction, deleteAction]);
+		}];
+
+		_overflowButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
+															menu:[UIMenu menuWithChildren:@[items]]];
+		_overflowButton.accessibilityLabel = NSLocalizedString(@"More", nil);
+	}
+
+	return _overflowButton;
+}
+
+#pragma mark - Delete Note
+
+- (void)confirmDeleteNote {
+	UIAlertController *confirmController = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Delete “%@”?", nil), _detailItem]
+																			   message:NSLocalizedString(@"This note will be deleted. This cannot be undone.", nil)
+																		preferredStyle:UIAlertControllerStyleAlert];
+
+	[confirmController addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil)
+														  style:UIAlertActionStyleCancel
+														handler:nil]];
+	[confirmController addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Delete", nil)
+														  style:UIAlertActionStyleDestructive
+														handler:^(UIAlertAction *action) {
+		[self deleteNote];
+	}]];
+
+	[self presentViewController:confirmController animated:YES completion:nil];
+}
+
+- (void)deleteNote {
+	[[ALUDataManager sharedDataManager] removeList:_detailItem];
+	[[ALUDataManager sharedDataManager] removeReminderForListTitle:_detailItem];
+	// From here on the lifecycle saves (viewWillDisappear etc.) must not resurrect
+	// the note; -saveList checks this flag.
+	_noteWasDeleted = YES;
+
+	if ([self.delegate respondsToSelector:@selector(reloadList)]) {
+		[self.delegate reloadList];
+	}
+	if ([self.delegate respondsToSelector:@selector(noteWasDeleted)]) {
+		[self.delegate noteWasDeleted];
+	}
+
+	// Pushed normally this returns to the list; embedded in the card UI this is the
+	// navigation root, so it's a harmless no-op and the delegate handled teardown.
+	[self.navigationController popViewControllerAnimated:YES];
+	self.listItemTextView.text = @"";
 }
 
 #pragma mark - Polish
@@ -679,6 +789,22 @@ static CGFloat const borderWidth = 10.0f;
 	
 	NSMutableArray *renameOption = [[NSMutableArray alloc] initWithArray:@[@"Rename Note"]];
 	[settingsTitles setObject:renameOption forKey:@"Rename Note"];
+
+	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
+		[settingsTitles setObject:@[@"Insert Photo in Note"] forKey:@"Note"];
+	}
+
+	// The style rows stay collapsed to a single row until a style is chosen; the
+	// intensity sliders only appear once there is a style to tune.
+	NSString *currentStyle = [[ALUDataManager sharedDataManager] cardStyleForListTitle:_detailItem];
+	if ([ALUNoteCardView backgroundColorForStyle:currentStyle]) {
+		[settingsTitles setObject:@[[NSString stringWithFormat:@"Card Style: %@", currentStyle],
+									@"List Style Intensity",
+									@"Editor Style Intensity"]
+						   forKey:@"Card Style"];
+	} else {
+		[settingsTitles setObject:@[@"Card Style: None"] forKey:@"Card Style"];
+	}
     
     if ([self.listItemTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length > 0) {
         [settingsTitles setObject:@[@"Send email"] forKey:@"Messaging"];
@@ -803,13 +929,13 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Keyboard Notifications
 
 - (void)keyboardWasShown:(NSNotification*)aNotification {
-	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - (self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth));
+	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - ([self topBarBottom] + borderWidth));
 	NSDictionary *info = [aNotification userInfo];
 	CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
 	
-	UIEdgeInsets contentInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0, kbSize.height, 0.0);
+	UIEdgeInsets contentInsets = UIEdgeInsetsMake([self topBarBottom] + borderWidth, 0.0, kbSize.height, 0.0);
 	self.listItemTextView.contentInset = contentInsets;
-	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight, -borderWidth * 2.0f, -borderWidth, -borderWidth);
+	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake([self topBarBottom], -borderWidth * 2.0f, -borderWidth, -borderWidth);
 	
 	// If active text field is hidden by keyboard, scroll it so it's visible
 	// Your app might not need or want this behavior.
@@ -825,8 +951,8 @@ static CGFloat const borderWidth = 10.0f;
 // Called when the UIKeyboardWillHideNotification is sent
 - (void)keyboardWasHidden:(NSNotification*)aNotification {
 	self.listItemTextView.frame = CGRectMake(borderWidth, 0.0f, kViewControllerWidth - borderWidth * 2.0f, kViewControllerHeight - borderWidth);
-	self.listItemTextView.contentInset = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + borderWidth, 0.0f, borderWidth, 0.0f);
-	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight, -borderWidth * 2.0f, -borderWidth, -borderWidth);
+	self.listItemTextView.contentInset = UIEdgeInsetsMake([self topBarBottom] + borderWidth, 0.0f, borderWidth, 0.0f);
+	self.listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake([self topBarBottom], -borderWidth * 2.0f, -borderWidth, -borderWidth);
 	
 	_isKeyboardShowing = YES;
 }
@@ -872,7 +998,7 @@ static CGFloat const borderWidth = 10.0f;
 - (void)actionButtonTouched:(id)sender {
 	if (self.listItemTextView.text.length > 0) {
 		UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[self.listItemTextView.text] applicationActivities:nil];
-		activityVC.popoverPresentationController.barButtonItem = self.actionButton;
+		activityVC.popoverPresentationController.barButtonItem = self.overflowButton;
 		activityVC.excludedActivityTypes = @[UIActivityTypePostToFlickr,
                                              UIActivityTypePostToTwitter,
                                              UIActivityTypePostToVimeo,
@@ -912,6 +1038,9 @@ static CGFloat const borderWidth = 10.0f;
 	}
 
 	[self checkForActionButtonAbility];
+
+	// Live typing mirrors to the external screen before the note is saved.
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:textView.text];
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
@@ -1256,20 +1385,103 @@ static CGFloat const borderWidth = 10.0f;
     }
 }
 
+#pragma mark - Card Style
+
+- (void)chooseCardStyle {
+	UIAlertController *styleSheet = [UIAlertController alertControllerWithTitle:@"Card Style"
+																		message:nil
+																 preferredStyle:UIAlertControllerStyleActionSheet];
+
+	for (NSString *styleName in [ALUNoteCardView cardStyleNames]) {
+		[styleSheet addAction:[UIAlertAction actionWithTitle:styleName
+													   style:UIAlertActionStyleDefault
+													 handler:^(UIAlertAction *action) {
+			[[ALUDataManager sharedDataManager] setCardStyle:styleName forListTitle:_detailItem];
+			[self cardStyleChanged];
+		}]];
+	}
+	[styleSheet addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+
+	styleSheet.popoverPresentationController.sourceView = self.view;
+	styleSheet.popoverPresentationController.sourceRect = self.view.bounds;
+	[self presentViewController:styleSheet animated:YES completion:nil];
+}
+
+- (void)cardStyleChanged {
+	[self applyCardStyleToEditor];
+	if ([self.delegate respondsToSelector:@selector(reloadList)]) {
+		[self.delegate reloadList];
+	}
+}
+
+// Washes the editor background toward the note's card style, as strongly as the
+// user's editor-intensity slider says.
+- (void)applyCardStyleToEditor {
+	UIColor *background = [UIColor systemBackgroundColor];
+
+	NSString *style = [[ALUDataManager sharedDataManager] cardStyleForListTitle:_detailItem];
+	UIColor *styleColor = [ALUNoteCardView backgroundColorForStyle:style];
+	CGFloat intensity = [[ALUDataManager sharedDataManager] cardStyleEditorIntensityForListTitle:_detailItem];
+
+	if (styleColor && intensity > 0.02f) {
+		CGFloat baseRed = 0.0f, baseGreen = 0.0f, baseBlue = 0.0f, baseAlpha = 0.0f;
+		CGFloat styleRed = 0.0f, styleGreen = 0.0f, styleBlue = 0.0f, styleAlpha = 0.0f;
+		[[background resolvedColorWithTraitCollection:self.traitCollection] getRed:&baseRed green:&baseGreen blue:&baseBlue alpha:&baseAlpha];
+		[styleColor getRed:&styleRed green:&styleGreen blue:&styleBlue alpha:&styleAlpha];
+		CGFloat blend = intensity * styleAlpha;
+		background = [UIColor colorWithRed:baseRed + (styleRed - baseRed) * blend
+									 green:baseGreen + (styleGreen - baseGreen) * blend
+									  blue:baseBlue + (styleBlue - baseBlue) * blend
+									 alpha:1.0f];
+	}
+
+	self.view.backgroundColor = background;
+	self.listItemTextView.backgroundColor = [UIColor clearColor];
+}
+
+- (void)insertPhotoInNote {
+	_pickingPhotoForNoteBody = YES;
+	[self pickPhoto];
+}
+
 #pragma mark - Image Picker Delegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    
+
     UIImage *chosenImage = info[UIImagePickerControllerEditedImage];
-    
+
+	if (_pickingPhotoForNoteBody) {
+		_pickingPhotoForNoteBody = NO;
+		UIImage *photo = info[UIImagePickerControllerOriginalImage] ?: chosenImage;
+
+		if (photo) {
+			NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+			attachment.image = photo;
+			CGFloat maximumWidth = self.listItemTextView.textContainer.size.width - 10.0f;
+			if (maximumWidth > 0.0f && photo.size.width > maximumWidth) {
+				attachment.bounds = CGRectMake(0.0f, 0.0f, maximumWidth, photo.size.height * maximumWidth / photo.size.width);
+			}
+
+			NSMutableAttributedString *noteText = [self.listItemTextView.attributedText mutableCopy];
+			NSUInteger insertLocation = MIN(self.listItemTextView.selectedRange.location, noteText.length);
+			[noteText insertAttributedString:[NSAttributedString attributedStringWithAttachment:attachment] atIndex:insertLocation];
+			self.listItemTextView.attributedText = noteText;
+			[self saveList];
+		}
+
+		[picker dismissViewControllerAnimated:YES completion:NULL];
+		return;
+	}
+
     [[ALUDataManager sharedDataManager] saveImage:chosenImage forCompanyName:_detailItem];
-    
+
     [picker dismissViewControllerAnimated:YES completion:NULL];
-    
+
     [[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+	_pickingPhotoForNoteBody = NO;
     [picker dismissViewControllerAnimated:YES completion:NULL];
 }
 

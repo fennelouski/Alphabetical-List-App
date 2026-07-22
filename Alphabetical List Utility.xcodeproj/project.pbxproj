@@ -15,7 +15,6 @@
 		278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255581B62A6F000309E6F /* ALUTableViewCell.m */; };
 		27A8C2291B4AD62800E5A3D9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2281B4AD62800E5A3D9 /* main.m */; };
 		27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */; };
-		27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */; };
 		27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */; };
 		27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */; };
 		27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27A8C2331B4AD62800E5A3D9 /* Main.storyboard */; };
@@ -67,6 +66,7 @@
 		27F2CA941B756355006918CC /* Edit-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA911B756355006918CC /* Edit-icon.png */; };
 		27F2CA951B756355006918CC /* Edit-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA921B756355006918CC /* Edit-icon@2x.png */; };
 		27F2CA961B756355006918CC /* Edit-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27F2CA931B756355006918CC /* Edit-icon@3x.png */; };
+		27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */; };
 		27FF34B81B58011E005DD69E /* NKFColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 27FF34B71B58011E005DD69E /* NKFColor.m */; };
 		803127991B77E8F000033031 /* ALUBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 803127981B77E8F000033031 /* ALUBackgroundView.m */; };
 		80386B1B1B796EF1000EEC85 /* ALUEmojiImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 80386B1A1B796EF1000EEC85 /* ALUEmojiImageViewController.m */; };
@@ -81,6 +81,9 @@
 		90F7DA811B65D73500D4E0B7 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA801B65D73500D4E0B7 /* CoreLocation.framework */; };
 		90F7DA841B65D78400D4E0B7 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA821B65D78400D4E0B7 /* AddressBook.framework */; };
 		90F7DA851B65D78400D4E0B7 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */; };
+		A11CA0CD2E2F00010000C0DE /* ALUNoteCardView.m in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0CF2E2F00030000C0DE /* ALUNoteCardView.m */; };
+		A11CA0D22E2F00060000C0DE /* ALUExternalDisplayController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */; };
+		A11CA0D02E2F00040000C0DE /* ALUImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,7 +114,6 @@
 		27A8C2281B4AD62800E5A3D9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUNotePolisher.swift; sourceTree = "<group>"; };
 		27A8C22D1B4AD62800E5A3D9 /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
 		27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
 		27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 		27F2CA911B756355006918CC /* Edit-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon.png"; path = "Graphics/Edit-icon.png"; sourceTree = "<group>"; };
 		27F2CA921B756355006918CC /* Edit-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon@2x.png"; path = "Graphics/Edit-icon@2x.png"; sourceTree = "<group>"; };
 		27F2CA931B756355006918CC /* Edit-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Edit-icon@3x.png"; path = "Graphics/Edit-icon@3x.png"; sourceTree = "<group>"; };
+		27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUNotePolisher.swift; sourceTree = "<group>"; };
 		27FF34B61B58011E005DD69E /* NKFColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NKFColor.h; sourceTree = "<group>"; };
 		27FF34B71B58011E005DD69E /* NKFColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NKFColor.m; sourceTree = "<group>"; };
 		803127971B77E8F000033031 /* ALUBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUBackgroundView.h; sourceTree = "<group>"; };
@@ -232,6 +235,11 @@
 		90F7DA801B65D73500D4E0B7 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		90F7DA821B65D78400D4E0B7 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
 		90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
+		A11CA0CE2E2F00020000C0DE /* ALUNoteCardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUNoteCardView.h; sourceTree = "<group>"; };
+		A11CA0D32E2F00070000C0DE /* ALUExternalDisplayController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUExternalDisplayController.h; sourceTree = "<group>"; };
+		A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUExternalDisplayController.m; sourceTree = "<group>"; };
+		A11CA0CF2E2F00030000C0DE /* ALUNoteCardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUNoteCardView.m; sourceTree = "<group>"; };
+		A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUImageGenerator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -287,6 +295,7 @@
 				27A8C22A1B4AD62800E5A3D9 /* AppDelegate.h */,
 				27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */,
 				27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */,
+				A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */,
 				803127941B77E80400033031 /* View Controllers */,
 				803127951B77E81900033031 /* Views */,
 				803127961B77E82300033031 /* Data */,
@@ -493,6 +502,10 @@
 				278255581B62A6F000309E6F /* ALUTableViewCell.m */,
 				278038711B73B347008C509F /* ALUMasterTableViewCell.h */,
 				278038721B73B347008C509F /* ALUMasterTableViewCell.m */,
+				A11CA0CE2E2F00020000C0DE /* ALUNoteCardView.h */,
+				A11CA0CF2E2F00030000C0DE /* ALUNoteCardView.m */,
+				A11CA0D32E2F00070000C0DE /* ALUExternalDisplayController.h */,
+				A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */,
 				278038741B73B679008C509F /* ALUMasterTableView.h */,
 				278038751B73B679008C509F /* ALUMasterTableView.m */,
 				803127971B77E8F000033031 /* ALUBackgroundView.h */,
@@ -588,6 +601,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -642,6 +656,7 @@
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
 				27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */,
 				27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */,
+				A11CA0D02E2F00040000C0DE /* ALUImageGenerator.swift in Sources */,
 				27E6D82C1B5D9ED000D7CC19 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
 				27E6D8311B5D9ED000D7CC19 /* UIRefreshControl+AFNetworking.m in Sources */,
 				27E6D82E1B5D9ED000D7CC19 /* UIButton+AFNetworking.m in Sources */,
@@ -690,6 +705,8 @@
 				27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */,
 				80386B1B1B796EF1000EEC85 /* ALUEmojiImageViewController.m in Sources */,
 				278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */,
+				A11CA0CD2E2F00010000C0DE /* ALUNoteCardView.m in Sources */,
+				A11CA0D22E2F00060000C0DE /* ALUExternalDisplayController.m in Sources */,
 				27E6D8181B5D9EB500D7CC19 /* AFURLSessionManager.m in Sources */,
 				278038761B73B679008C509F /* ALUMasterTableView.m in Sources */,
 			);
@@ -812,21 +829,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Alphabetical List Utility/Alphabetical List Utility.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = EJLR2RPSV2;
 				EXCLUDED_SOURCE_FILE_NAMES = (
 					"AF*.m",
 					"*+AFNetworking.m",
 				);
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Alphabetical List Utility/PrefixHeader.pch";
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
-				SWIFT_VERSION = 5.0;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.nathanfennel.A2Z";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nathanfennel.A2Z;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -835,21 +853,22 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Alphabetical List Utility/Alphabetical List Utility.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = EJLR2RPSV2;
 				EXCLUDED_SOURCE_FILE_NAMES = (
 					"AF*.m",
 					"*+AFNetworking.m",
 				);
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Alphabetical List Utility/PrefixHeader.pch";
 				INFOPLIST_FILE = "Alphabetical List Utility/Info.plist";
-				SWIFT_VERSION = 5.0;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.nathanfennel.A2Z";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nathanfennel.A2Z;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
