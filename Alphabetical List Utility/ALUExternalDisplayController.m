@@ -56,6 +56,20 @@
 			break;
 		}
 	}
+
+#if DEBUG
+	// Simulators cannot attach AirPlay displays. This flag overlays the external
+	// view as a 16:9 strip at the top of the phone screen so it can be exercised.
+	if ([[NSProcessInfo processInfo].arguments containsObject:@"-externalDisplayPreview"]) {
+		CGRect mainBounds = [UIScreen mainScreen].bounds;
+		UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0.0f,
+																	  0.0f,
+																	  mainBounds.size.width,
+																	  mainBounds.size.width * 9.0f / 16.0f)];
+		window.windowLevel = UIWindowLevelStatusBar + 1.0f;
+		[self setUpWindow:window];
+	}
+#endif
 }
 
 #pragma mark - Screen lifecycle
@@ -74,12 +88,16 @@
 - (void)attachToScreen:(UIScreen *)screen {
 	UIWindow *window = [[UIWindow alloc] initWithFrame:screen.bounds];
 	window.screen = screen;
+	[self setUpWindow:window];
+}
+
+- (void)setUpWindow:(UIWindow *)window {
 	window.userInteractionEnabled = NO;
 	window.rootViewController = [[UIViewController alloc] init];
 
-	// The root view lazy-loads at the *main* screen's size; force it to the external
-	// screen's bounds before laying out, or the card is placed for a portrait phone.
-	window.rootViewController.view.frame = screen.bounds;
+	// The root view lazy-loads at the *main* screen's size; force it to the window's
+	// bounds before laying out, or the card is placed for a portrait phone.
+	window.rootViewController.view.frame = window.bounds;
 	[self buildViewHierarchyInView:window.rootViewController.view];
 
 	self.window = window;
