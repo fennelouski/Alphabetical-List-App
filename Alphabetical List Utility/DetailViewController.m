@@ -97,6 +97,10 @@ static CGFloat const borderWidth = 10.0f;
 	[self.titleViewButton setTitleColor:[[NKFColor colorForCompanyName:_detailItem] oppositeBlackOrWhite] forState:UIControlStateNormal];
 	[self.titleViewButton setTitle:_detailItem forState:UIControlStateNormal];
 	self.navigationController.title = @"";
+
+	// Fires on every detailItem change — including iPad split view and the card
+	// stack, where the controller stays on screen and viewWillAppear never runs.
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:nil];
 }
 
 - (void)viewDidLoad {
@@ -171,8 +175,11 @@ static CGFloat const borderWidth = 10.0f;
 
 	[self saveList];
 
-	// Back to the list: the external screen falls back to the idle view.
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil];
+	// Back to the list: the external screen falls back to the idle view. Presenting
+	// something over the note (settings, share sheet) is not leaving it.
+	if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+		[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil];
+	}
 }
 
 // Bottom edge of the navigation bar in this controller's coordinate space. Pushed

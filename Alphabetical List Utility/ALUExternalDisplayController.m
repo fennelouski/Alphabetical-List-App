@@ -77,6 +77,9 @@
 	window.userInteractionEnabled = NO;
 	window.rootViewController = [[UIViewController alloc] init];
 
+	// The root view lazy-loads at the *main* screen's size; force it to the external
+	// screen's bounds before laying out, or the card is placed for a portrait phone.
+	window.rootViewController.view.frame = screen.bounds;
 	[self buildViewHierarchyInView:window.rootViewController.view];
 
 	self.window = window;
@@ -100,6 +103,7 @@
 															 cardHeight)];
 	self.cardView.layer.cornerRadius = bounds.size.height * 0.03f;
 	self.cardView.clipsToBounds = YES;
+	self.cardView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
 	[hostView addSubview:self.cardView];
 
 	CGFloat headerHeight = cardHeight * 0.16f;
@@ -139,6 +143,7 @@
 	self.idleLabel.text = @"A2Z Notes";
 	self.idleLabel.textAlignment = NSTextAlignmentCenter;
 	self.idleLabel.font = [UIFont boldSystemFontOfSize:bounds.size.height * 0.12f];
+	self.idleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	[hostView addSubview:self.idleLabel];
 }
 
