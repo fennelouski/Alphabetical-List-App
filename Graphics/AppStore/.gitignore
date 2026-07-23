@@ -1,0 +1,15 @@
+# App Store screenshots are deliberately NOT tracked: ~40 MB of PNGs that would
+# sit in git history forever and never shrink out of it.
+#
+# They are reproducible instead:
+#   seed.sh <sim-name> <light|dark>   seeds the sample notes into a fresh
+#                                     simulator container and launches the app
+#   xcrun simctl io <sim> screenshot out.png     captures a raw shot into raw/
+#   make_marketing.py                 rebuilds every captioned composition in
+#                                     marketing/ from whatever is in raw/
+#
+# Capture devices (sizes App Store Connect requires):
+#   A2Z-Shot-iPhone  iPhone 17 Pro Max      1320x2868  (6.9")
+#   A2Z-Shot-iPad    iPad Pro 13-inch M5    2064x2752  (13")
+raw/
+marketing/

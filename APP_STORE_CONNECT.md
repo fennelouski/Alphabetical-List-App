@@ -111,29 +111,37 @@ nuance worded carefully.
 
 ## 2. Screenshots & marketing images
 
-All committed to the repo under `Graphics/AppStore/`, at Apple's exact required sizes.
+Everything lives in `Graphics/AppStore/`, regenerated 2026-07-22 against the current
+card-style UI (the four pre-redesign captures from the last pass have been deleted —
+they showed the old plain-list interface and must not be uploaded).
 
-**Upload the marketing versions** (`Graphics/AppStore/marketing/`) — each raw capture composed
-on the app's brand-blue gradient with a headline caption and the screenshot in a rounded,
-shadowed tile. The raw, uncaptioned captures sit alongside them if you prefer plain screenshots,
-and `Graphics/AppStore/shots.sh` regenerates the seeded simulator state that produced them.
+> **These images are not in git.** `raw/` and `marketing/` are gitignored on purpose —
+> together they are ~40 MB of PNGs that would be stuck in history permanently. They exist
+> only in this working copy. A fresh clone gets the scripts but no images; regenerate them
+> with the steps at the end of this section. Do not `git add -f` them.
 
-| File (prefix `marketing_` for the captioned version) | Device class | Pixels | Caption |
-|---|---|---|---|
-| `iphone_69_01_list_light.png` | iPhone 6.9" (**required**) | 1320 × 2868 | "Every note gets its own colour" |
-| `iphone_69_02_list_dark.png` | iPhone 6.9" | 1320 × 2868 | "Dark mode, tuned to stay readable" |
-| `ipad_13_01_split_light.png` | iPad 13" (**required for iPad**) | 2064 × 2752 | "Your list and your note, side by side" |
-| `ipad_13_02_split_dark.png` | iPad 13" | 2064 × 2752 | "Beautiful on iPad, day and night" |
+- `raw/iphone/` — 18 uncaptioned captures, 1320 × 2868 (iPhone 6.9", the required size).
+  Light + dark: main card list, five different open notes, the full-screen editor (with and
+  without keyboard), the New Note dialog, and edit/delete mode.
+- `raw/ipad/` — 15 uncaptioned captures, 2064 × 2752 (iPad 13", the required size). Light +
+  dark split view with several notes, editing with the formatting bar, New Note, edit mode.
+- `marketing/iphone/` and `marketing/ipad/` — 15 captioned compositions per device
+  (`mkt_01..15.png`), same required pixel sizes, so they can be uploaded to App Store Connect
+  directly. `mkt_01`–`08` are single-screenshot layouts; `mkt_09`–`15` are two- and
+  three-screenshot fans. Captions are 3–8 words each ("Every note gets its own colour",
+  "Write it. Sort it. Done.", …).
+- `marketing/mac/` — 15 compositions at 2880 × 1800 showing the app in macOS window chrome.
+  **These are for the website/press only.** A2Z Notes is an iOS app; there is no Mac App
+  Store listing, and App Store Connect does not accept macOS screenshots for it. Mac users
+  who install it via "Designed for iPad" see the iPad screenshots.
 
-These two size classes are the only ones App Store Connect still requires — Apple scales them
-down for smaller devices automatically.
+Pick any 10 per device class in App Store Connect (10 is the max). Apple only requires the
+6.9" iPhone and 13" iPad sets; smaller devices reuse them automatically.
 
-**Worth adding before you publish.** These four are honest captures of the launch state, and the
-pair of light/dark shots sells the headline feature well. But they only show the notes list and
-an open note. The listing would be stronger with the note editor on iPhone, the per-note settings
-panel, and the location-reminder map. Those need taps to reach, which couldn't be automated on
-this machine, so grab them by hand in the simulator (⌘S saves a screenshot at the correct size).
-To reproduce the seeded sample notes used above, run `scratchpad/shots.sh`.
+To regenerate: `Graphics/AppStore/seed.sh <sim-name> <light|dark>` seeds the sample notes
+(with third-party web icons off, so no Amazon/brand favicons appear in shots) and launches
+the app on a booted simulator; capture with `xcrun simctl io <sim> screenshot out.png`.
+`Graphics/AppStore/make_marketing.py` rebuilds every marketing composition from `raw/`.
 
 ---
 
