@@ -27,6 +27,7 @@
 
 @property (nonatomic, copy) NSString *currentTitle;
 @property (nonatomic, copy) NSString *currentText;
+@property (nonatomic, assign) CGFloat currentScrollFraction;
 
 @end
 
@@ -201,9 +202,10 @@
 
 #pragma mark - Content
 
-- (void)showNoteWithTitle:(NSString *)title text:(NSString *)text {
+- (void)showNoteWithTitle:(NSString *)title text:(NSString *)text scrollFraction:(CGFloat)scrollFraction {
 	self.currentTitle = title;
 	self.currentText = text;
+	self.currentScrollFraction = scrollFraction;
 	[self render];
 }
 
@@ -248,6 +250,13 @@
 	self.textView.textColor = [ALUNoteCardView textColorForStyle:style] ?: [cardBackground oppositeBlackOrWhite];
 	self.textView.font = [UIFont boldSystemFontOfSize:self.window.bounds.size.height / 20.0f];
 	self.textView.text = text;
+
+	// Mirror the phone's scroll position so the same part of the note is on screen
+	// here, rather than always starting from the top.
+	[self.textView layoutIfNeeded];
+	CGFloat scrollableHeight = self.textView.contentSize.height - self.textView.bounds.size.height;
+	CGFloat offsetY = scrollableHeight > 0.0f ? scrollableHeight * self.currentScrollFraction : 0.0f;
+	self.textView.contentOffset = CGPointMake(0.0f, offsetY);
 }
 
 // Solid base color plus a brighter band in the animated gradient above it.

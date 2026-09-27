@@ -21,6 +21,8 @@
 #import "ALUNoteCardView.h"
 #import "ALUExternalDisplayController.h"
 #import "UIColor+AppColors.h"
+// Generated interface for ALUIconEditorViewController.swift (the modern icon editor).
+#import "Alphabetical_List_Utility-Swift.h"
 
 
 // The card list lives in one of three states, all inside this view controller —
@@ -34,7 +36,7 @@ typedef NS_ENUM(NSUInteger, ALUCardStackState) {
 	ALUCardStackStateFullScreen
 };
 
-@interface MasterViewController () <DetailViewControllerDelegate>
+@interface MasterViewController () <DetailViewControllerDelegate, UIGestureRecognizerDelegate>
 
 @property NSArray *objects;
 
@@ -50,12 +52,11 @@ static CGSize const buttonSize = {44.0f, 44.0f};
 static CGFloat const defaultRowHeight = 44.0f;
 
 // Wallet-style stack metrics.
-static CGFloat const minimumCardPeekHeight = 64.0f;
-static CGFloat const maximumCardPeekHeight = 140.0f;
+static CGFloat const minimumCardPeekHeight = 52.0f;
+static CGFloat const maximumCardPeekHeight = 112.0f;
 static CGFloat const cardStackBottomStripHeight = 72.0f;
 static CGFloat const expandedCardSideInset = 14.0f;
 static CGFloat const expandedCardTopInset = 20.0f;
-static CGFloat const noteCardCornerRadius = 10.0f;
 
 @implementation MasterViewController {
 	UITextField *_alertTextField;
@@ -65,6 +66,7 @@ static CGFloat const noteCardCornerRadius = 10.0f;
     NSDate *_lastTableViewFrameAdjustmentDate;
 
 	ALUCardStackState _cardStackState;
+	UITapGestureRecognizer *_cardStackTap;
 	NSString *_activeNoteTitle;
 	ALUNavigationController *_embeddedNoteNavigationController;
 	DetailViewController *_embeddedDetailViewController;
@@ -197,6 +199,15 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 		[self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0] animated:YES scrollPosition:UITableViewScrollPositionTop];
 	}
 
+	// Cards are drawn far from the rows UITableView selects by (the fan translation),
+	// so drive card taps off the visible card, not the row geometry. The delegate
+	// gates this to the collapsed card stack, so normal selection is untouched
+	// elsewhere; recognizing cancels the cell's own touch, suppressing the wrong-row
+	// didSelectRow.
+	_cardStackTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cardStackTapped:)];
+	_cardStackTap.delegate = self;
+	[self.tableView addGestureRecognizer:_cardStackTap];
+
     for (NSTimeInterval t = 0.0f; t < 20.0f; t +=  ((t > 0) ? 2.1f * t : 2.1f)) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(t * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [self delayedReload];
@@ -268,6 +279,17 @@ static CGFloat const noteCardCornerRadius = 10.0f;
     _lastTableViewFrameAdjustmentDate = [NSDate date];
 
     if (USE_CARDS) {
+        CGFloat topInset = self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + tableViewInset;
+
+        // Bottom room so the last card — shoved down by the fan shift — can be scrolled
+        // up into reach. Sized so a full scroll lands the last card at the top and stops
+        // there (no scrolling off into emptiness); the count of cards cancels out.
+        CGFloat bottomRoom = self.tableView.contentInset.bottom;
+        if (self.objects.count > 0) {
+            CGFloat lastRowHeight = [self tableView:self.tableView heightForRowAtIndexPath:[NSIndexPath indexPathForRow:(NSInteger)self.objects.count - 1 inSection:0]];
+            bottomRoom = MAX(0.0f, self.tableView.bounds.size.height - topInset - lastRowHeight);
+        }
+
         [UIView animateWithDuration:0.35f
                          animations:^{
                              self.headerToolbar.frame = CGRectMake(0.0f,
@@ -277,9 +299,9 @@ static CGFloat const noteCardCornerRadius = 10.0f;
                              [self.view.superview addSubview:self.headerToolbar];
                              [self animateStatusBar];
 
-                             UIEdgeInsets contentInsets = UIEdgeInsetsMake(self.navigationController.navigationBar.frame.size.height + kStatusBarHeight + tableViewInset,
+                             UIEdgeInsets contentInsets = UIEdgeInsetsMake(topInset,
                                                                           self.tableView.contentInset.left,
-                                                                          self.tableView.contentInset.bottom,
+                                                                          bottomRoom,
                                                                           self.tableView.contentInset.right);
                              self.tableView.contentInset = contentInsets;
 
@@ -599,7 +621,7 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 
 	// The card stack shows a note without any DetailViewController, so it has to
 	// report to the external screen itself.
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_activeNoteTitle text:nil];
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_activeNoteTitle text:nil scrollFraction:0.0f];
 
 	UIView *hostView = [self cardOverlayHostView];
 	ALUMasterTableViewCell *cell = (ALUMasterTableViewCell *)[self.tableView cellForRowAtIndexPath:indexPath];
@@ -644,6 +666,7 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 						 self.dimmingControl.alpha = 1.0f;
 						 // Part the stack: cards behind leave through the top,
 						 // cards in front through the bottom.
+						 [self masterTableView].partsFrontRowsOnly = NO;
 						 [self masterTableView].partedRow = indexPath.row;
 						 [self.tableView setNeedsLayout];
 						 [self.tableView layoutIfNeeded];
@@ -656,14 +679,56 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 		return;
 	}
 
+	CGPoint location = [sender locationInView:self.activeCardView];
+
+	// A tap on the corner icon opens the dedicated icon editor. Padded a little so the
+	// 40pt icon is a comfortable target.
+	UIImageView *iconView = self.activeCardView.accessoryImageView;
+	if (!iconView.hidden) {
+		CGRect iconFrame = [self.activeCardView convertRect:iconView.bounds fromView:iconView];
+		if (CGRectContainsPoint(CGRectInset(iconFrame, -12.0f, -12.0f), location)) {
+			[self editIconForActiveNote];
+			return;
+		}
+	}
+
 	// A tap on the note's text opens the full-screen editor; a tap anywhere else
 	// on the card drops it back into the stack.
-	CGPoint location = [sender locationInView:self.activeCardView];
 	if (CGRectContainsPoint(self.activeCardView.textView.frame, location)) {
 		[self presentFullScreenNote];
 	} else {
 		[self collapseActiveCard];
 	}
+}
+
+- (void)editIconForActiveNote {
+	NSString *title = _activeNoteTitle;
+	if (title.length == 0) {
+		return;
+	}
+
+	ALUDataManager *dataManager = [ALUDataManager sharedDataManager];
+	UIColor *tint = [ALUNoteCardView mutedColor:[NKFColor colorForCompanyName:title]];
+	UIImage *current = [dataManager showImageForListTitle:title] ? [dataManager imageForCompanyName:title] : nil;
+
+	ALUIconEditorViewController *editor = [[ALUIconEditorViewController alloc] initWithNoteTitle:title
+																					   tintColor:tint
+																						   image:current];
+	__weak typeof(self) weakSelf = self;
+	editor.onSave = ^(UIImage *image) {
+		if (!image) {
+			return;
+		}
+		// Same persistence the old draw / emoji delegates used: a chosen icon wins over
+		// the web favicon.
+		[dataManager saveImage:image forCompanyName:title];
+		[dataManager setUseWebIcon:NO forListTitle:title];
+		[weakSelf.activeCardView configureWithNoteTitle:title];
+		[weakSelf.tableView reloadData];
+	};
+
+	UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:editor];
+	[self presentViewController:navigationController animated:YES completion:nil];
 }
 
 - (void)activeCardSwipedDown:(UISwipeGestureRecognizer *)sender {
@@ -675,7 +740,6 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 - (void)activeCardSwipedUp:(UISwipeGestureRecognizer *)sender {
 	if (_cardStackState == ALUCardStackStateExpanded) {
 		[self presentFullScreenNote];
-		[_embeddedDetailViewController.listItemTextView becomeFirstResponder];
 	}
 }
 
@@ -734,6 +798,11 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 						 [noteNavigationController didMoveToParentViewController:hostViewController];
 						 [self setNeedsStatusBarAppearanceUpdate];
 					 }];
+
+	// The editor's -viewDidAppear asks for the keyboard, but it runs while this
+	// view is still alpha 0 and UIKit refuses first responder there. Ask again now
+	// that the animation has made it visible, so opening a note starts editing.
+	[detailViewController.listItemTextView becomeFirstResponder];
 }
 
 - (void)fullScreenNoteBarPanned:(UIPanGestureRecognizer *)sender {
@@ -811,7 +880,7 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 						 [noteNavigationController removeFromParentViewController];
 						 // The editor's teardown reports "no note"; the card is
 						 // still showing this one, so re-report it afterwards.
-						 [[ALUExternalDisplayController sharedController] showNoteWithTitle:self->_activeNoteTitle text:nil];
+						 [[ALUExternalDisplayController sharedController] showNoteWithTitle:self->_activeNoteTitle text:nil scrollFraction:0.0f];
 					 }];
 }
 
@@ -867,7 +936,7 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 	self.activeCardView = nil;
 	_activeNoteTitle = nil;
 
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil];
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil scrollFraction:0.0f];
 
 	[UIView animateWithDuration:0.5f
 						  delay:0.0f
@@ -876,8 +945,11 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 						options:UIViewAnimationOptionCurveEaseInOut
 					 animations:^{
 						 dimmingControl.alpha = 0.0f;
-						 // Slide the parted stack back in around the returning card.
-						 [self masterTableView].partedRow = -1;
+						 // Only the cards behind slide back in now; the cards in front
+						 // stay below the screen so nothing crosses over the returning
+						 // card while it is still travelling.
+						 [self masterTableView].partsFrontRowsOnly = hasTargetRow;
+						 [self masterTableView].partedRow = hasTargetRow ? [self masterTableView].partedRow : -1;
 						 [self.tableView setNeedsLayout];
 						 [self.tableView layoutIfNeeded];
 
@@ -889,9 +961,33 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 						 }
 					 }
 					 completion:^(BOOL finished) {
+						 // The card has docked onto its real row: hand off to the cell,
+						 // then let the cards in front slide up over it.
 						 [cardView removeFromSuperview];
 						 [dimmingControl removeFromSuperview];
 						 [self becomeFirstResponder];
+
+						 // Flush any layout the table still owes before the second
+						 // animation reads its starting values — otherwise the cards in
+						 // front get one un-animated frame at their docked position and
+						 // flash into view before sliding up.
+						 [UIView performWithoutAnimation:^{
+							 [self.tableView setNeedsLayout];
+							 [self.tableView layoutIfNeeded];
+						 }];
+
+						 [UIView animateWithDuration:0.45f
+											   delay:0.0f
+							  usingSpringWithDamping:0.85f
+							   initialSpringVelocity:0.2f
+											 options:UIViewAnimationOptionCurveEaseOut
+										  animations:^{
+											  [self masterTableView].partsFrontRowsOnly = NO;
+											  [self masterTableView].partedRow = -1;
+											  [self.tableView setNeedsLayout];
+											  [self.tableView layoutIfNeeded];
+										  }
+										  completion:nil];
 					 }];
 }
 
@@ -909,19 +1005,24 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 
 - (UIView *)headerToolbar {
 	if (!_headerToolbar) {
-		_headerToolbar = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, kScreenWidth, kStatusBarHeight * 1.05f)];
-		[_headerToolbar addSubview:[[UIImageView alloc] initWithImage:self.backgroundView.blurredImageView.image]];
+		UIBlurEffect *material = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+		_headerToolbar = [[UIVisualEffectView alloc] initWithEffect:material];
+		_headerToolbar.frame = CGRectMake(0.0f, 0.0f, kScreenWidth, kStatusBarHeight * 1.05f);
+		_headerToolbar.userInteractionEnabled = NO;
 
-        CAGradientLayer *gradientLayer = [CAGradientLayer layer];
-        gradientLayer.frame = CGRectMake(0.0f,
-                                         0.0f,
-                                         LONGER_SIDE,
-                                         _headerToolbar.frame.size.height);
-        gradientLayer.colors = [NSArray arrayWithObjects:(id)[[NKFColor black] CGColor], (id)[[NKFColor clearColor] CGColor], nil];
-        gradientLayer.startPoint = CGPointMake(0.0f, 0.75f);
-        gradientLayer.endPoint = CGPointMake(0.0f, 1.0f);
+		// Eased alpha fade so the material dissolves into the content instead of
+		// ending on a visible line.
+		CAGradientLayer *fade = [CAGradientLayer layer];
+		fade.frame = CGRectMake(0.0f, 0.0f, LONGER_SIDE, _headerToolbar.frame.size.height);
+		fade.colors = @[(id)[[UIColor blackColor] CGColor],
+						(id)[[[UIColor blackColor] colorWithAlphaComponent:0.85f] CGColor],
+						(id)[[[UIColor blackColor] colorWithAlphaComponent:0.4f] CGColor],
+						(id)[[[UIColor blackColor] colorWithAlphaComponent:0.0f] CGColor]];
+		fade.locations = @[@0.0f, @0.55f, @0.8f, @1.0f];
+		fade.startPoint = CGPointMake(0.5f, 0.0f);
+		fade.endPoint = CGPointMake(0.5f, 1.0f);
 
-        _headerToolbar.layer.mask = gradientLayer;
+		_headerToolbar.layer.mask = fade;
 	}
 
 	return _headerToolbar;
@@ -1049,6 +1150,35 @@ static CGFloat const noteCardCornerRadius = 10.0f;
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 		[self expandCardAtIndexPath:indexPath];
 	}
+}
+
+// Tapping a fanned card expands the card you see, not the row sitting under that
+// point. _cardStackTap cancels the cell's own touch, so didSelectRow above only
+// fires outside the collapsed stack (where this recognizer's delegate stands down).
+- (void)cardStackTapped:(UITapGestureRecognizer *)sender {
+	NSIndexPath *path = [self.masterTableView indexPathForFrontmostCardAtPoint:[sender locationInView:self.tableView]];
+	if (path) {
+		[self expandCardAtIndexPath:path];
+	}
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+	if (gestureRecognizer != _cardStackTap) {
+		return YES;
+	}
+
+	if (![self usesCardStackInteraction] || self.tableView.isEditing || self.masterTableView.partedRow >= 0) {
+		return NO;
+	}
+
+	// Let controls (add button, swipe-to-delete button) keep their own taps.
+	for (UIView *view = touch.view; view && view != self.tableView; view = view.superview) {
+		if ([view isKindOfClass:[UIControl class]]) {
+			return NO;
+		}
+	}
+
+	return YES;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

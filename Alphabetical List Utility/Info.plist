@@ -19,21 +19,21 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>3000</string>
+	<string>3002</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>A2Z Notes would like to access your camera to add photos to your notes.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>A2Z Notes can integrate with your contacts to enhance your note-taking experience.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>A2Z Notes needs access to your location to trigger reminders when you arrive at or leave specific locations.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>A2Z Notes would like to use your location. Your location will never be shared and only be used to send you notifications that you create.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>A2Z Notes uses your location to set up location-based reminders for your notes.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>A2Z Notes needs access to your location to trigger reminders when you arrive at or leave specific locations.</string>
-	<key>NSContactsUsageDescription</key>
-	<string>A2Z Notes can integrate with your contacts to enhance your note-taking experience.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>A2Z Notes would like to access your camera to add photos to your notes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>A2Z Notes would like to access your photo library to add images to your notes.</string>
 	<key>UILaunchStoryboardName</key>
@@ -45,15 +45,13 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>

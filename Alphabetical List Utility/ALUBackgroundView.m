@@ -12,6 +12,7 @@
 #import "NKFColor.h"
 #import "NKFColor+AppColors.h"
 #import "NKFColor+WikipediaColors.h"
+#import "UIColor+AppColors.h"
 
 @interface ALUBackgroundView ()
 
@@ -22,15 +23,48 @@
 
 @implementation ALUBackgroundView {
     UIImage *_blurredImage;
+    CAGradientLayer *_animatedGradientLayer;
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
+
     self.blurredImageView.frame = self.bounds;
     [self addSubview:self.blurredImageView];
+    [self.layer addSublayer:[self animatedGradientLayer]];
+    _animatedGradientLayer.frame = self.bounds;
     self.titleLabel.frame = [self titleLabelFrame];
     [self addSubview:self.titleLabel];
+}
+
+// A translucent tint that slowly drifts between two color washes, so the background
+// feels alive instead of being a static blur.
+- (CAGradientLayer *)animatedGradientLayer {
+    if (!_animatedGradientLayer) {
+        _animatedGradientLayer = [CAGradientLayer layer];
+        _animatedGradientLayer.frame = self.bounds;
+        _animatedGradientLayer.startPoint = CGPointMake(0.0f, 0.0f);
+        _animatedGradientLayer.endPoint = CGPointMake(1.0f, 1.0f);
+
+        UIColor *appColor = [NKFColor appColor];
+        NSArray *fromColors = @[(id)[[appColor lightenColor] colorWithAlphaComponent:0.16f].CGColor,
+                                (id)[[UIColor clearColor] CGColor],
+                                (id)[[appColor darkenColorBy:0.5f] colorWithAlphaComponent:0.22f].CGColor];
+        NSArray *toColors = @[(id)[[appColor darkenColorBy:0.5f] colorWithAlphaComponent:0.22f].CGColor,
+                              (id)[[UIColor clearColor] CGColor],
+                              (id)[[appColor lightenColor] colorWithAlphaComponent:0.16f].CGColor];
+        _animatedGradientLayer.colors = fromColors;
+
+        CABasicAnimation *drift = [CABasicAnimation animationWithKeyPath:@"colors"];
+        drift.fromValue = fromColors;
+        drift.toValue = toColors;
+        drift.duration = 14.0;
+        drift.autoreverses = YES;
+        drift.repeatCount = HUGE_VALF;
+        [_animatedGradientLayer addAnimation:drift forKey:@"colorDrift"];
+    }
+
+    return _animatedGradientLayer;
 }
 
 - (UIImageView *)blurredImageView {

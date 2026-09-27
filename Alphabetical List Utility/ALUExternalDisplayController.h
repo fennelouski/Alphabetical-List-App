@@ -23,7 +23,8 @@
 
 // nil title shows the idle screen. text overrides the saved note text so live
 // typing shows up before the note is persisted; pass nil to read from the data
-// manager.
-- (void)showNoteWithTitle:(NSString *)title text:(NSString *)text;
+// manager. scrollFraction (0...1) mirrors how far the phone has scrolled through
+// the note, so the external screen shows the same portion of text.
+- (void)showNoteWithTitle:(NSString *)title text:(NSString *)text scrollFraction:(CGFloat)scrollFraction;
 
 @end

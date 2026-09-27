@@ -16,6 +16,11 @@
 
 - (void)reloadList;
 
+@optional
+// The open note was deleted from the editor's overflow menu; the presenter should
+// tear the editor down without saving.
+- (void)noteWasDeleted;
+
 @end
 
 @interface DetailViewController : UIViewController <UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, CNContactPickerDelegate>
@@ -26,6 +31,10 @@
 @property (nonatomic, strong) UITextView *listItemTextView;
 
 @property (weak) id <DetailViewControllerDelegate> delegate;
+
+// Persists the note text immediately. Called by the card UI before it reads the note
+// back for the collapsed-card preview.
+- (void)saveList;
 
 @end
 

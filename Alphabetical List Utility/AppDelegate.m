@@ -11,8 +11,9 @@
 #import "ALUDataManager.h"
 #import "ALUExternalDisplayController.h"
 #import "UIColor+AppColors.h"
+#import "Alphabetical_List_Utility-Swift.h"
 
-@interface AppDelegate () <UISplitViewControllerDelegate>
+@interface AppDelegate () <UISplitViewControllerDelegate, DetailViewControllerDelegate>
 
 @end
 
@@ -41,7 +42,43 @@
 	// AirPlay / HDMI: show a non-interactive reading view instead of mirroring.
 	[[ALUExternalDisplayController sharedController] start];
 
+    __weak AppDelegate *weakSelf = self;
+    self.window.rootViewController = [ALULibraryBuilder makeControllerWithNotes:^NSArray<NSDictionary<NSString *, NSString *> *> * {
+        ALUDataManager *data = [ALUDataManager sharedDataManager];
+        NSMutableArray *notes = [NSMutableArray array];
+        for (NSString *title in [data lists]) {
+            [notes addObject:@{@"title": title, @"text": [data listWithTitle:title] ?: @""}];
+        }
+        return notes;
+    } create:^BOOL(NSString *title) {
+        return ![[ALUDataManager sharedDataManager] addList:title];
+    } delete:^(NSString *title) {
+        [[ALUDataManager sharedDataManager] removeList:title];
+    } editor:^UIViewController *(NSString *title) {
+        DetailViewController *detail = [[DetailViewController alloc] init];
+        detail.detailItem = title;
+        detail.delegate = weakSelf;
+        detail.view.backgroundColor = UIColor.systemBackgroundColor;
+        return [[UINavigationController alloc] initWithRootViewController:detail];
+    } save:^(UIViewController *controller) {
+        if ([controller isKindOfClass:UINavigationController.class]) {
+            UIViewController *detail = [(UINavigationController *)controller topViewController];
+            if ([detail isKindOfClass:DetailViewController.class]) { [(DetailViewController *)detail saveList]; }
+        }
+    } cards:^UIViewController * {
+        return splitViewController;
+    }];
+
+
 	return YES;
+}
+
+- (void)reloadList {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ALULibraryChanged" object:nil];
+}
+
+- (void)noteWasDeleted {
+    [self.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {

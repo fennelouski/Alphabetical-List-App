@@ -61,6 +61,18 @@
 
 - (BOOL)useWebIconForListTitle:(NSString *)title;
 
+// Posted (object = list title) when a web icon finishes downloading.
+extern NSString * const ALUNoteIconDidLoadNotification;
+
+// Card style ("design effect") per note, plus how strongly it's applied in the card
+// list and in the editor. Style names come from +[ALUNoteCardView cardStyleNames].
+- (void)setCardStyle:(NSString *)style forListTitle:(NSString *)title;
+- (NSString *)cardStyleForListTitle:(NSString *)title;
+- (void)setCardStyleListIntensity:(CGFloat)intensity forListTitle:(NSString *)title;
+- (CGFloat)cardStyleListIntensityForListTitle:(NSString *)title;
+- (void)setCardStyleEditorIntensity:(CGFloat)intensity forListTitle:(NSString *)title;
+- (CGFloat)cardStyleEditorIntensityForListTitle:(NSString *)title;
+
 
 - (void)saveImage:(UIImage *)image forCompanyName:(NSString *)companyName;
 

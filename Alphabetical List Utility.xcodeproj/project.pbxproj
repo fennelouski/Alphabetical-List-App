@@ -10,7 +10,7 @@
 		275C89CD1B6FFF6A00521755 /* ALUVerse.m in Sources */ = {isa = PBXBuildFile; fileRef = 275C89CC1B6FFF6A00521755 /* ALUVerse.m */; };
 		278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038721B73B347008C509F /* ALUMasterTableViewCell.m */; };
 		278038761B73B679008C509F /* ALUMasterTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038751B73B679008C509F /* ALUMasterTableView.m */; };
-		278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255521B628BCA00309E6F /* ALUSettingsView.m */; };
+		278255531B628BCA00309E6F /* ALUSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255521B628BCA00309E6F /* ALUSettingsViewController.m */; };
 		278255561B62910100309E6F /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255551B62910100309E6F /* UIImage+ImageEffects.m */; };
 		278255591B62A6F000309E6F /* ALUTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255581B62A6F000309E6F /* ALUTableViewCell.m */; };
 		27A8C2291B4AD62800E5A3D9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2281B4AD62800E5A3D9 /* main.m */; };
@@ -27,9 +27,6 @@
 		27A8C26E1B4AED2200E5A3D9 /* NGAParallaxMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2681B4AED2200E5A3D9 /* NGAParallaxMotion.m */; };
 		27A8C26F1B4AED2200E5A3D9 /* NSString+AppFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */; };
 		27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */; };
-		27CAD7A91B7A6A6600D67DDD /* ALUDrawingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */; };
-		27CAD7B51B7A75A600D67DDD /* LinearInterpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */; };
-		27CAD7B91B7A8E4200D67DDD /* ALUColorPickerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */; };
 		27CAD7BE1B7A91A500D67DDD /* Color-gradient.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */; };
 		27CAD7BF1B7A91A500D67DDD /* Color-gradient@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */; };
 		27CAD7C01B7A91A500D67DDD /* Color-gradient@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */; };
@@ -69,7 +66,6 @@
 		27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */; };
 		27FF34B81B58011E005DD69E /* NKFColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 27FF34B71B58011E005DD69E /* NKFColor.m */; };
 		803127991B77E8F000033031 /* ALUBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 803127981B77E8F000033031 /* ALUBackgroundView.m */; };
-		80386B1B1B796EF1000EEC85 /* ALUEmojiImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 80386B1A1B796EF1000EEC85 /* ALUEmojiImageViewController.m */; };
 		805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */; };
 		80C4AE911B781257002922F7 /* UIImage+PixelInformation.m in Sources */ = {isa = PBXBuildFile; fileRef = 80C4AE901B781257002922F7 /* UIImage+PixelInformation.m */; };
 		905E9F3E1B716ED5007A6DB4 /* ALUDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 905E9F3D1B716ED5007A6DB4 /* ALUDocument.m */; };
@@ -82,8 +78,11 @@
 		90F7DA841B65D78400D4E0B7 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA821B65D78400D4E0B7 /* AddressBook.framework */; };
 		90F7DA851B65D78400D4E0B7 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */; };
 		A11CA0CD2E2F00010000C0DE /* ALUNoteCardView.m in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0CF2E2F00030000C0DE /* ALUNoteCardView.m */; };
-		A11CA0D22E2F00060000C0DE /* ALUExternalDisplayController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */; };
 		A11CA0D02E2F00040000C0DE /* ALUImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */; };
+		A11CA0E02E2F00060000C0DE /* ALUIconEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0E12E2F00070000C0DE /* ALUIconEditorViewController.swift */; };
+		A11CA0D22E2F00060000C0DE /* ALUExternalDisplayController.m in Sources */ = {isa = PBXBuildFile; fileRef = A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */; };
+		A02609270000000000000092 /* ALULibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02609270000000000000091; };
+		A38FFA699E434FC29A4CC5CF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 60B72CDD6C764181A8C164E6 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,8 +103,8 @@
 		278038721B73B347008C509F /* ALUMasterTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMasterTableViewCell.m; sourceTree = "<group>"; };
 		278038741B73B679008C509F /* ALUMasterTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMasterTableView.h; sourceTree = "<group>"; };
 		278038751B73B679008C509F /* ALUMasterTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMasterTableView.m; sourceTree = "<group>"; };
-		278255511B628BCA00309E6F /* ALUSettingsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUSettingsView.h; sourceTree = "<group>"; };
-		278255521B628BCA00309E6F /* ALUSettingsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUSettingsView.m; sourceTree = "<group>"; };
+		278255511B628BCA00309E6F /* ALUSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUSettingsViewController.h; sourceTree = "<group>"; };
+		278255521B628BCA00309E6F /* ALUSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUSettingsViewController.m; sourceTree = "<group>"; };
 		278255541B62910100309E6F /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		278255551B62910100309E6F /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 		278255571B62A6F000309E6F /* ALUTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUTableViewCell.h; sourceTree = "<group>"; };
@@ -140,12 +139,6 @@
 		27A8C26A1B4AED2200E5A3D9 /* NSString+AppFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+AppFunctions.m"; sourceTree = "<group>"; };
 		27A8C2701B4AFEE300E5A3D9 /* UIColor+BrandColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+BrandColors.h"; sourceTree = "<group>"; };
 		27A8C2711B4AFEE300E5A3D9 /* UIColor+BrandColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+BrandColors.m"; sourceTree = "<group>"; };
-		27CAD7A71B7A6A6600D67DDD /* ALUDrawingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUDrawingViewController.h; sourceTree = "<group>"; };
-		27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUDrawingViewController.m; sourceTree = "<group>"; };
-		27CAD7B01B7A75A600D67DDD /* LinearInterpView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinearInterpView.h; sourceTree = "<group>"; };
-		27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LinearInterpView.m; sourceTree = "<group>"; };
-		27CAD7B71B7A8E4200D67DDD /* ALUColorPickerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUColorPickerView.h; sourceTree = "<group>"; };
-		27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUColorPickerView.m; sourceTree = "<group>"; };
 		27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient.png"; path = "Graphics/Color-gradient.png"; sourceTree = "<group>"; };
 		27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@2x.png"; path = "Graphics/Color-gradient@2x.png"; sourceTree = "<group>"; };
 		27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@3x.png"; path = "Graphics/Color-gradient@3x.png"; sourceTree = "<group>"; };
@@ -215,8 +208,6 @@
 		27FF34B71B58011E005DD69E /* NKFColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NKFColor.m; sourceTree = "<group>"; };
 		803127971B77E8F000033031 /* ALUBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUBackgroundView.h; sourceTree = "<group>"; };
 		803127981B77E8F000033031 /* ALUBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUBackgroundView.m; sourceTree = "<group>"; };
-		80386B191B796EF1000EEC85 /* ALUEmojiImageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUEmojiImageViewController.h; sourceTree = "<group>"; };
-		80386B1A1B796EF1000EEC85 /* ALUEmojiImageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUEmojiImageViewController.m; sourceTree = "<group>"; };
 		805E83F01B77EFDD00D362C3 /* ALUPatternedView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPatternedView.h; sourceTree = "<group>"; };
 		805E83F11B77EFDD00D362C3 /* ALUPatternedView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPatternedView.m; sourceTree = "<group>"; };
 		80C4AE8F1B781257002922F7 /* UIImage+PixelInformation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+PixelInformation.h"; sourceTree = "<group>"; };
@@ -236,10 +227,13 @@
 		90F7DA821B65D78400D4E0B7 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
 		90F7DA831B65D78400D4E0B7 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
 		A11CA0CE2E2F00020000C0DE /* ALUNoteCardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUNoteCardView.h; sourceTree = "<group>"; };
-		A11CA0D32E2F00070000C0DE /* ALUExternalDisplayController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUExternalDisplayController.h; sourceTree = "<group>"; };
-		A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUExternalDisplayController.m; sourceTree = "<group>"; };
 		A11CA0CF2E2F00030000C0DE /* ALUNoteCardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUNoteCardView.m; sourceTree = "<group>"; };
 		A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUImageGenerator.swift; sourceTree = "<group>"; };
+		A11CA0E12E2F00070000C0DE /* ALUIconEditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUIconEditorViewController.swift; sourceTree = "<group>"; };
+		A11CA0D32E2F00070000C0DE /* ALUExternalDisplayController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUExternalDisplayController.h; sourceTree = "<group>"; };
+		A11CA0D42E2F00080000C0DE /* ALUExternalDisplayController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUExternalDisplayController.m; sourceTree = "<group>"; };
+		A02609270000000000000091 /* ALULibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Alphabetical List Utility/ALULibraryView.swift"; sourceTree = SOURCE_ROOT; };
+		60B72CDD6C764181A8C164E6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Alphabetical List Utility/PrivacyInfo.xcprivacy"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -268,6 +262,7 @@
 		27A8C21B1B4AD62800E5A3D9 = {
 			isa = PBXGroup;
 			children = (
+				60B72CDD6C764181A8C164E6 /* PrivacyInfo.xcprivacy */,
 				27A8C2261B4AD62800E5A3D9 /* Alphabetical List Utility */,
 				27A8C2431B4AD62800E5A3D9 /* Alphabetical List UtilityTests */,
 				27A8C24E1B4AD62800E5A3D9 /* Alphabetical List UtilityUITests */,
@@ -296,6 +291,8 @@
 				27A8C22B1B4AD62800E5A3D9 /* AppDelegate.m */,
 				27FF000B1B4AD62800E5A3D9 /* ALUNotePolisher.swift */,
 				A11CA0D12E2F00050000C0DE /* ALUImageGenerator.swift */,
+				A11CA0E12E2F00070000C0DE /* ALUIconEditorViewController.swift */,
+				A02609270000000000000091 /* ALULibraryView.swift */,
 				803127941B77E80400033031 /* View Controllers */,
 				803127951B77E81900033031 /* Views */,
 				803127961B77E82300033031 /* Data */,
@@ -382,10 +379,6 @@
 		27CAD7B61B7A75AD00D67DDD /* Drawing Views */ = {
 			isa = PBXGroup;
 			children = (
-				27CAD7B01B7A75A600D67DDD /* LinearInterpView.h */,
-				27CAD7B11B7A75A600D67DDD /* LinearInterpView.m */,
-				27CAD7B71B7A8E4200D67DDD /* ALUColorPickerView.h */,
-				27CAD7B81B7A8E4200D67DDD /* ALUColorPickerView.m */,
 			);
 			name = "Drawing Views";
 			sourceTree = "<group>";
@@ -485,10 +478,6 @@
 				27E6D7B41B5D579700D7CC19 /* ALUNavigationController.m */,
 				27E6D7F11B5D785600D7CC19 /* ALUSplitViewController.h */,
 				27E6D7F21B5D785600D7CC19 /* ALUSplitViewController.m */,
-				80386B191B796EF1000EEC85 /* ALUEmojiImageViewController.h */,
-				80386B1A1B796EF1000EEC85 /* ALUEmojiImageViewController.m */,
-				27CAD7A71B7A6A6600D67DDD /* ALUDrawingViewController.h */,
-				27CAD7A81B7A6A6600D67DDD /* ALUDrawingViewController.m */,
 			);
 			name = "View Controllers";
 			sourceTree = "<group>";
@@ -496,8 +485,8 @@
 		803127951B77E81900033031 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				278255511B628BCA00309E6F /* ALUSettingsView.h */,
-				278255521B628BCA00309E6F /* ALUSettingsView.m */,
+				278255511B628BCA00309E6F /* ALUSettingsViewController.h */,
+				278255521B628BCA00309E6F /* ALUSettingsViewController.m */,
 				278255571B62A6F000309E6F /* ALUTableViewCell.h */,
 				278255581B62A6F000309E6F /* ALUTableViewCell.m */,
 				278038711B73B347008C509F /* ALUMasterTableViewCell.h */,
@@ -621,6 +610,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A38FFA699E434FC29A4CC5CF /* PrivacyInfo.xcprivacy in Resources */,
 				27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */,
 				27CAD7C01B7A91A500D67DDD /* Color-gradient@3x.png in Resources */,
 				27CAD7BF1B7A91A500D67DDD /* Color-gradient@2x.png in Resources */,
@@ -650,13 +640,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27CAD7B91B7A8E4200D67DDD /* ALUColorPickerView.m in Sources */,
 				27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */,
 				805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */,
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
 				27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */,
 				27FF000A1B4AD62800E5A3D9 /* ALUNotePolisher.swift in Sources */,
 				A11CA0D02E2F00040000C0DE /* ALUImageGenerator.swift in Sources */,
+				A11CA0E02E2F00060000C0DE /* ALUIconEditorViewController.swift in Sources */,
+				A02609270000000000000092 /* ALULibraryView.swift in Sources */,
 				27E6D82C1B5D9ED000D7CC19 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
 				27E6D8311B5D9ED000D7CC19 /* UIRefreshControl+AFNetworking.m in Sources */,
 				27E6D82E1B5D9ED000D7CC19 /* UIButton+AFNetworking.m in Sources */,
@@ -667,7 +658,7 @@
 				27FF34B81B58011E005DD69E /* NKFColor.m in Sources */,
 				80C4AE911B781257002922F7 /* UIImage+PixelInformation.m in Sources */,
 				27E6D8381B6055EE00D7CC19 /* NKFColor+SportsTeams.m in Sources */,
-				278255531B628BCA00309E6F /* ALUSettingsView.m in Sources */,
+				278255531B628BCA00309E6F /* ALUSettingsViewController.m in Sources */,
 				27E6D8171B5D9EB500D7CC19 /* AFURLResponseSerialization.m in Sources */,
 				27E6D8151B5D9EB500D7CC19 /* AFURLConnectionOperation.m in Sources */,
 				27A8C2721B4AFEE300E5A3D9 /* UIColor+BrandColors.m in Sources */,
@@ -686,11 +677,9 @@
 				906ED6B21B6A5C8B00362BC6 /* NKFColor+Universities.m in Sources */,
 				27E6D8131B5D9EB500D7CC19 /* AFNetworkReachabilityManager.m in Sources */,
 				90BFD9751B67258600CA617B /* ALUPointAnnotation.m in Sources */,
-				27CAD7A91B7A6A6600D67DDD /* ALUDrawingViewController.m in Sources */,
 				27E6D8411B605B0000D7CC19 /* NKFColor+Dates.m in Sources */,
 				27A8C26D1B4AED2200E5A3D9 /* UIFont+Custom.m in Sources */,
 				27E6D82F1B5D9ED000D7CC19 /* UIImageView+AFNetworking.m in Sources */,
-				27CAD7B51B7A75A600D67DDD /* LinearInterpView.m in Sources */,
 				27A8C2291B4AD62800E5A3D9 /* main.m in Sources */,
 				27A8C26E1B4AED2200E5A3D9 /* NGAParallaxMotion.m in Sources */,
 				27E6D8101B5D9EB500D7CC19 /* AFHTTPRequestOperation.m in Sources */,
@@ -703,7 +692,6 @@
 				27E6D83E1B605A6800D7CC19 /* NKFColor+WikipediaColors.m in Sources */,
 				803127991B77E8F000033031 /* ALUBackgroundView.m in Sources */,
 				27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */,
-				80386B1B1B796EF1000EEC85 /* ALUEmojiImageViewController.m in Sources */,
 				278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */,
 				A11CA0CD2E2F00010000C0DE /* ALUNoteCardView.m in Sources */,
 				A11CA0D22E2F00060000C0DE /* ALUExternalDisplayController.m in Sources */,
@@ -832,6 +820,13 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = EJLR2RPSV2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				EXCLUDED_SOURCE_FILE_NAMES = (
 					"AF*.m",
 					"*+AFNetworking.m",
@@ -844,7 +839,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nathanfennel.A2Z;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				MARKETING_VERSION = 3.0.0;
+				CURRENT_PROJECT_VERSION = 3002;
 			};
 			name = Debug;
 		};
@@ -856,6 +858,13 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = EJLR2RPSV2;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = YES;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = YES;
 				EXCLUDED_SOURCE_FILE_NAMES = (
 					"AF*.m",
 					"*+AFNetworking.m",
@@ -868,7 +877,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nathanfennel.A2Z;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				MARKETING_VERSION = 3.0.0;
+				CURRENT_PROJECT_VERSION = 3002;
 			};
 			name = Release;
 		};

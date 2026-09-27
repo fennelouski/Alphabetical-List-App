@@ -15,13 +15,11 @@
 #import "ALUMapViewController.h"
 #import <AVFoundation/AVFoundation.h>
 
-#import "ALUSettingsView.h"
-#import "ALUEmojiImageViewController.h"
-#import "ALUDrawingViewController.h"
+#import "ALUSettingsViewController.h"
 #import "ALUNoteCardView.h"
 #import "ALUExternalDisplayController.h"
 
-// Generated interface for ALUNotePolisher.swift, which wraps the on-device foundation model.
+// Generated interface for ALUNotePolisher.swift and ALUIconEditorViewController.swift.
 #import "Alphabetical_List_Utility-Swift.h"
 
 // kScreenWidth / kScreenHeight / kStatusBarHeight come from PrefixHeader.pch. They used to be
@@ -37,7 +35,7 @@ static CGFloat const ALUDetailViewControllerMinFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
-@interface DetailViewController () <ALUSettingsViewDelegate, ALUEmojiImageViewControllerDelegate, ALUDrawingViewControllerDelegate>
+@interface DetailViewController () <ALUSettingsViewDelegate>
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
 
@@ -55,7 +53,6 @@ static NSString * const numericDelimeter = @".) ";
 	BOOL _pickingPhotoForNoteBody;
 	UITextField *_alertTextField;
 	BOOL _noteWasDeleted;
-	ALUSettingsView *_settingsView;
     CGSize _previousScreenSize;
     NSDate *_lastOrientationChangeCheckDate;
     UIDeviceOrientation _lastDeviceOrientation;
@@ -100,7 +97,9 @@ static CGFloat const borderWidth = 10.0f;
 
 	// Fires on every detailItem change — including iPad split view and the card
 	// stack, where the controller stays on screen and viewWillAppear never runs.
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:nil];
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem
+																	text:nil
+														  scrollFraction:[self currentScrollFraction]];
 }
 
 - (void)viewDidLoad {
@@ -153,7 +152,9 @@ static CGFloat const borderWidth = 10.0f;
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
 
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:nil];
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem
+																	text:nil
+														  scrollFraction:[self currentScrollFraction]];
 
 	[self setNeedsStatusBarAppearanceUpdate];
 	
@@ -168,6 +169,8 @@ static CGFloat const borderWidth = 10.0f;
                                    [NKFColor appColor],
                                    [(NKFColor *)[NKFColor appColor] oppositeBlackOrWhite]);
     }
+
+    [self.listItemTextView becomeFirstResponder];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -178,7 +181,7 @@ static CGFloat const borderWidth = 10.0f;
 	// Back to the list: the external screen falls back to the idle view. Presenting
 	// something over the note (settings, share sheet) is not leaving it.
 	if (self.isMovingFromParentViewController || self.isBeingDismissed) {
-		[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil];
+		[[ALUExternalDisplayController sharedController] showNoteWithTitle:nil text:nil scrollFraction:0.0f];
 	}
 }
 
@@ -335,8 +338,6 @@ static CGFloat const borderWidth = 10.0f;
     
     _previousScreenSize = CGSizeMake(kScreenWidth, kScreenHeight);
 	
-//	_settingsView.frame = CGRectOffset(CGRectInset(self.view.bounds, kScreenWidth * 0.01f, kScreenHeight * 0.15f), 0.0f, kScreenHeight);
-	
     [self updateViewConstraints];
 }
 
@@ -443,10 +444,6 @@ static CGFloat const borderWidth = 10.0f;
 
 		UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinch:)];
 		[_listItemTextView addGestureRecognizer:pinch];
-
-		if (_listItemTextView.text.length == 0) {
-			[_listItemTextView becomeFirstResponder];
-		}
 	}
 	
 	return _listItemTextView;
@@ -475,7 +472,7 @@ static CGFloat const borderWidth = 10.0f;
 	return _polishButton;
 }
 
-// The single "…" menu in the top-right corner: Share, Polish, and Delete. Built
+// The single "…" menu in the top-right corner: Share, Polish, Note Settings, and Delete. Built
 // uncached so the Share row's enabled state always reflects the current note text.
 - (UIBarButtonItem *)overflowButton {
 	if (!_overflowButton) {
@@ -502,6 +499,62 @@ static CGFloat const borderWidth = 10.0f;
 				[strongSelf polishButtonTouched:strongSelf.overflowButton];
 			}];
 
+			// The classic settings panel (list mode, icons, card style, location
+			// reminders, …) — same one that opens when tapping the note title.
+			UIAction *settingsAction = [UIAction actionWithTitle:NSLocalizedString(@"Note Settings", nil)
+														   image:[UIImage systemImageNamed:@"gearshape"]
+													  identifier:nil
+														 handler:^(UIAction *action) {
+				[strongSelf titleTapped:strongSelf.overflowButton];
+			}];
+
+			// Note actions — renaming, inserting a photo, and the numbered-list line
+			// operations. One-shot actions on the note, so they live here rather than in
+			// the settings sheet, which is for configuration.
+			NSMutableArray<UIMenuElement *> *noteActions = [NSMutableArray array];
+
+			UIAction *renameAction = [UIAction actionWithTitle:NSLocalizedString(@"Rename Note", nil)
+														 image:[UIImage systemImageNamed:@"character.cursor.ibeam"]
+													identifier:nil
+													   handler:^(UIAction *action) {
+				[strongSelf renameList];
+			}];
+			[noteActions addObject:renameAction];
+
+			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
+				UIAction *insertPhotoAction = [UIAction actionWithTitle:NSLocalizedString(@"Insert Photo", nil)
+																  image:[UIImage systemImageNamed:@"photo.badge.plus"]
+															 identifier:nil
+																handler:^(UIAction *action) {
+					[strongSelf insertPhotoInNote];
+				}];
+				[noteActions addObject:insertPhotoAction];
+			}
+
+			if ([[ALUDataManager sharedDataManager] listModeForListTitle:strongSelf->_detailItem]) {
+				UIAction *sortAction = [UIAction actionWithTitle:NSLocalizedString(@"Sort Lines A–Z", nil)
+														   image:[UIImage systemImageNamed:@"arrow.up.arrow.down"]
+													  identifier:nil
+														 handler:^(UIAction *action) {
+					[strongSelf alphabetize];
+				}];
+				[noteActions addObject:sortAction];
+			} else {
+				UIAction *stripAction = [UIAction actionWithTitle:NSLocalizedString(@"Strip Line Numbers", nil)
+															image:[UIImage systemImageNamed:@"eraser"]
+													   identifier:nil
+														  handler:^(UIAction *action) {
+					[strongSelf removeListModeNumbersCurrentSelectedTextRange:NSMakeRange(0, 0) replacementText:@""];
+				}];
+				[noteActions addObject:stripAction];
+			}
+
+			UIMenu *noteActionsMenu = [UIMenu menuWithTitle:@""
+													  image:nil
+												 identifier:nil
+													options:UIMenuOptionsDisplayInline
+												   children:noteActions];
+
 			UIAction *deleteAction = [UIAction actionWithTitle:NSLocalizedString(@"Delete Note", nil)
 														 image:[UIImage systemImageNamed:@"trash"]
 													identifier:nil
@@ -510,7 +563,7 @@ static CGFloat const borderWidth = 10.0f;
 			}];
 			deleteAction.attributes = UIMenuElementAttributesDestructive;
 
-			completion(@[shareAction, polishAction, deleteAction]);
+			completion(@[shareAction, polishAction, noteActionsMenu, settingsAction, deleteAction]);
 		}];
 
 		_overflowButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
@@ -731,109 +784,18 @@ static CGFloat const borderWidth = 10.0f;
 	return _titleViewButton;
 }
 
-- (ALUSettingsView *)settingsView {
-	if (!_settingsView) {
-		_settingsView = [[ALUSettingsView alloc] initWithFrame:CGRectInset(self.view.bounds, kViewControllerWidth * 0.05f, kViewControllerHeight * 0.05f)];
-		_settingsView.listColor = self.navigationController.navigationBar.barTintColor;
-		_settingsView.delegateSettings = self;
-        _settingsView.presentingViewController = self.parentViewController;
-        while (_settingsView.presentingViewController.parentViewController) {
-            _settingsView.presentingViewController = _settingsView.presentingViewController.parentViewController;
-        }
-	}
-	
-	return _settingsView;
-}
-
 #pragma mark - Button Actions
 
 - (void)titleTapped:(id)sender {
-    if ([self settingsView].isShowing) {
-        return;
-    }
-    
-	if (![self settingsView].superview) {
-		[self.view addSubview:[self settingsView]];
-	}
-	
-	NSMutableDictionary *settingsTitles = [[NSMutableDictionary alloc] init];
-	
-    
-	if (![[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {
-		NSArray *listModeOptions = @[@"List Mode", @"Remove List Mode Numbers"];
-		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
-	} else {
-		NSArray *listModeOptions = @[@"List Mode", @"Alphabetize List"];
-		[settingsTitles setObject:listModeOptions forKey:@"List Mode"];
-	}
-	
-	if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
-		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
-		
-        if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-            [iconOptions addObject:@"Take Photo for Icon"];
-        }
-        
-        if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
-            [iconOptions addObject:@"Choose Photo for Icon"];
-        }
-        
-        [iconOptions addObject:@"Type text for Icon"];
-		
-		[iconOptions addObject:@"Draw Icon"];
-		
-        if ([[ALUDataManager sharedDataManager] useWebIconForListTitle:_detailItem]) {
-            DLog(@"Use web icon added");
-        } else {
-            [iconOptions addObject:@"Use Web Icon"];
-        }
-		
-		[settingsTitles setObject:iconOptions forKey:@"Icon"];
-	} else {
-		NSMutableArray *iconOptions = [[NSMutableArray alloc] initWithArray:@[@"Show list icon"]];
-		[settingsTitles setObject:iconOptions forKey:@"Icon"];
-	}
-	
-	NSMutableArray *renameOption = [[NSMutableArray alloc] initWithArray:@[@"Rename Note"]];
-	[settingsTitles setObject:renameOption forKey:@"Rename Note"];
-
-	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
-		[settingsTitles setObject:@[@"Insert Photo in Note"] forKey:@"Note"];
-	}
-
-	// The style rows stay collapsed to a single row until a style is chosen; the
-	// intensity sliders only appear once there is a style to tune.
-	NSString *currentStyle = [[ALUDataManager sharedDataManager] cardStyleForListTitle:_detailItem];
-	if ([ALUNoteCardView backgroundColorForStyle:currentStyle]) {
-		[settingsTitles setObject:@[[NSString stringWithFormat:@"Card Style: %@", currentStyle],
-									@"List Style Intensity",
-									@"Editor Style Intensity"]
-						   forKey:@"Card Style"];
-	} else {
-		[settingsTitles setObject:@[@"Card Style: None"] forKey:@"Card Style"];
-	}
-    
-    if ([self.listItemTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length > 0) {
-        [settingsTitles setObject:@[@"Send email"] forKey:@"Messaging"];
-    }
-    
-    if ([[ALUDataManager sharedDataManager] geolocationReminderExistsForTitle:_detailItem]) {
-        NSString *addressString = [[ALUDataManager sharedDataManager] geolocationNameForTitle:_detailItem];
-		if ([[addressString lowercaseString] rangeOfString:@"(null)"].location != NSNotFound) {
-			[settingsTitles setObject:@[@"Add Location Reminder"] forKey:@"Location"];
-		} else if ([[addressString lowercaseString] rangeOfString:@"add location"].location != NSNotFound){
-			[settingsTitles setObject:@[addressString] forKey:@"Location"];
-		} else {
-			[settingsTitles setObject:@[addressString, @"Remove Location Reminder"] forKey:@"Location"];
-		}
-    } else {
-        [settingsTitles setObject:@[@"Add Location Reminder"] forKey:@"Location"];
-    }
-    
-	[self settingsView].listName = _detailItem;
-	[[self settingsView] setSettingsTitles:settingsTitles];
-	[[self settingsView] show];
 	[self.listItemTextView resignFirstResponder];
+
+	BOOL hasNoteText = [self.listItemTextView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length > 0;
+
+	[ALUSettingsViewController presentForListName:_detailItem
+	                                        color:self.navigationController.navigationBar.barTintColor
+	                                  hasNoteText:hasNoteText
+	                                     delegate:self
+	                                         from:self];
 }
 
 - (void)delayedUpdateOfText {
@@ -1047,7 +1009,9 @@ static CGFloat const borderWidth = 10.0f;
 	[self checkForActionButtonAbility];
 
 	// Live typing mirrors to the external screen before the note is saved.
-	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem text:textView.text];
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem
+																	text:textView.text
+														  scrollFraction:[self currentScrollFraction]];
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
@@ -1060,11 +1024,30 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
-    if ([self settingsView].isShowing) {
-        return NO;
-    }
-    
     return YES;
+}
+
+// How far the phone has scrolled through the note (0 = top, 1 = bottom), so the
+// external screen can show the same portion of text.
+- (CGFloat)currentScrollFraction {
+	UITextView *textView = self.listItemTextView;
+	CGFloat scrollableHeight = textView.contentSize.height - textView.bounds.size.height;
+	if (scrollableHeight <= 0.0f) {
+		return 0.0f;
+	}
+	return (CGFloat)fmax(0.0, fmin(1.0, textView.contentOffset.y / scrollableHeight));
+}
+
+// UIScrollViewDelegate: UITextView forwards scroll events to its own delegate,
+// which is already self via listItemTextView.delegate.
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+	if (scrollView != self.listItemTextView) {
+		return;
+	}
+
+	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem
+																	text:nil
+														  scrollFraction:[self currentScrollFraction]];
 }
 
 
@@ -1352,21 +1335,23 @@ static CGFloat const borderWidth = 10.0f;
 
 #pragma mark - Photo Taking
 
-- (void)takePhoto {
-    DLog(@"Take Photo");
-	
-	if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-		return;
+// When the settings sheet is open, icon and location UI layers onto its own navigation
+// stack so configuring a setting never dismisses settings. Otherwise fall back to ours.
+- (UINavigationController *)presentedSettingsNavigationController {
+	UIViewController *presented = self.presentedViewController;
+	if ([presented isKindOfClass:[UINavigationController class]] &&
+	    [[(UINavigationController *)presented viewControllers].firstObject isKindOfClass:[ALUSettingsViewController class]]) {
+		return (UINavigationController *)presented;
 	}
-	
-	[[self settingsView] hide];
-	
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.delegate = self;
-    picker.allowsEditing = YES;
-    picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-    
-    [self presentViewController:picker animated:YES completion:NULL];
+	return nil;
+}
+
+- (UINavigationController *)settingActionNavigationController {
+	return [self presentedSettingsNavigationController] ?: self.navigationController;
+}
+
+- (UIViewController *)settingActionPresenter {
+	return [self presentedSettingsNavigationController] ?: self;
 }
 
 - (void)pickPhoto {
@@ -1374,14 +1359,12 @@ static CGFloat const borderWidth = 10.0f;
 		return;
 	}
 	
-	[[self settingsView] hide];
-	
 	UIImagePickerController *picker = [[UIImagePickerController alloc] init];
 	picker.delegate = self;
 	picker.allowsEditing = YES;
 	picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-	
-	[self presentViewController:picker animated:YES completion:NULL];
+
+	[[self settingActionPresenter] presentViewController:picker animated:YES completion:NULL];
 }
 
 - (void)useWebIcon {
@@ -1393,26 +1376,6 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 #pragma mark - Card Style
-
-- (void)chooseCardStyle {
-	UIAlertController *styleSheet = [UIAlertController alertControllerWithTitle:@"Card Style"
-																		message:nil
-																 preferredStyle:UIAlertControllerStyleActionSheet];
-
-	for (NSString *styleName in [ALUNoteCardView cardStyleNames]) {
-		[styleSheet addAction:[UIAlertAction actionWithTitle:styleName
-													   style:UIAlertActionStyleDefault
-													 handler:^(UIAlertAction *action) {
-			[[ALUDataManager sharedDataManager] setCardStyle:styleName forListTitle:_detailItem];
-			[self cardStyleChanged];
-		}]];
-	}
-	[styleSheet addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-
-	styleSheet.popoverPresentationController.sourceView = self.view;
-	styleSheet.popoverPresentationController.sourceRect = self.view.bounds;
-	[self presentViewController:styleSheet animated:YES completion:nil];
-}
 
 - (void)cardStyleChanged {
 	[self applyCardStyleToEditor];
@@ -1518,8 +1481,6 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)selectLocation {
-    [[self settingsView] hide];
-    
     // Use the instance property (the class method is deprecated) and escalate correctly:
     // iOS only offers When-In-Use from NotDetermined, with Always as a later escalation.
     CLLocationManager *locationManager = [[ALUDataManager sharedDataManager] locationManager];
@@ -1546,7 +1507,7 @@ static CGFloat const borderWidth = 10.0f;
     
     ALUMapViewController *mapViewController = [[ALUMapViewController alloc] init];
     mapViewController.title = _detailItem;
-    [self.navigationController pushViewController:mapViewController animated:YES];
+    [[self settingActionNavigationController] pushViewController:mapViewController animated:YES];
 }
 
 - (void)selectContact {
@@ -1567,26 +1528,34 @@ static CGFloat const borderWidth = 10.0f;
     }];
 }
 
-- (void)showEmojiView {
-    ALUEmojiImageViewController *emojiViewController = [[ALUEmojiImageViewController alloc] init];
-    emojiViewController.delegate = self;
-	[self.navigationController pushViewController:emojiViewController animated:YES];
-}
+- (void)editIcon {
+	NSString *title = _detailItem;
+	if (title.length == 0) {
+		return;
+	}
 
-- (void)showDrawingView {
-	ALUDrawingViewController *drawingViewController = [[ALUDrawingViewController alloc] init];
-	drawingViewController.delegate = self;
-	drawingViewController.currentColor = self.titleViewButton.titleLabel.textColor;
-    
-    if ([[ALUDataManager sharedDataManager] showImageForListTitle:_detailItem]) {
-        UIImage *image = [[ALUDataManager sharedDataManager] imageForCompanyName:_detailItem];
-        
-        if (image) {
-            [drawingViewController setBaseImage:image];
-        }
-    }
-	
-	[self.navigationController pushViewController:drawingViewController animated:YES];
+	ALUDataManager *dataManager = [ALUDataManager sharedDataManager];
+	UIColor *tint = [ALUNoteCardView mutedColor:[NKFColor colorForCompanyName:title]];
+	UIImage *current = [dataManager showImageForListTitle:title] ? [dataManager imageForCompanyName:title] : nil;
+
+	ALUIconEditorViewController *editor = [[ALUIconEditorViewController alloc] initWithNoteTitle:title
+																					   tintColor:tint
+																						   image:current];
+	__weak typeof(self) weakSelf = self;
+	editor.onSave = ^(UIImage *image) {
+		if (!image) {
+			return;
+		}
+		// A chosen icon wins over the web favicon, matching the card's icon editor.
+		[dataManager saveImage:image forCompanyName:title];
+		[dataManager setUseWebIcon:NO forListTitle:title];
+		if ([weakSelf.delegate respondsToSelector:@selector(reloadList)]) {
+			[weakSelf.delegate reloadList];
+		}
+	};
+
+	UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:editor];
+	[[weakSelf settingActionPresenter] presentViewController:navigationController animated:YES completion:nil];
 }
 
 #pragma mark - Messaging Delegate
@@ -1713,25 +1682,6 @@ static CGFloat const borderWidth = 10.0f;
     }
     
     [mutableString appendFormat:@" %@", string];
-}
-
-
-#pragma mark - Emoji Delegate
-
-- (void)emojiImage:(UIImage *)image {
-    if (image) {
-        [[ALUDataManager sharedDataManager] saveImage:image forCompanyName:_detailItem];
-        [[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
-    }
-}
-
-#pragma mark - Drawing Delegate
-
-- (void)drawnImage:(UIImage *)image {
-	if (image) {
-		[[ALUDataManager sharedDataManager] saveImage:image forCompanyName:_detailItem];
-		[[ALUDataManager sharedDataManager] setUseWebIcon:NO forListTitle:_detailItem];
-	}
 }
 
 @end

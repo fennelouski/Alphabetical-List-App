@@ -17,7 +17,7 @@
 
 @property (nonatomic, strong) UIView *inputAccessoryView;
 
-@property (nonatomic, strong) UIButton *addButton, *editButton;
+@property (nonatomic, strong) UIButton *addButton;
 
 @property (nonatomic, strong) UIView *headerToolbar;
 

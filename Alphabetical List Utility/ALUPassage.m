@@ -125,6 +125,11 @@
 																			   attributes:@{}]];
 	}
 	
+    [formattedVerse appendAttributedString:[[NSAttributedString alloc] initWithString:@" (NET)"
+        attributes:@{NSLinkAttributeName: [NSURL URLWithString:@"https://netbible.org"]}]];
+    [formattedVerse appendAttributedString:[[NSAttributedString alloc] initWithString:
+        @"\nNET Bible® ©1996, 2019 Biblical Studies Press, L.L.C. All rights reserved.\nhttps://netbible.org · https://netbible.com/copyright/"]];
+
 	return formattedVerse;
 }
 

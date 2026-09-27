@@ -9,9 +9,12 @@
 #import "ALUDataManager.h"
 #import "ALUVerse.h"
 #import "ALUPassage.h"
+#import "ALUServicePrivacy.h"
 #import "NKFColor+Universities.h"
 #import "NKFColor+Companies.h"
 #import <UserNotifications/UserNotifications.h>
+// Generated interface for ALUImageGenerator.swift (Image Playground is Swift-only).
+#import "Alphabetical_List_Utility-Swift.h"
 
 static NSString * const separator = @"%&&^AB)*971";
 static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
@@ -23,7 +26,11 @@ static NSString * const useCardViewKey = @"Use Card Vi£w K3Y";
 static NSString * const fontSizeKey = @"This is my font size Key and don't forget that I like Tacos";
 static NSString * const adjustedFontSizeKey = @"This is my font size Key for changing the font size of the card view";
 
-static CGFloat const screenSizeLimit = 668.0f;
+@interface ALUDataManager ()
+
+- (void)fetchWebIconIfNeededForCompanyName:(NSString *)companyName;
+
+@end
 
 @implementation ALUDataManager {
 	NSMutableArray *_lists;
@@ -48,6 +55,9 @@ static CGFloat const screenSizeLimit = 668.0f;
     NSMetadataQuery *_query;
 	BOOL _useCardView;
 	BOOL _shouldShowStatusBar;
+	NSMutableArray *_playgroundQueue;
+	NSMutableSet *_playgroundAttempted;
+	BOOL _playgroundGenerating;
 }
 
 + (instancetype)sharedDataManager {
@@ -75,9 +85,13 @@ static CGFloat const screenSizeLimit = 668.0f;
 		_apiResponseDictionary = [[NSMutableDictionary alloc] init];
         _geolocationReminders = [[NSMutableDictionary alloc] init];
         _geolocationExists = [[NSMutableDictionary alloc] init];
-		// Load the user's saved choice. The old expression tested majorVersion >= 9, which is
-		// always true now, so the stored preference was discarded on every launch.
-		_useCardView = [[NSUserDefaults standardUserDefaults] boolForKey:useCardViewKey];
+		// Load the user's saved choice; the Wallet-style card list is the default until
+		// they explicitly switch to the plain list.
+		if ([[NSUserDefaults standardUserDefaults] objectForKey:useCardViewKey] == nil) {
+			_useCardView = YES;
+		} else {
+			_useCardView = [[NSUserDefaults standardUserDefaults] boolForKey:useCardViewKey];
+		}
 		_shouldShowStatusBar = YES;
         
 		_lists = [[NSMutableArray alloc] initWithArray:listTitles];
@@ -153,26 +167,39 @@ static CGFloat const screenSizeLimit = 668.0f;
 
 - (void)addDefaultList {
 	if (_lists.count == 0 && _dictionaryOfLists.count == 0) {
-		NSString *listTitle = @"Welcome!";
-		
 		NSString *deviceType = [UIDevice currentDevice].model;
 		DLog(@"deviceType: %@", deviceType);
-		
-		if ([deviceType rangeOfString:@"iPhone"].location != NSNotFound) {
-			if (kScreenHeight < screenSizeLimit && kScreenWidth < screenSizeLimit) {
-				NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap the + to create a new note.\n\nTap a note title to open that note.\n\nWith a note open, tap on the note title to see settings for that note or tap < to return to a list of all your notes.\n\nPinch this text to adjust the font size.";
-				[_lists addObject:listTitle];
-				[_dictionaryOfLists setObject:list forKey:listTitle];
-			} else {
-				NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap < to see a list of all your notes. Tap the + to create a new note.\n\nTap the note title to view settings for that note.\n\nPinch this text to adjust the font size.";
-				[_lists addObject:listTitle];
-				[_dictionaryOfLists setObject:list forKey:listTitle];
-			}
-		} else /*if ([deviceType rangeOfString:@"iPad"].location != NSNotFound)*/ {
-			NSString *list = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap \"My Notes\" to see a list of all your notes. Tap the \"+\" to create a new note.\n\nPinch this text to adjust the font size.";
-			[_lists addObject:listTitle];
-			[_dictionaryOfLists setObject:list forKey:listTitle];
+
+		BOOL isiPhone = [deviceType rangeOfString:@"iPhone"].location != NSNotFound;
+
+		// Numeric prefixes keep these three notes sorted first, ahead of the user's own
+		// notes, since -lists sorts alphabetically.
+		NSString *useTitle = @"1. How to Use A2Z Notes";
+		NSString *useNote;
+		if (isiPhone) {
+			useNote = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap ⌄ to return to your stack of notes. Tap + to create a new note.\n\nTap the note title to view settings for that note.\n\nPinch this text to adjust the font size.";
+		} else {
+			useNote = @"Welcome to A2Z Notes!\n\nThis is your first note.\n\nTap \"My Notes\" to see a list of all your notes. Tap the \"+\" to create a new note.\n\nPinch this text to adjust the font size.";
 		}
+
+		NSString *settingsTitle = @"2. How to Modify a Note's Settings";
+		NSString *settingsNote = @"Open a note, then tap on its title at the top of the screen.\n\nThis opens that note's settings, where you can:\n\n• Rename the note\n• Turn on numbered list mode\n• Alphabetize the note's lines\n• Add a photo or use a web icon\n• Choose a color for the note\n• Attach a location-based reminder\n• Attach a contact\n• Insert an emoji or a drawing\n• Email the note\n\nTap outside the settings to close them.";
+
+		NSString *wandTitle = @"3. Polish with the Magic Wand";
+		NSString *wandNote = @"See the magic wand at the top of every note?\n\nTap it to polish the note you're reading: it can tidy up formatting, fix typos, or rewrite the note more clearly.\n\nThe built-in polisher uses Apple’s on-device model. If system Writing Tools are offered instead, their processing follows your Apple settings.\n\nYou'll always see what changed before anything is saved.";
+
+		NSString *deleteTitle = @"4. How to Delete a Note";
+		NSString *goToListInstruction = isiPhone ? @"Tap ⌄ to return to your stack of notes." : @"Tap \"My Notes\" to see a list of all your notes.";
+		NSString *deleteNote = [NSString stringWithFormat:@"%@\n\nSwipe left on any note, then tap Delete.\n\nIf you delete every note, these instructional notes will reappear to help you get started again.", goToListInstruction];
+
+		for (NSArray *pair in @[@[useTitle, useNote], @[settingsTitle, settingsNote], @[wandTitle, wandNote], @[deleteTitle, deleteNote]]) {
+			NSString *title = pair[0];
+			NSString *note = pair[1];
+			[_lists addObject:title];
+			[self saveList:note withTitle:title];
+		}
+
+		[self updateListsInStorage];
 	}
 }
 
@@ -197,6 +224,10 @@ static CGFloat const screenSizeLimit = 668.0f;
 		DLog(@"List does NOT exist...cannot remove");
 	}
 	
+    if ([_verseOfTheDayListTitle isEqualToString:listTitle]) {
+        _containsBibleVerseOfTheDay = NO;
+        _verseOfTheDayListTitle = nil;
+    }
 	[_lists removeObject:listTitle];
 	[_dictionaryOfLists removeObjectForKey:listTitle];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -247,8 +278,9 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 	[self saveList:attributedList.string withTitle:cleanedTitle];
 
 	NSError *error = nil;
+	// RTFD rather than RTF so inline image attachments survive the round trip.
 	NSData *richTextData = [attributedList dataFromRange:NSMakeRange(0, attributedList.length)
-									  documentAttributes:@{NSDocumentTypeDocumentAttribute : NSRTFTextDocumentType}
+									  documentAttributes:@{NSDocumentTypeDocumentAttribute : NSRTFDTextDocumentType}
 												   error:&error];
 
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -271,8 +303,10 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 
 	if (richTextData) {
 		NSError *error = nil;
+		// No explicit document type: the importer sniffs the format, so both new RTFD
+		// notes and notes saved as RTF by earlier builds decode.
 		NSAttributedString *attributedList = [[NSAttributedString alloc] initWithData:richTextData
-																			 options:@{NSDocumentTypeDocumentAttribute : NSRTFTextDocumentType}
+																			 options:@{}
 																  documentAttributes:nil
 																			   error:&error];
 		NSString *plainText = [self listWithTitle:cleanedTitle];
@@ -358,6 +392,12 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 			return savedImage;
 		}
 	}
+
+	// The monogram below shows immediately as a placeholder. In the background we try to
+	// do better: a real favicon when we're confident the note names a brand, or — when we
+	// aren't — an on-device generated icon. fetchWebIconIfNeeded makes that call and hands
+	// off to the (one-at-a-time) generator whenever no confident brand icon turns up.
+	[self fetchWebIconIfNeededForCompanyName:companyName];
 
 	// Otherwise draw a monogram in the note's own brand colour, on device.
 	//
@@ -466,100 +506,7 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
         companyNameURLString = [NSString stringWithFormat:@"%@.com",[[[companyName lowercaseString] componentsSeparatedByCharactersInSet:[[NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyz0123456789"] invertedSet]] componentsJoinedByString:@""]];
     }
     
-    NSDictionary *forwardingWords = @{@"volcano"			: @"volcanocorp.com",
-                                      @"welcome"			: @"nathanfennel.com",
-                                      @"massachusetts"		: @"mass.gov",
-                                      @"arizona"			: @"az.gov",
-                                      @"jets"				: @"newyorkjets.com",
-                                      @"astonvilla"			: @"avfc.co.uk/",
-                                      @"atlantahawks"		: @"hawks.com",
-                                      @"vikings"			: @"vikings",
-                                      @"bostonceltics"		: @"celtics.com",
-                                      @"sacramentokings"	: @"kings.com",
-                                      @"kings"				: @"lakings.com",
-                                      @"seattleseahawks"	: @"seahawks.com",
-                                      @"ravens"				: @"baltimoreravens.com",
-                                      @"carolinapanthers"	: @"panthers.com",
-                                      @"houstontexans"		: @"texans.com",
-                                      @"indianapoliscolts"	: @"colts.com",
-                                      @"greenbaypackers"	: @"packers.com",
-                                      @"newenglandpatriots"	: @"patriots.com",
-                                      @"minnesotavikings"	: @"vikings.com",
-                                      @"saints"				: @"neworleanssaints.com",
-                                      @"oaklandraiders"		: @"raiders.com",
-                                      @"pittsburgsteelers"	: @"steelers.com",
-                                      @"sandiegochargers"	: @"chargers.com",
-                                      @"sdchargers"			: @"chargers.com",
-                                      @"mexico"				: @"presidencia.gob.mx/",
-                                      @"california"			: @"ca.gov",
-                                      @"sanfrancisco49ers"	: @"49ers.com",
-                                      @"49ers"				: @"49ers.com",
-                                      @"rams"				: @"stlouisrams.com",
-                                      @"tampabaybuccaneers"	: @"buccaneers.com",
-                                      @"anaheimducks"		: @"ducks.nhl.com",
-                                      @"bruins"				: @"bostonbruins.com",
-                                      @"oilers"				: @"edmontonoilers.com",
-                                      @"minnesotawild"		: @"wild.com",
-                                      @"mapleleafs"			: @"torontomapleleafs.com",
-                                      @"neworleanspelicans"	: @"pelicans.com",
-                                      @"goldenstatewarriors": @"warriors.com",
-                                      @"laclippers"			: @"clippers.com",
-                                      @"losangelesclippers"	: @"clippers.com",
-                                      @"mets"				: @"newyork.mets.mlb.com",
-                                      @"padres"				: @"padres.com",
-                                      @"sandiegopadres"		: @"padres.com",
-                                      @"oaklandas"			: @"oaklandathletics.com",
-                                      @"anaheimangels"		: @"angels.com",
-                                      @"miamimarlins"		: @"marlins.com",
-                                      @"chicagocubs"		: @"cubs.com",
-                                      @"coloradorockies"	: @"coloradorockies.com",
-                                      @"baltimoreorioles"	: @"orioles.com",
-                                      @"hotspur"			: @"tottenhamhotspur.com",
-                                      @"meh"				: @"meh.com",
-                                      @"amazon"				: @"amazon.com",
-                                      @"amazonbook"			: @"amazon.com",
-                                      @"windows"            : @"microsoft.com",
-                                      @"ace"                : @"acehardware.com",
-                                      @"luckys"             : @"luckysmarket.com",
-                                      @"harvard"            : @"harvard.edu",
-                                      @"apu"                : @"apu.edu",
-                                      @"calpoly"            : @"calpoly.edu",
-                                      @"ucla"               : @"ucla.edu",
-                                      @"usc"                : @"usc.edu",
-									  @"bible"              : @"bible.com",
-									  @"bibleverseoftheday" : @"bible.com",
-									  @"bibleversedaily"	: @"bible.com",
-									  @"dailybibleverse"    : @"bible.com",
-									  @"dailyscripture"		: @"bible.com",
-									  @"scriptureeveryday"  : @"bible.com",
-									  @"versedaily"			: @"bible.com",
-									  @"verseoftheday"      : @"bible.com",
-									  @"scripturedaily"     : @"bible.com",
-									  @"mit"                : @"mit.edu",
-                                      @"darntoughsocks"		: @"darntough.com",
-                                      @"ohiostate"          : @"osu.edu",
-                                      @"ohiostateuniversity": @"osu.edu",
-                                      @"michiganstateuniversity":@"msu.edu",
-                                      @"michiganstate"      : @"msu.edu",
-                                      @"mississippistate"   : @"mssstate.edu",
-									  @"pier1imports"		: @"pier1.com",
-									  @"worldmark"			: @"worldmarkbywyndham.com",
-                                      @"peetscoffeeandtea"  : @"peets.com",
-                                      @"peetscoffee"        : @"peets.com",
-                                      @"innout"             : @"in-n-out.com",
-                                      @"northeastern"       : @"northeastern.edu",
-                                      @"northwestern"       : @"northwestern.edu",
-                                      @"northeasternuniversity": @"northeastern.edu",
-                                      @"northwesternuniversity": @"northwestern.edu",
-									  @"americanairlines"	: @"aa.com",
-									  @"wholefoods"			: @"wholefoodsmarket.com",
-									  @"unity"				: @"unity3d.com",
-									  @"aandw"				: @"awrestaurants.com",
-									  @"aw"					: @"awrestaurants.com",
-									  @"oculusrift"			: @"oculus.com",
-									  @"benandjerrys"		: @"benjerry.com",
-									  @"benjerrys"			: @"benjerry.com",
-									  @"californiapizzakitchen":@"cpk.com"};
+    NSDictionary *forwardingWords = ALULegacyForwardingDomains();
 	
     BOOL replacementFound = NO;
     for (NSString *forwardingWord in forwardingWords.allKeys) {
@@ -684,6 +631,48 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 }
 
 
+#pragma mark - Card Style
+
+// Same per-title NSUserDefaults pattern as list mode / show image below.
+
+- (void)setCardStyle:(NSString *)style forListTitle:(NSString *)title {
+	if (title.length == 0) {
+		return;
+	}
+	[[NSUserDefaults standardUserDefaults] setObject:style forKey:[NSString stringWithFormat:@"%@cardStyle", title]];
+}
+
+- (NSString *)cardStyleForListTitle:(NSString *)title {
+	if (title.length == 0) {
+		return nil;
+	}
+	return [[NSUserDefaults standardUserDefaults] stringForKey:[NSString stringWithFormat:@"%@cardStyle", title]];
+}
+
+- (void)setCardStyleListIntensity:(CGFloat)intensity forListTitle:(NSString *)title {
+	if (title.length == 0) {
+		return;
+	}
+	[[NSUserDefaults standardUserDefaults] setObject:@(intensity) forKey:[NSString stringWithFormat:@"%@cardStyleListIntensity", title]];
+}
+
+- (CGFloat)cardStyleListIntensityForListTitle:(NSString *)title {
+	NSNumber *stored = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"%@cardStyleListIntensity", title]];
+	return stored ? stored.doubleValue : 1.0f;
+}
+
+- (void)setCardStyleEditorIntensity:(CGFloat)intensity forListTitle:(NSString *)title {
+	if (title.length == 0) {
+		return;
+	}
+	[[NSUserDefaults standardUserDefaults] setObject:@(intensity) forKey:[NSString stringWithFormat:@"%@cardStyleEditorIntensity", title]];
+}
+
+- (CGFloat)cardStyleEditorIntensityForListTitle:(NSString *)title {
+	NSNumber *stored = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"%@cardStyleEditorIntensity", title]];
+	return stored ? stored.doubleValue : 0.35f;
+}
+
 #pragma mark - List Mode
 
 - (void)setListMode:(BOOL)listMode forListTitle:(NSString *)title {
@@ -790,6 +779,119 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
     } else {
         DLog(@"setUseWebIcon: List is not recognized and cannot set show image: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
+}
+
+NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotification";
+
+// Downloads a favicon for notes whose title maps to a domain in the bundled brand
+// table. Only the bundled domain string leaves the device — never the note title —
+// and only when the note's "Use Web Icon" setting is on. One attempt per launch.
+- (void)fetchWebIconIfNeededForCompanyName:(NSString *)companyName {
+	static NSMutableSet *attempted;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{ attempted = [[NSMutableSet alloc] init]; });
+
+	// Already have a chosen / favicon / previously-generated icon on disk — leave it be.
+	if ([self imageSavedLocallyForCompanyName:companyName]) {
+		return;
+	}
+
+	NSString *domain = ALUWebIconDomain(companyName);
+	if (!domain || ![self useWebIconForListTitle:companyName]) {
+		// No favicon will be tried for this note — go straight to on-device generation.
+		[self generatePlaygroundIconIfNeededForCompanyName:companyName];
+		return;
+	}
+	if ([attempted containsObject:companyName]) {
+		// A favicon is already in flight or done for this note this launch; its completion
+		// routes to generation on failure, so don't double up here.
+		return;
+	}
+	[attempted addObject:companyName];
+
+	NSURLRequest *iconRequest = ALUWebIconRequest(companyName);
+	[[ALUContentSession() dataTaskWithRequest:iconRequest
+								 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+		// Network failure (offline / unreachable): decide nothing. Keep the monogram and
+		// let a later launch retry the favicon, so we never shadow a real brand icon with
+		// a generated one just because the lookup happened to fail.
+		if (error || !data || ![response isKindOfClass:NSHTTPURLResponse.class] ||
+            ((NSHTTPURLResponse *)response).statusCode != 200) {
+			return;
+		}
+
+		UIImage *icon = [UIImage imageWithData:data];
+		// A tiny result is the service's generic globe placeholder: the service answered and
+		// this name isn't a brand we recognize, so generate an icon on-device instead.
+		if (!icon || icon.size.width <= 16.0f) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				[self generatePlaygroundIconIfNeededForCompanyName:companyName];
+			});
+			return;
+		}
+		dispatch_async(dispatch_get_main_queue(), ^{
+			if (![self useWebIconForListTitle:companyName] || [self imageSavedLocallyForCompanyName:companyName]) return;
+			[self saveImage:icon forCompanyName:companyName];
+			[[NSNotificationCenter defaultCenter] postNotificationName:ALUNoteIconDidLoadNotification object:companyName];
+		});
+	}] resume];
+}
+
+// Fully on-device: nothing leaves the phone. Reached only after fetchWebIconIfNeeded
+// decides no confident brand icon exists, so brand notes are never generated over.
+// Icons are queued and generated one at a time — the model is happier not being asked
+// for several at once — and results persist via saveImage. One attempt per title/launch.
+- (void)generatePlaygroundIconIfNeededForCompanyName:(NSString *)companyName {
+	if (!_playgroundQueue) {
+		_playgroundQueue = [[NSMutableArray alloc] init];
+		_playgroundAttempted = [[NSMutableSet alloc] init];
+	}
+
+	if (companyName.length == 0 ||
+		![ALUImageGenerator isSupported] ||
+		[self imageSavedLocallyForCompanyName:companyName] ||
+		![self showImageForListTitle:companyName] ||
+		[_playgroundAttempted containsObject:companyName] ||
+		[_playgroundQueue containsObject:companyName]) {
+		return;
+	}
+
+	[_playgroundQueue addObject:companyName];
+	[self processPlaygroundQueue];
+}
+
+// Drains the queue one icon at a time. Everything here runs on the main thread — icon
+// requests come from cell rendering and the generator's completion returns on the main
+// queue — so the queue needs no locking.
+- (void)processPlaygroundQueue {
+	if (_playgroundGenerating) {
+		return;
+	}
+
+	while (_playgroundQueue.count > 0) {
+		NSString *companyName = _playgroundQueue.firstObject;
+		[_playgroundQueue removeObjectAtIndex:0];
+
+		// A favicon may have landed (or icons been switched off) while this note waited
+		// its turn — if so it's handled, so skip it and move on.
+		if ([self imageSavedLocallyForCompanyName:companyName] ||
+			![self showImageForListTitle:companyName]) {
+			continue;
+		}
+
+		[_playgroundAttempted addObject:companyName];
+		_playgroundGenerating = YES;
+		[ALUImageGenerator generateIconForNoteTitle:companyName completion:^(UIImage *icon) {
+			if (icon && ![self imageSavedLocallyForCompanyName:companyName]) {
+				if (![self useWebIconForListTitle:companyName] || [self imageSavedLocallyForCompanyName:companyName]) return;
+			[self saveImage:icon forCompanyName:companyName];
+				[[NSNotificationCenter defaultCenter] postNotificationName:ALUNoteIconDidLoadNotification object:companyName];
+			}
+			_playgroundGenerating = NO;
+			[self processPlaygroundQueue];
+		}];
+		return;  // one generation in flight at a time
+	}
 }
 
 - (BOOL)useWebIconForListTitle:(NSString *)title {
@@ -1129,6 +1231,8 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 #pragma mark - Bible Verse of the Day
 
 - (void)checkForBibleVerseOfTheDay {
+    _containsBibleVerseOfTheDay = NO;
+    _verseOfTheDayListTitle = nil;
 	NSArray *possibleTitles = @[@"bibleverseoftheday", @"bibleversedaily", @"dailybibleverse", @"dailyscripture", @"scriptureeveryday", @"scripturedaily", @"verseoftheday", @"versedaily"];
 	for (int i = 0; i < _lists.count && !_containsBibleVerseOfTheDay; i++) {
 		NSString *title = [_lists objectAtIndex:i];
@@ -1170,11 +1274,12 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 	
 	if (![today isEqualToDate:lastVerseOfTheDayDate] ||
 		[self listWithTitle:_verseOfTheDayListTitle].length == 0) {
-		NSURL *URL = [NSURL URLWithString:@"https://labs.bible.org/api/?passage=votd&type=json"];
+		NSURL *URL = [NSURL URLWithString:@"https://labs.bible.org/api/?passage=votd&type=json&formatting=plain"];
 		NSURLRequest *request = [NSURLRequest requestWithURL:URL];
-		NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request
+		NSURLSessionDataTask *task = [ALUContentSession() dataTaskWithRequest:request
 																			 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-			if (error || !data) {
+			if (error || !data || ![response isKindOfClass:NSHTTPURLResponse.class] ||
+            ((NSHTTPURLResponse *)response).statusCode != 200) {
 				DLog(@"Error retrieving verse of the day: %@", error);
 				return;
 			}
@@ -1198,7 +1303,7 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 	if ([responseObject isKindOfClass:[NSArray class]]) {
 		ALUPassage *passage = [[ALUPassage alloc] init];
 		for (id object in responseObject) {
-			if ([object isKindOfClass:[NSDictionary class]]) {
+			if ([object isKindOfClass:[NSDictionary class]] && ALUValidVersePayload(object)) {
 				ALUVerse *verse = [self verseFromJSONDictionary:object];
 				[passage addVerse:verse];
 				
@@ -1212,30 +1317,19 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 			}
 		}
 		
-		NSMutableString *updatedListText = [[NSMutableString alloc] initWithString:passage.formattedVerse.string];
-		
-		NSString *oldListText = [self listWithTitle:_verseOfTheDayListTitle];
-		
-		if (oldListText) {
-			// check if the verse is already entered in the note in the right format
-			if ([oldListText containsString:[updatedListText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]] ||
-				[updatedListText containsString:[oldListText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]]) {
-				return;
-			} else {
-				// if the verse is not found, then add the date to the beginning of the verse and prepend the whole thing to the top of the note
-				[updatedListText deleteCharactersInRange:NSMakeRange(0, updatedListText.length)];
-				[updatedListText appendString:passage.formattedVersePrependedByDate.string];
-				
-				[updatedListText appendFormat:@"\n\n%@", oldListText];
-				
-				// the verse of the day can actually be added so update the date of the last verse of the day
-				NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-				[defaults setObject:[NSDate date] forKey:lastVerseOfTheDayDateKey];
-			}
-		}
-		
-		[self saveList:[updatedListText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]
-			 withTitle:_verseOfTheDayListTitle];
+        if (passage.verses.count == 0 || _verseOfTheDayListTitle.length == 0 || ![_lists containsObject:_verseOfTheDayListTitle]) return;
+        NSAttributedString *oldNote = [self attributedListWithTitle:_verseOfTheDayListTitle];
+        NSString *verseText = passage.formattedVerse.string;
+        if (ALUShouldPrependVerse(oldNote.string, verseText)) {
+            NSMutableAttributedString *updated = [passage.formattedVersePrependedByDate mutableCopy];
+            if (oldNote.length) {
+                [updated appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\n"]];
+                [updated appendAttributedString:oldNote];
+            }
+            [self saveAttributedList:updated withTitle:_verseOfTheDayListTitle];
+        }
+        // A valid already-present verse is also up to date; avoid refetching all day.
+        [[NSUserDefaults standardUserDefaults] setObject:NSDate.date forKey:lastVerseOfTheDayDateKey];
 
 	} else if ([responseObject isKindOfClass:[NSDictionary class]]) {
 		DLog(@"Received dictionary instead of array as expected");
@@ -1247,19 +1341,12 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 - (ALUVerse *)verseFromJSONDictionary:(NSDictionary *)responseDictionary {
 	ALUVerse *verse = [ALUVerse new];
 	
-	for (NSString *key in responseDictionary) {
-		if ([key containsString:@"bookname"]) {
-			verse.book = [responseDictionary objectForKey:key];
-		} else if ([key containsString:@"chapter"]) {
-			verse.chapter = [[responseDictionary objectForKey:key] integerValue];
-		} else if ([key containsString:@"verse"]) {
-			verse.verse = [[responseDictionary objectForKey:key] integerValue];
-		} else if ([key containsString:@"title"]) {
-			verse.title = [responseDictionary objectForKey:key];
-		} else if ([key containsString:@"text"]) {
-			verse.text = [responseDictionary objectForKey:key];
-		}
-	}
+    verse.book = responseDictionary[@"bookname"];
+    verse.chapter = [responseDictionary[@"chapter"] integerValue];
+    verse.verse = [responseDictionary[@"verse"] integerValue];
+    verse.text = responseDictionary[@"text"];
+    id title = responseDictionary[@"title"];
+    if ([title isKindOfClass:NSString.class]) verse.title = title;
 
 	return verse;
 }
@@ -1302,20 +1389,19 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
 }
 
 - (void)loadIcloudDocument:(NSString *)noteTitle {
+    if (noteTitle.length == 0) return;
     NSMetadataQuery *query = [[NSMetadataQuery alloc] init];
     self.query = query;
     [self.query setSearchScopes:[NSArray arrayWithObject:NSMetadataQueryUbiquitousDocumentsScope]];
     
     NSPredicate *pred = [NSPredicate predicateWithFormat:@"%K == %@", NSMetadataItemFSNameKey, noteTitle];
     [query setPredicate:pred];
-    
-    
-    [query startQuery];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(queryDidFinishGathering:)
                                                  name:NSMetadataQueryDidFinishGatheringNotification
                                                object:query];
+    [query startQuery];
 }
 
 - (void)queryDidFinishGathering:(NSNotification *)notification {
@@ -1348,8 +1434,10 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
             }
         }];
     } else {
+        if ([_lists firstObject] == nil) return;
         NSURL *ubiq = [[NSFileManager defaultManager]
                        URLForUbiquityContainerIdentifier:nil];
+        if (!ubiq) return;
         NSURL *ubiquitousPackage = [[ubiq URLByAppendingPathComponent:@"Documents"] URLByAppendingPathComponent:[_lists firstObject]];
         
         ALUDocument *document = [[ALUDocument alloc] initWithFileURL:ubiquitousPackage];
