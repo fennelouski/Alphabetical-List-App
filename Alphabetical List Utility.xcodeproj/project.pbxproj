@@ -17,6 +17,7 @@
 		27A8C22F1B4AD62800E5A3D9 /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C22E1B4AD62800E5A3D9 /* MasterViewController.m */; };
 		27A8C2321B4AD62800E5A3D9 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */; };
 		27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 27A8C2331B4AD62800E5A3D9 /* Main.storyboard */; };
+		A30050000000000000000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A30050000000000000000003 /* LaunchScreen.storyboard */; };
 		27A8C2371B4AD62800E5A3D9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 27A8C2361B4AD62800E5A3D9 /* Assets.xcassets */; };
 		27A8C2451B4AD62800E5A3D9 /* Alphabetical_List_UtilityTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C2441B4AD62800E5A3D9 /* Alphabetical_List_UtilityTests.m */; };
 		27A8C25F1B4AD7BB00E5A3D9 /* ALUDataManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 27A8C25E1B4AD7BB00E5A3D9 /* ALUDataManager.m */; };
@@ -114,6 +115,7 @@
 		27A8C2301B4AD62800E5A3D9 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
 		27A8C2311B4AD62800E5A3D9 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		27A8C2341B4AD62800E5A3D9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		A30050000000000000000002 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		27A8C2361B4AD62800E5A3D9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		27A8C23B1B4AD62800E5A3D9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		27A8C2401B4AD62800E5A3D9 /* Alphabetical List UtilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Alphabetical List UtilityTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -291,6 +293,7 @@
 				803127951B77E81900033031 /* Views */,
 				803127961B77E82300033031 /* Data */,
 				27A8C2331B4AD62800E5A3D9 /* Main.storyboard */,
+				A30050000000000000000003 /* LaunchScreen.storyboard */,
 				27A8C2361B4AD62800E5A3D9 /* Assets.xcassets */,
 				27A8C23B1B4AD62800E5A3D9 /* Info.plist */,
 				27A8C2271B4AD62800E5A3D9 /* Supporting Files */,
@@ -611,6 +614,7 @@
 				27A8C2371B4AD62800E5A3D9 /* Assets.xcassets in Resources */,
 				27D6F7991B67F3F900F42EAA /* TestLocations.gpx in Resources */,
 				27A8C2351B4AD62800E5A3D9 /* Main.storyboard in Resources */,
+				A30050000000000000000001 /* LaunchScreen.storyboard in Resources */,
 				27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */,
 				27CAD7BE1B7A91A500D67DDD /* Color-gradient.png in Resources */,
 			);
@@ -713,6 +717,14 @@
 				27A8C2341B4AD62800E5A3D9 /* Base */,
 			);
 			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		A30050000000000000000003 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A30050000000000000000002 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -834,7 +846,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3004;
+				CURRENT_PROJECT_VERSION = 3005;
 			};
 			name = Debug;
 		};
@@ -872,7 +884,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3004;
+				CURRENT_PROJECT_VERSION = 3005;
 			};
 			name = Release;
 		};
