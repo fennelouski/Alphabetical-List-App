@@ -20,17 +20,20 @@ static inline NSURLSession *ALUContentSession(void) {
     return session;
 }
 
-static inline BOOL ALUShouldPrependVerse(NSString *existing, NSString *verse) {
-    NSString *trimmedVerse = [verse stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    return trimmedVerse.length > 0 && ![existing containsString:trimmedVerse];
+static inline NSURL *ALUDailyBiblePassageURL(void) {
+    return [NSURL URLWithString:@"https://www.bible.com/verse-of-the-day"];
 }
 
-static inline BOOL ALUValidVersePayload(NSDictionary *value) {
-    if (![value[@"bookname"] isKindOfClass:NSString.class] || ![value[@"text"] isKindOfClass:NSString.class]) return NO;
-    id chapter = value[@"chapter"], verse = value[@"verse"];
-    if (![chapter isKindOfClass:NSString.class] && ![chapter isKindOfClass:NSNumber.class]) return NO;
-    if (![verse isKindOfClass:NSString.class] && ![verse isKindOfClass:NSNumber.class]) return NO;
-    return [value[@"bookname"] length] > 0 && [value[@"text"] length] > 0 && [chapter integerValue] > 0 && [verse integerValue] > 0;
+static inline BOOL ALUIsDailyBibleNoteTitle(NSString *title) {
+    NSString *key = [[[title lowercaseString] componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] componentsJoinedByString:@""];
+    for (NSString *alias in @[@"bibleverseoftheday", @"bibleversedaily", @"dailybibleverse", @"dailyscripture", @"scriptureeveryday", @"scripturedaily", @"verseoftheday", @"versedaily"]) {
+        if ([key containsString:alias]) return YES;
+    }
+    return NO;
+}
+
+static inline BOOL ALUShouldAddDailyBibleLink(NSString *existing) {
+    return ![existing containsString:ALUDailyBiblePassageURL().absoluteString];
 }
 
 // This is the complete outbound allowlist. Never derive an outbound domain from a title.
@@ -165,8 +168,5 @@ static inline NSString *ALUWebIconDomain(NSString *title) {
 static inline NSURLRequest *ALUWebIconRequest(NSString *title) {
     NSString *domain = ALUWebIconDomain(title);
     if (!domain) return nil;
-    NSURLComponents *url = [NSURLComponents componentsWithString:@"https://www.google.com/s2/favicons"];
-    url.queryItems = @[[NSURLQueryItem queryItemWithName:@"domain" value:domain],
-                      [NSURLQueryItem queryItemWithName:@"sz" value:@"128"]];
-    return [NSURLRequest requestWithURL:url.URL];
+    return [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://%@/favicon.ico", domain]]];
 }

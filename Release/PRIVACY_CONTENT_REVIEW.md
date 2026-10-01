@@ -1,46 +1,55 @@
-# AtoZ Notes 3.0.0 (3002)
+# AtoZ Notes 3.0.0, build 3003
 
-This snapshot preserves the prepared native redesign and rich note storage.
-Build 3001 must not be used: its favicon helper could construct domains from
-arbitrary note titles, despite a comment claiming only bundled domains were sent.
-Build 3002 separates a fixed outbound domain allowlist from legacy local image
-keys. Unknown titles use the existing local fallback. Existing online-icon
-preferences/defaults are preserved, with a direct per-note switch and disclosure.
-The callback respects a changed choice or custom icon before saving its result.
+Build 3003 replaces the Labs NET verse download and reproduction with one external
+[Daily Bible passage link](https://www.bible.com/verse-of-the-day). Matching daily
+Bible note titles keep their aliases. The app prepends the fixed link once,
+appends the existing attributed note without flattening it, and uses the existing
+plain-text/RTFD store. It does not fetch Bible text. Previously saved verses and
+user edits remain in their notes. Settings also offers Read Daily Passage, which
+opens the external site. The site and its current passage link were verified on
+2026-10-01. There is no in-app browser or scraping of that page.
 
-Public-content requests use an ephemeral session without cookies, saved
-credentials or a disk response cache. This does not prevent provider IP/request
-logging. The Bible request is a fixed verse-of-the-day URL with plain-text output.
-Its response is validated; empty notes receive their first verse; existing rich
-text is preserved; duplicate valid verses still update the last-fetch date.
-NET attribution, source links and copyright credits are included with new verses.
-A privacy/source notice is available from each note's settings. An empty iCloud
-note title is ignored, and query observation begins before querying.
+Web icons request `https://<allowlisted-origin>/favicon.ico` directly. Arbitrary
+note titles, private domains, paths, credentials and note bodies cannot become
+requests. Valid 16-pixel favicons are accepted. The existing per-note setting,
+local saved-image cache, custom-icon protection and offline/local fallback stay
+in place. Requests still use the existing ephemeral session with no cookies,
+shared credentials or URL cache. Origin websites and their hosting providers
+receive normal connection information and may retain request logs.
 
-Run `sh Tests/ServicePrivacyChecks/run.sh` for Foundation checks of outbound
-allowlisting, isolated networking configuration, empty/duplicate verse insertion
-and malformed provider payloads. No native UI execution is claimed by these tests.
+The owner authorized external Bible links and originating-site favicons, and
+specified free availability in all possible countries. This records the intended
+feature and distribution scope. It does not establish a blanket license for
+third-party logos or supply the App Store necessary-rights legal attestation.
+No NET text is bundled or downloaded by this build; historical user notes are
+preserved. The privacy manifest retains the existing conservative Other Usage
+Data and Coarse Location declarations. The final privacy answers require the
+originating-site practices to be assessed; the old S2/Labs analysis cannot be
+copied as current endpoint evidence.
 
-App Store privacy cannot be Data Not Collected: Bible.org documents retained
-request URLs/IP addresses, and Google's policy describes request logging,
-analytics and IP-derived general location. Current provider policies do not give
-S2/Labs-specific retention periods. No raw note text is sent by build 3002's
-content requests; no app accounts, IDFA, app analytics SDK or ad SDK are present.
-Apple-only framework collection is not automatically developer collection.
-The workspace report records exact recommended labels and remaining uncertainty.
+Validation on the current owned Mac, with no verified idle alternate available:
 
-Content Rights is not ready for an unconditional assertion. NET requires linked
-attribution; its free-app permission differs from commercial publication terms.
-Current AtoZ price/license evidence is not available in the release ledger. A
-favicon response is not itself a grant to reuse each third-party logo. Preserve
-the useful features while establishing the applicable permission/legal basis;
-do not infer rights from a successful HTTP response or merely adding credits.
+- `sh Tests/ServicePrivacyChecks/run.sh` passed. It checks isolated networking,
+  all daily Bible aliases, new/empty/historical notes, duplicate links and every
+  valid allowlisted origin URL. These are host checks, not native UI tests.
+- `plutil -lint` passed for the app plist and Xcode project; `git diff --check`
+  passed. Removed verse formatter models have no remaining code/project callers.
+- Release archive succeeded with Xcode 26.6. Four existing external-display
+  deprecation warnings and one App Intents metadata notice remain.
+- `codesign --verify --deep --strict` passed. Archive plist confirms 3.0.0,
+  build 3003 and `com.nathanfennel.A2Z`.
 
-Primary sources:
-- https://developer.apple.com/app-store/app-privacy-details/
-- https://bible.org/article/privacy-policy-and-terms-use
-- https://labs.bible.org/api_web_service
-- https://netbible.com/copyright/
-- https://policies.google.com/privacy
-- https://policies.google.com/technologies/retention
-- https://policies.google.com/terms
+Archive: `/Users/nathan/Library/Developer/Xcode/Archives/2026-10-01/AtoZ Notes 3.0.0-3003.xcarchive`
+
+Build log: `/tmp/atoz-build3003-archive.log`
+
+Executable SHA-256: `a6f57e9d961d09bd3398ed943ec8515540bb347b97c152dcda052f96d4711aec`
+
+Build 3003 supersedes prepared build 3002. It has not been uploaded or selected.
+Next native QA must exercise external link opening, one-time insertion and
+restart, original RTFD formatting/attachments, direct-site favicon loading,
+custom/cached icons, switch changes during requests, offline fallback, note
+editing/deletion/search, location and Apple Intelligence flows, and accessibility.
+Then verify screenshots/listing/privacy/rights, export, upload and select 3003.
+No native UI, simulator preference changes, App Store API actions, upload or
+submission occurred in this source/build pass.

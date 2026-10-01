@@ -12,6 +12,7 @@
 #import "NKFColor+Companies.h"
 #import "UIColor+AppColors.h"
 #import "ALUDataManager.h"
+#import "ALUServicePrivacy.h"
 #import "ALUNoteCardView.h"
 
 #pragma mark - Row model
@@ -226,13 +227,10 @@ static NSDictionary *ALUSection(NSString *title, NSArray *rows) {
     }];
     ALUSettingRow *servicesRow = [ALUSettingRow rowWithTitle:@"Online Services & Credits" symbol:@"info.circle" action:^{
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Online services"
-            message:@"Online icons use Google’s favicon service. Notes named for the daily Bible verse request the same NET Bible verse from Bible.org; note text is not uploaded. These providers receive your IP address and may retain request logs.\n\nNET Bible® ©1996, 2019 Biblical Studies Press, L.L.C. All rights reserved. Logos belong to their respective owners."
+            message:@"Online icons come from recognized websites, which receive your IP address and may log the request. Note text is not uploaded.\n\nDaily Bible notes contain a link to the passage on Bible.com. It opens outside AtoZ; AtoZ does not download or insert Bible text. Websites you open follow their own privacy policies.\n\nLogos belong to their respective owners."
             preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"NET Bible" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [UIApplication.sharedApplication openURL:[NSURL URLWithString:@"https://netbible.org"] options:@{} completionHandler:nil];
-        }]];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Bible.org Privacy" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [UIApplication.sharedApplication openURL:[NSURL URLWithString:@"https://bible.org/article/privacy-policy-and-terms-use"] options:@{} completionHandler:nil];
+        [alert addAction:[UIAlertAction actionWithTitle:@"Read Daily Passage" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [UIApplication.sharedApplication openURL:ALUDailyBiblePassageURL() options:@{} completionHandler:nil];
         }]];
         [alert addAction:[UIAlertAction actionWithTitle:@"Done" style:UIAlertActionStyleCancel handler:nil]];
         [weakSelf presentViewController:alert animated:YES completion:nil];
@@ -265,11 +263,8 @@ static NSDictionary *ALUSection(NSString *title, NSArray *rows) {
     [sourceRows addObject:webRow];
     [sourceRows addObject:[ALUSettingRow rowWithTitle:@"About Online Icons" symbol:@"info.circle" action:^{
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Online icons"
-            message:@"For recognized titles, Google receives the matching company domain and your IP address to return an icon. Note text is not sent. Google may retain request information under its privacy policy. Turning this off stops future lookups for this note; an icon already saved stays on your device. Logos belong to their respective owners."
+            message:@"For recognized titles, AtoZ requests favicon.ico directly from the matching website. The website receives your IP address and may retain request information under its privacy policy. Note text is not sent. Turning this off stops future lookups for this note; an icon already saved stays on your device. Logos belong to their respective owners."
             preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Google Privacy" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [UIApplication.sharedApplication openURL:[NSURL URLWithString:@"https://policies.google.com/privacy"] options:@{} completionHandler:nil];
-        }]];
         [alert addAction:[UIAlertAction actionWithTitle:@"Done" style:UIAlertActionStyleCancel handler:nil]];
         [weakSelf presentViewController:alert animated:YES completion:nil];
     }]];

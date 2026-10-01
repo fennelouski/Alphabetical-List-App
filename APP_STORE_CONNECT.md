@@ -1,5 +1,10 @@
 # App Store Connect — submission guide for A2Z Notes 3.0.0
 
+> Historical listing draft. Build 3003 uses external Bible links and direct originating-site
+> favicons. The owner specified a free release in all possible countries. Follow
+> [the current release handoff](Release/PRIVACY_CONTENT_REVIEW.md); do not paste the old
+> privacy, rights, price, build-state or network claims below without updating them.
+
 Everything needed to fill in the App Store Connect listing, plus the checks that still need a
 human. Copy the blocks marked **paste-ready** straight into the matching ASC fields.
 

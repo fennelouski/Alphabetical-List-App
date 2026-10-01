@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		275C89CD1B6FFF6A00521755 /* ALUVerse.m in Sources */ = {isa = PBXBuildFile; fileRef = 275C89CC1B6FFF6A00521755 /* ALUVerse.m */; };
 		278038731B73B347008C509F /* ALUMasterTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038721B73B347008C509F /* ALUMasterTableViewCell.m */; };
 		278038761B73B679008C509F /* ALUMasterTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 278038751B73B679008C509F /* ALUMasterTableView.m */; };
 		278255531B628BCA00309E6F /* ALUSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 278255521B628BCA00309E6F /* ALUSettingsViewController.m */; };
@@ -30,7 +29,6 @@
 		27CAD7BE1B7A91A500D67DDD /* Color-gradient.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */; };
 		27CAD7BF1B7A91A500D67DDD /* Color-gradient@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */; };
 		27CAD7C01B7A91A500D67DDD /* Color-gradient@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */; };
-		27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */ = {isa = PBXBuildFile; fileRef = 27CCD54C1B78E544007EEAD0 /* ALUPassage.m */; };
 		27CCD5511B78FDEF007EEAD0 /* Plus-icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */; };
 		27CCD5521B78FDEF007EEAD0 /* Plus-icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */; };
 		27CCD5531B78FDEF007EEAD0 /* Plus-icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 27CCD5501B78FDEF007EEAD0 /* Plus-icon@3x.png */; };
@@ -97,8 +95,6 @@
 
 /* Begin PBXFileReference section */
 		272850C61B7295D800B7C6A6 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
-		275C89CB1B6FFF6A00521755 /* ALUVerse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUVerse.h; sourceTree = "<group>"; };
-		275C89CC1B6FFF6A00521755 /* ALUVerse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUVerse.m; sourceTree = "<group>"; };
 		278038711B73B347008C509F /* ALUMasterTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMasterTableViewCell.h; sourceTree = "<group>"; };
 		278038721B73B347008C509F /* ALUMasterTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUMasterTableViewCell.m; sourceTree = "<group>"; };
 		278038741B73B679008C509F /* ALUMasterTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUMasterTableView.h; sourceTree = "<group>"; };
@@ -142,8 +138,6 @@
 		27CAD7BB1B7A91A500D67DDD /* Color-gradient.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient.png"; path = "Graphics/Color-gradient.png"; sourceTree = "<group>"; };
 		27CAD7BC1B7A91A500D67DDD /* Color-gradient@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@2x.png"; path = "Graphics/Color-gradient@2x.png"; sourceTree = "<group>"; };
 		27CAD7BD1B7A91A500D67DDD /* Color-gradient@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Color-gradient@3x.png"; path = "Graphics/Color-gradient@3x.png"; sourceTree = "<group>"; };
-		27CCD54B1B78E544007EEAD0 /* ALUPassage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALUPassage.h; sourceTree = "<group>"; };
-		27CCD54C1B78E544007EEAD0 /* ALUPassage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALUPassage.m; sourceTree = "<group>"; };
 		27CCD54E1B78FDEF007EEAD0 /* Plus-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon.png"; path = "Graphics/Plus-icon.png"; sourceTree = "<group>"; };
 		27CCD54F1B78FDEF007EEAD0 /* Plus-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon@2x.png"; path = "Graphics/Plus-icon@2x.png"; sourceTree = "<group>"; };
 		27CCD5501B78FDEF007EEAD0 /* Plus-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Plus-icon@3x.png"; path = "Graphics/Plus-icon@3x.png"; sourceTree = "<group>"; };
@@ -513,10 +507,6 @@
 				27A8C25E1B4AD7BB00E5A3D9 /* ALUDataManager.m */,
 				90BFD9731B67258600CA617B /* ALUPointAnnotation.h */,
 				90BFD9741B67258600CA617B /* ALUPointAnnotation.m */,
-				275C89CB1B6FFF6A00521755 /* ALUVerse.h */,
-				275C89CC1B6FFF6A00521755 /* ALUVerse.m */,
-				27CCD54B1B78E544007EEAD0 /* ALUPassage.h */,
-				27CCD54C1B78E544007EEAD0 /* ALUPassage.m */,
 				905E9F3C1B716ED5007A6DB4 /* ALUDocument.h */,
 				905E9F3D1B716ED5007A6DB4 /* ALUDocument.m */,
 			);
@@ -640,7 +630,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27CCD54D1B78E544007EEAD0 /* ALUPassage.m in Sources */,
 				805E83F21B77EFDD00D362C3 /* ALUPatternedView.m in Sources */,
 				27E6D8441B605CC200D7CC19 /* NKFColor+AppColors.m in Sources */,
 				27A8C22C1B4AD62800E5A3D9 /* AppDelegate.m in Sources */,
@@ -672,7 +661,6 @@
 				27E6D8141B5D9EB500D7CC19 /* AFSecurityPolicy.m in Sources */,
 				27E6D7B51B5D579700D7CC19 /* ALUNavigationController.m in Sources */,
 				27A8C26C1B4AED2200E5A3D9 /* UIFont+AppFonts.m in Sources */,
-				275C89CD1B6FFF6A00521755 /* ALUVerse.m in Sources */,
 				27E6D8161B5D9EB500D7CC19 /* AFURLRequestSerialization.m in Sources */,
 				906ED6B21B6A5C8B00362BC6 /* NKFColor+Universities.m in Sources */,
 				27E6D8131B5D9EB500D7CC19 /* AFNetworkReachabilityManager.m in Sources */,
@@ -846,7 +834,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3002;
+				CURRENT_PROJECT_VERSION = 3003;
 			};
 			name = Debug;
 		};
@@ -884,7 +872,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3002;
+				CURRENT_PROJECT_VERSION = 3003;
 			};
 			name = Release;
 		};

@@ -7,8 +7,6 @@
 //
 
 #import "ALUDataManager.h"
-#import "ALUVerse.h"
-#import "ALUPassage.h"
 #import "ALUServicePrivacy.h"
 #import "NKFColor+Universities.h"
 #import "NKFColor+Companies.h"
@@ -21,7 +19,6 @@ static NSString * const masterListKey = @"M@$teR I1$7 K3yY";
 static NSString * const userLocationLatitudeKey = @"userLocationLatitudeK£y";
 static NSString * const userLocationLongitudeKey = @"userLocationLongitudeK£y";
 static NSString * const previousErrorsKey = @"PreviousErros K£y";
-static NSString * const lastVerseOfTheDayDateKey = @"Last Verse of The Day Date K£y";
 static NSString * const useCardViewKey = @"Use Card Vi£w K3Y";
 static NSString * const fontSizeKey = @"This is my font size Key and don't forget that I like Tacos";
 static NSString * const adjustedFontSizeKey = @"This is my font size Key for changing the font size of the card view";
@@ -47,9 +44,6 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
     CLLocationCoordinate2D _userLocationCoordinate;
 	BOOL _noteHasBeenSelectedOnce;
 	BOOL _menuShowing;
-	BOOL _containsBibleVerseOfTheDay;
-	NSString *_verseOfTheDayListTitle;
-	NSString *_verseOfTheDay;
     BOOL _iCloudIsAvailable;
     ALUDocument *_document;
     NSMetadataQuery *_query;
@@ -117,7 +111,7 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 		
 		[self addDefaultList];
 		
-		[self checkForBibleVerseOfTheDay];
+		[self addDailyBibleLinksIfNeeded];
         [self checkIfIcloudIsAvailable];
 	}
 	
@@ -210,7 +204,7 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 		[_lists addObject:cleanedTitle];
 		[self saveList:@"" withTitle:cleanedTitle];
 		[self updateListsInStorage];
-		[self checkForBibleVerseOfTheDay];
+		[self addDailyBibleLinksIfNeeded];
 		return NO;
 	} else {
 		DLog(@"All List titles: %@", _lists);
@@ -224,10 +218,6 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 		DLog(@"List does NOT exist...cannot remove");
 	}
 	
-    if ([_verseOfTheDayListTitle isEqualToString:listTitle]) {
-        _containsBibleVerseOfTheDay = NO;
-        _verseOfTheDayListTitle = nil;
-    }
 	[_lists removeObject:listTitle];
 	[_dictionaryOfLists removeObjectForKey:listTitle];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -821,9 +811,8 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 		}
 
 		UIImage *icon = [UIImage imageWithData:data];
-		// A tiny result is the service's generic globe placeholder: the service answered and
-		// this name isn't a brand we recognize, so generate an icon on-device instead.
-		if (!icon || icon.size.width <= 16.0f) {
+		// Origin websites can supply valid 16-pixel favicons. Only undecodable data fails.
+		if (!icon) {
 			dispatch_async(dispatch_get_main_queue(), ^{
 				[self generatePlaygroundIconIfNeededForCompanyName:companyName];
 			});
@@ -1228,127 +1217,23 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 }
 
 
-#pragma mark - Bible Verse of the Day
+#pragma mark - Daily Bible passage link
 
-- (void)checkForBibleVerseOfTheDay {
-    _containsBibleVerseOfTheDay = NO;
-    _verseOfTheDayListTitle = nil;
-	NSArray *possibleTitles = @[@"bibleverseoftheday", @"bibleversedaily", @"dailybibleverse", @"dailyscripture", @"scriptureeveryday", @"scripturedaily", @"verseoftheday", @"versedaily"];
-	for (int i = 0; i < _lists.count && !_containsBibleVerseOfTheDay; i++) {
-		NSString *title = [_lists objectAtIndex:i];
-		NSString *formattedTitle = [self formattedListTitle:title];
-		
-		for (int j = 0; j < possibleTitles.count && !_containsBibleVerseOfTheDay; j++) {
-			NSString *possibleTitle = [possibleTitles objectAtIndex:j];
-			if ([formattedTitle containsString:possibleTitle]) {
-				_containsBibleVerseOfTheDay = YES;
-				_verseOfTheDayListTitle = title;
-			} else {
-				_containsBibleVerseOfTheDay = NO;
-				_verseOfTheDayListTitle = nil;
-			}
-		}
-	}
-	
-	if (_containsBibleVerseOfTheDay) {
-		[self retrieveBibleVerseOfTheDay];
-	} else {
-		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		[defaults removeObjectForKey:lastVerseOfTheDayDateKey];
-	}
-}
-
-- (void)retrieveBibleVerseOfTheDay {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDate *lastVerseOfTheDayDate = [defaults objectForKey:lastVerseOfTheDayDateKey];
-	
-	if (!lastVerseOfTheDayDate) {
-		lastVerseOfTheDayDate = [NSDate dateWithTimeIntervalSince1970:0];
-	}
-	
-	NSCalendar *cal = [NSCalendar currentCalendar];
-	NSDateComponents *components = [cal components:(NSCalendarUnitEra | NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:[NSDate date]];
-	NSDate *today = [cal dateFromComponents:components];
-	components = [cal components:(NSCalendarUnitEra | NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:lastVerseOfTheDayDate];
-	lastVerseOfTheDayDate = [cal dateFromComponents:components];
-	
-	if (![today isEqualToDate:lastVerseOfTheDayDate] ||
-		[self listWithTitle:_verseOfTheDayListTitle].length == 0) {
-		NSURL *URL = [NSURL URLWithString:@"https://labs.bible.org/api/?passage=votd&type=json&formatting=plain"];
-		NSURLRequest *request = [NSURLRequest requestWithURL:URL];
-		NSURLSessionDataTask *task = [ALUContentSession() dataTaskWithRequest:request
-																			 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-			if (error || !data || ![response isKindOfClass:NSHTTPURLResponse.class] ||
-            ((NSHTTPURLResponse *)response).statusCode != 200) {
-				DLog(@"Error retrieving verse of the day: %@", error);
-				return;
-			}
-			NSError *jsonError = nil;
-			id responseObject = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
-			if (jsonError || !responseObject) {
-				DLog(@"Error parsing verse of the day: %@", jsonError);
-				return;
-			}
-			dispatch_async(dispatch_get_main_queue(), ^{
-				[self analyzeBibleVerseResponseObject:responseObject];
-			});
-		}];
-		[task resume];
-	} else {
-		DLog(@"Verse does not need to be updated %@", lastVerseOfTheDayDate);
-	}
-}
-
-- (void)analyzeBibleVerseResponseObject:(id)responseObject {
-	if ([responseObject isKindOfClass:[NSArray class]]) {
-		ALUPassage *passage = [[ALUPassage alloc] init];
-		for (id object in responseObject) {
-			if ([object isKindOfClass:[NSDictionary class]] && ALUValidVersePayload(object)) {
-				ALUVerse *verse = [self verseFromJSONDictionary:object];
-				[passage addVerse:verse];
-				
-				if (!passage.title) {
-					passage.title = verse.title;
-				}
-				
-				if (!passage.book) {
-					passage.book = verse.book;
-				}
-			}
-		}
-		
-        if (passage.verses.count == 0 || _verseOfTheDayListTitle.length == 0 || ![_lists containsObject:_verseOfTheDayListTitle]) return;
-        NSAttributedString *oldNote = [self attributedListWithTitle:_verseOfTheDayListTitle];
-        NSString *verseText = passage.formattedVerse.string;
-        if (ALUShouldPrependVerse(oldNote.string, verseText)) {
-            NSMutableAttributedString *updated = [passage.formattedVersePrependedByDate mutableCopy];
-            if (oldNote.length) {
-                [updated appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\n"]];
-                [updated appendAttributedString:oldNote];
-            }
-            [self saveAttributedList:updated withTitle:_verseOfTheDayListTitle];
+- (void)addDailyBibleLinksIfNeeded {
+    for (NSString *title in _lists) {
+        if (!ALUIsDailyBibleNoteTitle(title)) continue;
+        NSAttributedString *oldNote = [self attributedListWithTitle:title];
+        if (!ALUShouldAddDailyBibleLink(oldNote.string)) continue;
+        NSURL *url = ALUDailyBiblePassageURL();
+        NSMutableAttributedString *updated = [[NSMutableAttributedString alloc] initWithString:@"Read today's Bible passage\n"];
+        [updated appendAttributedString:[[NSAttributedString alloc] initWithString:url.absoluteString
+            attributes:@{NSLinkAttributeName: url}]];
+        if (oldNote.length) {
+            [updated appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\n"]];
+            [updated appendAttributedString:oldNote];
         }
-        // A valid already-present verse is also up to date; avoid refetching all day.
-        [[NSUserDefaults standardUserDefaults] setObject:NSDate.date forKey:lastVerseOfTheDayDateKey];
-
-	} else if ([responseObject isKindOfClass:[NSDictionary class]]) {
-		DLog(@"Received dictionary instead of array as expected");
-	} else {
-		DLog(@"responseObject class: %@!", [responseObject class]);
-	}
-}
-
-- (ALUVerse *)verseFromJSONDictionary:(NSDictionary *)responseDictionary {
-	ALUVerse *verse = [ALUVerse new];
-	
-    verse.book = responseDictionary[@"bookname"];
-    verse.chapter = [responseDictionary[@"chapter"] integerValue];
-    verse.verse = [responseDictionary[@"verse"] integerValue];
-    verse.text = responseDictionary[@"text"];
-    id title = responseDictionary[@"title"];
-    if ([title isKindOfClass:NSString.class]) verse.title = title;
-
-	return verse;
+        [self saveAttributedList:updated withTitle:title];
+    }
 }
 
 
