@@ -356,7 +356,9 @@ public final class ALUIconEditorViewController: UIViewController {
     }
 
     @objc private func textChanged() {
-        setBaseImage(ALUIconEditorViewController.renderIcon(text: textField.text ?? "", color: tint.contrastingAccent))
+        setBaseImage(ALUIconEditorViewController.renderIcon(text: textField.text ?? "",
+                                                          color: tint.oppositeBlackOrWhiteText,
+                                                          background: tint))
     }
 
     @objc private func drawTapped() {
@@ -514,14 +516,16 @@ public final class ALUIconEditorViewController: UIViewController {
 
     // MARK: - Text rendering
 
-    /// Draws text or emoji centred in a square, transparent tile — the modern take on
+    /// Draws text or emoji centred in a square, coloured tile — the modern take on
     /// the old emoji screen's label-to-image trick.
-    static func renderIcon(text: String, color: UIColor) -> UIImage? {
+    static func renderIcon(text: String, color: UIColor, background: UIColor) -> UIImage? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
         let side: CGFloat = 256
         return UIGraphicsImageRenderer(size: CGSize(width: side, height: side)).image { _ in
+            background.withAlphaComponent(1).setFill()
+            UIRectFill(CGRect(x: 0, y: 0, width: side, height: side))
             let paragraph = NSMutableParagraphStyle()
             paragraph.alignment = .center
 
@@ -754,11 +758,15 @@ private extension NSLayoutConstraint {
 }
 
 private extension UIColor {
-    /// Black or white, whichever reads on this colour — mirrors ObjC `oppositeBlackOrWhite`.
+    /// Choose the higher-contrast foreground using the colour's relative luminance.
     var oppositeBlackOrWhiteText: UIColor {
-        var white: CGFloat = 0, alpha: CGFloat = 0
-        getWhite(&white, alpha: &alpha)
-        return white > 0.6 ? .black : .white
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        guard getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return .label }
+        func linear(_ component: CGFloat) -> CGFloat {
+            component <= 0.04045 ? component / 12.92 : pow((component + 0.055) / 1.055, 2.4)
+        }
+        let luminance = 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+        return luminance > 0.179 ? .black : .white
     }
 
     /// The brand colour if it has enough contrast on a system background, otherwise the

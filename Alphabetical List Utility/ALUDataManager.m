@@ -871,8 +871,9 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 		[_playgroundAttempted addObject:companyName];
 		_playgroundGenerating = YES;
 		[ALUImageGenerator generateIconForNoteTitle:companyName completion:^(UIImage *icon) {
-			if (icon && ![self imageSavedLocallyForCompanyName:companyName]) {
-				if (![self useWebIconForListTitle:companyName] || [self imageSavedLocallyForCompanyName:companyName]) return;
+			if (icon && [_lists containsObject:companyName] &&
+				[self showImageForListTitle:companyName] &&
+				![self imageSavedLocallyForCompanyName:companyName]) {
 			[self saveImage:icon forCompanyName:companyName];
 				[[NSNotificationCenter defaultCenter] postNotificationName:ALUNoteIconDidLoadNotification object:companyName];
 			}
