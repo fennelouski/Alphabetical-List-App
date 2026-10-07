@@ -1090,101 +1090,68 @@ static CGFloat const borderWidth = 10.0f;
 
 #pragma mark - Line Numbers
 
-- (void)updateTextWithLineNumbersRange:(NSRange)range replacementText:(NSString *)text {
-	NSInteger cursorLine = [[self.listItemTextView.text substringToIndex:range.location] componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]].count;
-	NSString *updatedText = [self.listItemTextView.text stringByReplacingCharactersInRange:range withString:text];
-    NSArray *lines = [updatedText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-	NSMutableArray *filteredLines = [[NSMutableArray alloc] init];
-    NSMutableString *finalString = [[NSMutableString alloc] initWithCapacity:updatedText.length + lines.count * 5];
-	
-	NSInteger skippedLineCount = 0;
-	
-	int lineNumber = 0;
-	for (NSString *line in lines) {
-		if (line.length > 0 || cursorLine == lineNumber) {
-			[filteredLines addObject:line];
-		} else if (lineNumber <= cursorLine) {
-			skippedLineCount++;
-		}
-		
-		lineNumber++;
-	}
-	
-    lineNumber = 1;
-    for (NSString *line in filteredLines) {
-        NSInteger breakLocation = [line rangeOfString:numericDelimeter].location;
-		
-		BOOL skipLine = NO;
-		
-        if (breakLocation < 4 && breakLocation != NSNotFound) {
-			if (breakLocation > line.length) {
-				breakLocation = line.length;
-			}
-			
-            NSString *numericSubstring = [line substringToIndex:breakLocation];
-            if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
-				if (line.length <= breakLocation + numericDelimeter.length) {
-					DLog(@"This will cause a problem if left without checking.");
-				} else {
-					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
-						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
-					} else {
-						skipLine = YES;
-						
-						if (lineNumber < cursorLine) {
-							skippedLineCount++;
-						}
-					}
-				}
-            } else {
-				if (line.length < breakLocation + numericDelimeter.length) {
-					DLog(@"This will cause a problem if left without checking.");
-				} else {
-					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
-						[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, [line substringFromIndex:breakLocation + numericDelimeter.length]];
-					} else {
-						skipLine = YES;
-						
-						if (lineNumber < cursorLine) {
-							skippedLineCount++;
-						}
-					}
-				}
-            }
-        } else {
-			if (line.length > 0 || lineNumber == cursorLine + 1 || lineNumber == cursorLine) {
-				[finalString appendFormat:@"%d%@%@", lineNumber, numericDelimeter, line];
-			}
-        }
-		
-		if (!skipLine) {
-			[finalString appendString:@"\n"];
-			
-			lineNumber++;
-		}
+- (void)rewriteListRange:(NSRange)range replacementText:(NSString *)text numbered:(BOOL)numbered {
+    UITextView *textView = self.listItemTextView;
+    NSMutableAttributedString *note = [textView.attributedText mutableCopy];
+    if (!note || range.location > note.length || range.length > note.length - range.location) {
+        return;
     }
-	
-	if (range.location + 2 > self.listItemTextView.text.length) {
-		self.listItemTextView.text = finalString;
-		
-		self.listItemTextView.selectedRange = NSMakeRange(self.listItemTextView.text.length - 1, 0);
-	} else {
-		self.listItemTextView.text = finalString;
-		
-		NSRange textRange = NSMakeRange(range.location + 4 + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * (4 + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
-		
-		if (self.listItemTextView.text.length > textRange.location) {
-			if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
-				textRange.location += 1;
-			}
-		}
-		
-		self.listItemTextView.selectedRange = textRange;
-	}
 
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-	    [self delayedScroll:@(NO)];
-	});
+    NSRange selection = textView.selectedRange;
+    // Empty replacement means reformat existing content; only the Return delegate inserts text.
+    if (text.length > 0) {
+        NSMutableDictionary *attributes = [textView.typingAttributes mutableCopy] ?: [NSMutableDictionary new];
+        [attributes removeObjectForKey:NSAttachmentAttributeName];
+        [note replaceCharactersInRange:range withAttributedString:[[NSAttributedString alloc] initWithString:text attributes:attributes]];
+        selection = NSMakeRange(range.location + text.length, 0);
+    }
+    NSUInteger selectionStart = MIN(selection.location, note.length);
+    NSUInteger selectionEnd = selectionStart + MIN(selection.length, note.length - selectionStart);
+    NSString *plain = note.string;
+    NSMutableArray<NSValue *> *lines = [NSMutableArray new];
+    NSUInteger start = 0;
+    while (start < plain.length) {
+        NSUInteger end, contentsEnd;
+        [plain getLineStart:NULL end:&end contentsEnd:&contentsEnd forRange:NSMakeRange(start, 0)];
+        [lines addObject:[NSValue valueWithRange:NSMakeRange(start, contentsEnd - start)]];
+        start = end;
+    }
+    if (plain.length == 0 || [[NSCharacterSet newlineCharacterSet] characterIsMember:[plain characterAtIndex:plain.length - 1]]) {
+        [lines addObject:[NSValue valueWithRange:NSMakeRange(plain.length, 0)]];
+    }
+
+    // Change only prefixes, backwards, so photos, styling, line breaks and source ranges survive.
+    for (NSInteger index = (NSInteger)lines.count - 1; index >= 0; index--) {
+        NSRange line = lines[index].rangeValue;
+        NSString *body = [plain substringWithRange:line];
+        NSUInteger delimiter = [body rangeOfString:numericDelimeter].location;
+        NSUInteger oldLength = 0;
+        if (delimiter != NSNotFound && delimiter > 0 &&
+            [body rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet].invertedSet options:0 range:NSMakeRange(0, delimiter)].location == NSNotFound) {
+            oldLength = delimiter + numericDelimeter.length;
+        }
+        NSString *prefix = numbered ? [NSString stringWithFormat:@"%zd%@", index + 1, numericDelimeter] : @"";
+        NSRange prefixRange = NSMakeRange(line.location, oldLength);
+        NSMutableDictionary *attributes = [textView.typingAttributes mutableCopy] ?: [NSMutableDictionary new];
+        [attributes removeObjectForKey:NSAttachmentAttributeName];
+        if (line.length > oldLength) {
+            NSMutableDictionary *bodyAttributes = [[note attributesAtIndex:line.location + oldLength effectiveRange:NULL] mutableCopy];
+            [bodyAttributes removeObjectForKey:NSAttachmentAttributeName];
+            attributes = bodyAttributes;
+        }
+        [note replaceCharactersInRange:prefixRange withAttributedString:[[NSAttributedString alloc] initWithString:prefix attributes:attributes]];
+        if (selectionStart >= NSMaxRange(prefixRange)) selectionStart = selectionStart - oldLength + prefix.length;
+        else if (selectionStart >= line.location) selectionStart = line.location + prefix.length;
+        if (selectionEnd >= NSMaxRange(prefixRange)) selectionEnd = selectionEnd - oldLength + prefix.length;
+        else if (selectionEnd >= line.location) selectionEnd = line.location + prefix.length;
+    }
+    textView.attributedText = note;
+    textView.selectedRange = NSMakeRange(selectionStart, selectionEnd - selectionStart);
+}
+
+- (void)updateTextWithLineNumbersRange:(NSRange)range replacementText:(NSString *)text {
+    [self rewriteListRange:range replacementText:text numbered:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{ [self delayedScroll:@(NO)]; });
 }
 
 - (void)delayedScroll:(NSNumber *)animated {
@@ -1195,114 +1162,26 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)removeListModeNumbersCurrentSelectedTextRange:(NSRange)range replacementText:(NSString *)text {
-	NSInteger cursorLine = [[self.listItemTextView.text substringToIndex:range.location] componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]].count;
-	NSString *updatedText = [self.listItemTextView.text stringByReplacingCharactersInRange:range withString:text];
-	NSArray *lines = [updatedText componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-	NSMutableArray *filteredLines = [[NSMutableArray alloc] init];
-	NSMutableString *finalString = [[NSMutableString alloc] initWithCapacity:updatedText.length + lines.count * 5];
-	
-	NSInteger skippedLineCount = 0;
-	
-	int lineNumber = 0;
-	for (NSString *line in lines) {
-		if (line.length > 0 || cursorLine == lineNumber) {
-			[filteredLines addObject:line];
-		} else if (lineNumber <= cursorLine) {
-			skippedLineCount++;
-		}
-		
-		lineNumber++;
-	}
-	
-	lineNumber = 1;
-	for (NSString *line in filteredLines) {
-		NSInteger breakLocation = [line rangeOfString:numericDelimeter].location;
-		
-		BOOL skipLine = NO;
-		
-		if (breakLocation < 4 && breakLocation != NSNotFound) {
-			if (breakLocation > line.length) {
-				breakLocation = line.length;
-			}
-			
-			NSString *numericSubstring = [line substringToIndex:breakLocation];
-			if ([numericSubstring rangeOfCharacterFromSet:[[NSCharacterSet decimalDigitCharacterSet] invertedSet] options:0 range:NSMakeRange(0, breakLocation)].location != NSNotFound) {
-				if (line.length <= breakLocation + numericDelimeter.length) {
-					DLog(@"This will cause a problem if left without checking.");
-				} else {
-					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
-						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
-					} else {
-						skipLine = YES;
-						
-						if (lineNumber < cursorLine) {
-							skippedLineCount++;
-						}
-					}
-				}
-			} else {
-				if (line.length < breakLocation + numericDelimeter.length) {
-					DLog(@"This will cause a problem if left without checking.");
-				} else {
-					if ([line substringFromIndex:breakLocation + numericDelimeter.length].length > 0) {
-						[finalString appendFormat:@"%@", [line substringFromIndex:breakLocation + numericDelimeter.length]];
-					} else {
-						skipLine = YES;
-						
-						if (lineNumber < cursorLine) {
-							skippedLineCount++;
-						}
-					}
-				}
-			}
-		} else {
-			if (line.length > 0 || lineNumber == cursorLine + 1 || lineNumber == cursorLine) {
-				[finalString appendFormat:@"%@", line];
-			}
-		}
-		
-		if (!skipLine) {
-			[finalString appendString:@"\n"];
-			
-			lineNumber++;
-		}
-	}
-	
-	if (range.location + 2 > self.listItemTextView.text.length) {
-		self.listItemTextView.text = finalString;
-		
-		self.listItemTextView.selectedRange = NSMakeRange(self.listItemTextView.text.length - 1, 0);
-	} else {
-		self.listItemTextView.text = finalString;
-		
-		NSRange textRange = NSMakeRange(range.location + (numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine].length - skippedLineCount * ((numericDelimeter.length + 1) + [NSString stringWithFormat:@"%zd", cursorLine + 1].length), range.length);
-		
-		if (self.listItemTextView.text.length > textRange.location) {
-			if ([[self.listItemTextView.text substringWithRange:NSMakeRange(textRange.location, 1)] containsString:@" "]) {
-				textRange.location += 1;
-			}
-		}
-		
-		self.listItemTextView.selectedRange = textRange;
-	}
+    [self rewriteListRange:range replacementText:text numbered:NO];
 }
 
 - (void)alphabetizeList {
-    [self removeListModeNumbersCurrentSelectedTextRange:self.listItemTextView.selectedRange replacementText:@""];
+    [self removeListModeNumbersCurrentSelectedTextRange:NSMakeRange(0, 0) replacementText:@""];
 
     // Sort whole attributed lines rather than plain substrings, so each line keeps whatever
     // formatting it carries instead of the sort flattening the note.
     NSAttributedString *noteText = self.listItemTextView.attributedText;
     NSMutableArray<NSAttributedString *> *lines = [[NSMutableArray alloc] init];
-    __block NSUInteger lineStart = 0;
+    NSUInteger lineStart = 0;
     NSString *plainText = noteText.string;
-
-    for (NSUInteger index = 0; index <= plainText.length; index++) {
-        BOOL atEnd = (index == plainText.length);
-        if (atEnd || [[NSCharacterSet newlineCharacterSet] characterIsMember:[plainText characterAtIndex:index]]) {
-            [lines addObject:[noteText attributedSubstringFromRange:NSMakeRange(lineStart, index - lineStart)]];
-            lineStart = index + 1;
-        }
+    while (lineStart < plainText.length) {
+        NSUInteger end, contentsEnd;
+        [plainText getLineStart:NULL end:&end contentsEnd:&contentsEnd forRange:NSMakeRange(lineStart, 0)];
+        [lines addObject:[noteText attributedSubstringFromRange:NSMakeRange(lineStart, contentsEnd - lineStart)]];
+        lineStart = end;
+    }
+    if (plainText.length == 0 || [[NSCharacterSet newlineCharacterSet] characterIsMember:[plainText characterAtIndex:plainText.length - 1]]) {
+        [lines addObject:[[NSAttributedString alloc] initWithString:@""]];
     }
 
     [lines sortUsingComparator:^NSComparisonResult(NSAttributedString *first, NSAttributedString *second) {
@@ -1311,15 +1190,18 @@ static CGFloat const borderWidth = 10.0f;
 
     NSMutableAttributedString *sortedText = [[NSMutableAttributedString alloc] init];
     NSAttributedString *newline = [[NSAttributedString alloc] initWithString:@"\n"];
+    BOOL firstLine = YES;
     for (NSAttributedString *line in lines) {
-        if (sortedText.length > 0) {
+        if (!firstLine) {
             [sortedText appendAttributedString:newline];
         }
         [sortedText appendAttributedString:line];
+        firstLine = NO;
     }
 
     self.listItemTextView.attributedText = sortedText;
-    [self updateTextWithLineNumbersRange:self.listItemTextView.selectedRange replacementText:@""];
+    self.listItemTextView.selectedRange = NSMakeRange(0, 0);
+    [self updateTextWithLineNumbersRange:NSMakeRange(0, 0) replacementText:@""];
 }
 
 #pragma mark - Check For Button Validation
