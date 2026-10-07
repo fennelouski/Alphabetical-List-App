@@ -20,6 +20,7 @@ static NSMutableArray *pending;
 @property NSDictionary *typingAttributes;
 @property NSUndoManager *undoManager;
 @property NSString *text;
+@property NSRange selectedRange;
 @end
 @implementation TestTextView
 - (instancetype)init { if ((self = [super init])) { _typingAttributes = @{}; _undoManager = [NSUndoManager new]; } return self; }
@@ -91,6 +92,21 @@ int main(void) { @autoreleasepool {
     NSCAssert([c.listItemTextView.text isEqualToString:@"  keep new edits  "] && c.writes == 0, @"Failed stale request must not tidy new edits");
     c = fresh(); [c polishNoteOnDevice]; complete(nil);
     NSCAssert([c.listItemTextView.text isEqualToString:@"Buy bread"] && c.writes == 1, @"Unchanged failure must retain deterministic fallback");
+    c = fresh();
+    NSMutableAttributedString *styled = [[NSMutableAttributedString alloc] initWithString:@"  * buy NASA tickets  \r\n\r\n\r\n  call zoë  "];
+    [styled addAttribute:@"UserStyle" value:@"bold" range:[styled.string rangeOfString:@"NASA"]];
+    [styled addAttribute:@"UserStyle" value:@"italic" range:[styled.string rangeOfString:@"zoë"]];
+    c.listItemTextView.attributedText = styled;
+    [c.listItemTextView.undoManager beginUndoGrouping];
+    [c tidyNoteFormatting];
+    [c.listItemTextView.undoManager endUndoGrouping];
+    NSAttributedString *tidy = c.listItemTextView.attributedText;
+    NSCAssert([tidy.string isEqualToString:@"• Buy NASA tickets\n\nCall zoë"], @"Fallback must trim, normalize bullets, capitalize and retain one paragraph break with CRLF");
+    NSCAssert([[tidy attribute:@"UserStyle" atIndex:[tidy.string rangeOfString:@"NASA"].location effectiveRange:nil] isEqual:@"bold"], @"Fallback must preserve bold body text");
+    NSCAssert([[tidy attribute:@"UserStyle" atIndex:[tidy.string rangeOfString:@"zoë"].location effectiveRange:nil] isEqual:@"italic"], @"Fallback must preserve italic body text");
+    NSCAssert(c.listItemTextView.undoManager.canUndo, @"Fallback must offer Undo");
+    [c.listItemTextView.undoManager undo];
+    NSCAssert([c.listItemTextView.attributedText isEqualToAttributedString:styled], @"Undo must restore exact styled content");
     puts("PASS: production polishing preserves attachments, edits, note identity, deletion and formatting; reentry, success and fallback checked.");
 } return 0; }
 '''.replace("// PRODUCTION_METHODS", methods)

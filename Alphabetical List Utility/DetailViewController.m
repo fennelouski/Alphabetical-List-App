@@ -746,59 +746,55 @@ static CGFloat const borderWidth = 10.0f;
 // Structural clean-up that needs no model at all, so it works on every device: normalise bullet
 // glyphs, drop trailing whitespace, collapse runs of blank lines, and capitalise each line.
 - (void)tidyNoteFormatting {
-	if (![self canPolishNote]) {
-		return;
-	}
-	UITextView *textView = self.listItemTextView;
-	NSArray<NSString *> *lines = [textView.text componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-	NSMutableArray<NSString *> *tidiedLines = [[NSMutableArray alloc] initWithCapacity:lines.count];
-	NSCharacterSet *bulletCharacters = [NSCharacterSet characterSetWithCharactersInString:@"*-–—•"];
-	NSInteger consecutiveBlankLines = 0;
+    if (![self canPolishNote]) { return; }
+    UITextView *textView = self.listItemTextView;
+    NSAttributedString *original = [textView.attributedText copy];
+    NSMutableAttributedString *tidied = [[NSMutableAttributedString alloc] init];
+    NSCharacterSet *whitespace = [NSCharacterSet whitespaceCharacterSet];
+    NSCharacterSet *bullets = [NSCharacterSet characterSetWithCharactersInString:@"*-–—•"];
+    BOOL paragraphBreak = NO;
+    NSUInteger cursor = 0;
 
-	for (NSString *line in lines) {
-		NSString *tidiedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    while (cursor < original.length) {
+        NSUInteger lineStart, lineEnd, contentsEnd;
+        [original.string getLineStart:&lineStart end:&lineEnd contentsEnd:&contentsEnd forRange:NSMakeRange(cursor, 0)];
+        cursor = lineEnd;
+        NSUInteger start = lineStart, end = contentsEnd;
+        while (start < end && [whitespace characterIsMember:[original.string characterAtIndex:start]]) { start++; }
+        while (end > start && [whitespace characterIsMember:[original.string characterAtIndex:end - 1]]) { end--; }
+        if (start == end) { paragraphBreak = tidied.length > 0; continue; }
 
-		if (tidiedLine.length == 0) {
-			// Keep paragraph breaks, but collapse longer runs of blank lines down to one.
-			consecutiveBlankLines++;
-			if (consecutiveBlankLines == 1 && tidiedLines.count > 0) {
-				[tidiedLines addObject:@""];
-			}
-			continue;
-		}
-		consecutiveBlankLines = 0;
-
-		// Normalise whatever bullet character was used to a single consistent one.
-		if (tidiedLine.length > 1 && [bulletCharacters characterIsMember:[tidiedLine characterAtIndex:0]]) {
-			NSString *body = [[tidiedLine substringFromIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-			if (body.length > 0) {
-				tidiedLine = [NSString stringWithFormat:@"• %@", body];
-			}
-		}
-
-		// Capitalise the first letter without touching the rest (which may be an acronym).
-		NSUInteger firstLetterIndex = [tidiedLine rangeOfCharacterFromSet:[NSCharacterSet letterCharacterSet]].location;
-		if (firstLetterIndex != NSNotFound) {
-			NSString *firstLetter = [tidiedLine substringWithRange:NSMakeRange(firstLetterIndex, 1)];
-			tidiedLine = [tidiedLine stringByReplacingCharactersInRange:NSMakeRange(firstLetterIndex, 1)
-															withString:[firstLetter uppercaseString]];
-		}
-
-		[tidiedLines addObject:tidiedLine];
-	}
-
-	// Drop any trailing blank line the collapse may have left behind.
-	while (tidiedLines.count > 0 && [[tidiedLines lastObject] length] == 0) {
-		[tidiedLines removeLastObject];
-	}
-
-	NSString *tidiedText = [tidiedLines componentsJoinedByString:@"\n"];
-	if ([tidiedText isEqualToString:textView.text]) {
-		return;
-	}
-
-	textView.text = tidiedText;
-	[self saveList];
+        NSMutableAttributedString *line = [[original attributedSubstringFromRange:NSMakeRange(start, end - start)] mutableCopy];
+        if (line.length > 1 && [bullets characterIsMember:[line.string characterAtIndex:0]]) {
+            NSUInteger body = 1;
+            while (body < line.length && [whitespace characterIsMember:[line.string characterAtIndex:body]]) { body++; }
+            if (body < line.length) {
+                NSDictionary *attributes = [line attributesAtIndex:0 effectiveRange:NULL];
+                [line replaceCharactersInRange:NSMakeRange(0, body) withAttributedString:[[NSAttributedString alloc] initWithString:@"• " attributes:attributes]];
+            }
+        }
+        NSUInteger letter = [line.string rangeOfCharacterFromSet:[NSCharacterSet letterCharacterSet]].location;
+        if (letter != NSNotFound) {
+            NSRange glyph = [line.string rangeOfComposedCharacterSequenceAtIndex:letter];
+            NSDictionary *attributes = [line attributesAtIndex:letter effectiveRange:NULL];
+            NSString *capital = [[line.string substringWithRange:glyph] uppercaseString];
+            [line replaceCharactersInRange:glyph withAttributedString:[[NSAttributedString alloc] initWithString:capital attributes:attributes]];
+        }
+        if (tidied.length > 0) {
+            [tidied appendAttributedString:[[NSAttributedString alloc] initWithString:paragraphBreak ? @"\n\n" : @"\n" attributes:[line attributesAtIndex:0 effectiveRange:NULL]]];
+        }
+        [tidied appendAttributedString:line];
+        paragraphBreak = NO;
+    }
+    if ([tidied isEqualToAttributedString:original]) { return; }
+    [[textView.undoManager prepareWithInvocationTarget:textView] setAttributedText:original];
+    [textView.undoManager setActionName:NSLocalizedString(@"Polish", nil)];
+    NSRange selection = textView.selectedRange;
+    textView.attributedText = tidied;
+    selection.location = MIN(selection.location, tidied.length);
+    selection.length = MIN(selection.length, tidied.length - selection.location);
+    textView.selectedRange = selection;
+    [self saveList];
 }
 
 #pragma mark - Writing Tools
