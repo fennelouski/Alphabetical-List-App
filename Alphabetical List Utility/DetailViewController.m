@@ -736,11 +736,22 @@ static CGFloat const borderWidth = 10.0f;
 	NSAttributedString *polishedText = [[NSAttributedString alloc] initWithString:polishedNote
 																	  attributes:attributes];
 
-	[[textView.undoManager prepareWithInvocationTarget:textView] setAttributedText:originalText];
-	[textView.undoManager setActionName:NSLocalizedString(@"Polish", nil)];
+	[self applyPolishedAttributedText:polishedText forNoteTitle:_detailItem];
+}
 
-	textView.attributedText = polishedText;
-	[self saveList];
+// Undo and Redo use this same mutation so each restores the inverse and saves the note.
+- (void)applyPolishedAttributedText:(NSAttributedString *)replacement forNoteTitle:(NSString *)title {
+    if (_noteWasDeleted || ![_detailItem isEqual:title]) { return; }
+    UITextView *textView = self.listItemTextView;
+    NSAttributedString *original = [textView.attributedText copy];
+    [[textView.undoManager prepareWithInvocationTarget:self] applyPolishedAttributedText:original forNoteTitle:[title copy]];
+    [textView.undoManager setActionName:NSLocalizedString(@"Polish", nil)];
+    NSRange selection = textView.selectedRange;
+    textView.attributedText = replacement;
+    selection.location = MIN(selection.location, replacement.length);
+    selection.length = MIN(selection.length, replacement.length - selection.location);
+    textView.selectedRange = selection;
+    [self saveList];
 }
 
 // Structural clean-up that needs no model at all, so it works on every device: normalise bullet
@@ -787,14 +798,7 @@ static CGFloat const borderWidth = 10.0f;
         paragraphBreak = NO;
     }
     if ([tidied isEqualToAttributedString:original]) { return; }
-    [[textView.undoManager prepareWithInvocationTarget:textView] setAttributedText:original];
-    [textView.undoManager setActionName:NSLocalizedString(@"Polish", nil)];
-    NSRange selection = textView.selectedRange;
-    textView.attributedText = tidied;
-    selection.location = MIN(selection.location, tidied.length);
-    selection.length = MIN(selection.length, tidied.length - selection.location);
-    textView.selectedRange = selection;
-    [self saveList];
+    [self applyPolishedAttributedText:tidied forNoteTitle:_detailItem];
 }
 
 #pragma mark - Writing Tools

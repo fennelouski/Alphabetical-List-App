@@ -45,6 +45,7 @@ static NSMutableArray *pending;
 @property TestTextView *listItemTextView;
 @property TestButton *polishButton;
 @property NSUInteger writes;
+@property NSAttributedString *savedText;
 - (BOOL)canPolishNote;
 - (void)polishNoteOnDevice;
 - (void)tidyNoteFormatting;
@@ -55,7 +56,7 @@ static NSMutableArray *pending;
 @end
 @implementation DetailViewController
 - (instancetype)init { if ((self = [super init])) { _detailItem = @"First"; _listItemTextView = [TestTextView new]; _listItemTextView.text = @"  buy bread  "; _polishButton = [TestButton new]; _polishButton.enabled = YES; } return self; }
-- (void)saveList { self.writes++; }
+- (void)saveList { self.writes++; self.savedText = [self.listItemTextView.attributedText copy]; }
 - (void)switchNote { _detailItem = @"Second"; }
 - (void)deleteNote { _noteWasDeleted = YES; }
 // PRODUCTION_METHODS
@@ -107,6 +108,29 @@ int main(void) { @autoreleasepool {
     NSCAssert(c.listItemTextView.undoManager.canUndo, @"Fallback must offer Undo");
     [c.listItemTextView.undoManager undo];
     NSCAssert([c.listItemTextView.attributedText isEqualToAttributedString:styled], @"Undo must restore exact styled content");
+    NSCAssert(c.writes == 2 && [c.savedText isEqualToAttributedString:styled], @"Undo must immediately persist original styled content");
+    NSCAssert(c.listItemTextView.undoManager.canRedo, @"Polish Undo must offer Redo");
+    [c.listItemTextView.undoManager redo];
+    NSCAssert(c.writes == 3 && [c.savedText isEqualToAttributedString:tidy], @"Redo must restore and persist polished styled content");
+    for (NSUInteger scenario = 0; scenario < 2; scenario++) {
+        c = fresh();
+        [c.listItemTextView.undoManager beginUndoGrouping];
+        [c tidyNoteFormatting];
+        [c.listItemTextView.undoManager endUndoGrouping];
+        if (scenario == 0) [c switchNote]; else [c deleteNote];
+        c.listItemTextView.text = @"Other note remains untouched";
+        [c.listItemTextView.undoManager undo];
+        NSCAssert([c.listItemTextView.text isEqualToString:@"Other note remains untouched"] && c.writes == 1, @"Polish Undo must not overwrite a switched or deleted note");
+    }
+    c = fresh();
+    [c.listItemTextView.undoManager beginUndoGrouping];
+    NSAttributedString *modelOriginal = [c.listItemTextView.attributedText copy];
+    [c polishNoteOnDevice]; complete(@"Buy bread");
+    [c.listItemTextView.undoManager endUndoGrouping];
+    [c.listItemTextView.undoManager undo];
+    NSCAssert(c.writes == 2 && [c.savedText isEqualToAttributedString:modelOriginal], @"On-device polish Undo must persist the original");
+    [c.listItemTextView.undoManager redo];
+    NSCAssert(c.writes == 3 && [c.savedText.string isEqualToString:@"Buy bread"], @"On-device polish Redo must persist the result");
     puts("PASS: production polishing preserves attachments, edits, note identity, deletion and formatting; reentry, success and fallback checked.");
 } return 0; }
 '''.replace("// PRODUCTION_METHODS", methods)
