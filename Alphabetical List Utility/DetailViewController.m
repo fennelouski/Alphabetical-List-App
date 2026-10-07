@@ -53,6 +53,7 @@ static NSString * const numericDelimeter = @".) ";
 	BOOL _pickingPhotoForNoteBody;
 	UITextField *_alertTextField;
 	BOOL _noteWasDeleted;
+	BOOL _isPolishingNote;
     CGSize _previousScreenSize;
     NSDate *_lastOrientationChangeCheckDate;
     UIDeviceOrientation _lastDeviceOrientation;
@@ -498,6 +499,10 @@ static CGFloat const borderWidth = 10.0f;
 													   handler:^(UIAction *action) {
 				[strongSelf polishButtonTouched:strongSelf.overflowButton];
 			}];
+			if (![strongSelf canPolishNote]) {
+				polishAction.attributes = UIMenuElementAttributesDisabled;
+				polishAction.subtitle = strongSelf->_isPolishingNote ? NSLocalizedString(@"Polishing…", nil) : NSLocalizedString(@"Text-only notes", nil);
+			}
 
 			// The classic settings panel (list mode, icons, card style, location
 			// reminders, …) — same one that opens when tapping the note title.
@@ -620,6 +625,9 @@ static CGFloat const borderWidth = 10.0f;
 // deterministic tidy so the button always does something useful.
 - (void)polishButtonTouched:(id)sender {
 	UITextView *textView = self.listItemTextView;
+	if (![self canPolishNote]) {
+		return;
+	}
 
 	if ([textView.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]].length == 0) {
 		return;
@@ -654,12 +662,30 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 // Run the note through Apple's on-device foundation model. The text never leaves the device.
+- (BOOL)canPolishNote {
+	if (_noteWasDeleted || _isPolishingNote) {
+		return NO;
+	}
+	// Whole-note text replacement cannot preserve embedded photos.
+	NSAttributedString *note = self.listItemTextView.attributedText;
+	__block BOOL hasAttachment = NO;
+	[note enumerateAttribute:NSAttachmentAttributeName inRange:NSMakeRange(0, note.length) options:0 usingBlock:^(id value, NSRange range, BOOL *stop) {
+		if (value) { hasAttachment = YES; *stop = YES; }
+	}];
+	return !hasAttachment;
+}
+
 - (void)polishNoteOnDevice {
+	if (![self canPolishNote]) {
+		return;
+	}
 	UITextView *textView = self.listItemTextView;
 	NSAttributedString *originalText = [textView.attributedText copy];
+	NSString *originalTitle = [_detailItem copy];
 
 	// The model takes a moment; make it obvious the button is working and can't be re-triggered.
 	self.polishButton.enabled = NO;
+	_isPolishingNote = YES;
 
 	__weak typeof(self) weakSelf = self;
 	[ALUNotePolisher polishNote:textView.text
@@ -670,6 +696,11 @@ static CGFloat const borderWidth = 10.0f;
 		}
 
 		strongSelf.polishButton.enabled = YES;
+		strongSelf->_isPolishingNote = NO;
+		if (strongSelf->_noteWasDeleted || ![strongSelf->_detailItem isEqual:originalTitle] ||
+			![strongSelf.listItemTextView.attributedText isEqualToAttributedString:originalText]) {
+			return;
+		}
 
 		if (!polishedNote) {
 			DLog(@"On-device polish failed: %@", error);
@@ -691,6 +722,9 @@ static CGFloat const borderWidth = 10.0f;
 - (void)replaceNoteTextWithPolishedText:(NSString *)polishedNote
 						   originalText:(NSAttributedString *)originalText {
 	UITextView *textView = self.listItemTextView;
+	if (![self canPolishNote] || ![textView.attributedText isEqualToAttributedString:originalText]) {
+		return;
+	}
 
 	// Carry the note's existing typing attributes across so the polished text matches the rest of
 	// the note rather than reverting to system defaults.
@@ -712,6 +746,9 @@ static CGFloat const borderWidth = 10.0f;
 // Structural clean-up that needs no model at all, so it works on every device: normalise bullet
 // glyphs, drop trailing whitespace, collapse runs of blank lines, and capitalise each line.
 - (void)tidyNoteFormatting {
+	if (![self canPolishNote]) {
+		return;
+	}
 	UITextView *textView = self.listItemTextView;
 	NSArray<NSString *> *lines = [textView.text componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
 	NSMutableArray<NSString *> *tidiedLines = [[NSMutableArray alloc] initWithCapacity:lines.count];
