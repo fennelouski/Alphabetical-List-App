@@ -14,6 +14,7 @@
 #import "UIColor+AppColors.h"
 #import "ALUMapViewController.h"
 #import <AVFoundation/AVFoundation.h>
+#import <math.h>
 
 #import "ALUSettingsViewController.h"
 #import "ALUNoteCardView.h"
@@ -35,6 +36,19 @@ static CGFloat const ALUDetailViewControllerMinFontSize = 6.0f;
 
 static NSString * const numericDelimeter = @".) ";
 
+// Keep stored rich-text sizes independent of the device's reading-size preference.
+static NSAttributedString *ALUScaleNoteFonts(NSAttributedString *text, CGFloat scale) {
+    if (!text || scale == 1.0 || !isfinite(scale) || scale <= 0) return text;
+    NSMutableAttributedString *result = [text mutableCopy];
+    [text enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, text.length) options:0
+                  usingBlock:^(UIFont *font, NSRange range, BOOL *stop) {
+        if ([font isKindOfClass:[UIFont class]]) {
+            [result addAttribute:NSFontAttributeName value:[font fontWithSize:font.pointSize * scale] range:range];
+        }
+    }];
+    return result;
+}
+
 @interface DetailViewController () <ALUSettingsViewDelegate>
 
 @property (nonatomic, strong) UIBarButtonItem *actionButton;
@@ -48,7 +62,7 @@ static NSString * const numericDelimeter = @".) ";
 @end
 
 @implementation DetailViewController {
-	CGFloat _tempFontSize, _currentFontSize;
+	CGFloat _tempFontSize, _currentFontSize, _noteFontScale;
 	BOOL _isKeyboardShowing;
 	BOOL _pickingPhotoForNoteBody;
 	UITextField *_alertTextField;
@@ -133,6 +147,8 @@ static CGFloat const borderWidth = 10.0f;
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(saveList)
 												 name:UIApplicationWillResignActiveNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateNoteReadingSize)
+                                                name:UIContentSizeCategoryDidChangeNotification object:nil];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(orientationChanged:)
@@ -157,6 +173,7 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)viewWillAppear:(BOOL)animated {
 	[super viewWillAppear:animated];
+	[self updateNoteReadingSize];
 
 	[[ALUExternalDisplayController sharedController] showNoteWithTitle:_detailItem
 																	text:nil
@@ -224,7 +241,8 @@ static CGFloat const borderWidth = 10.0f;
 
 	// Saves rich text, and mirrors the plain string so sharing, email, reminder bodies and the
 	// master list keep working exactly as before.
-	[[ALUDataManager sharedDataManager] saveAttributedList:self.listItemTextView.attributedText
+	[[ALUDataManager sharedDataManager] saveAttributedList:ALUScaleNoteFonts(self.listItemTextView.attributedText,
+                                                                          1.0 / MAX(_noteFontScale, 0.01))
 												 withTitle:_detailItem];
 }
 
@@ -377,13 +395,44 @@ static CGFloat const borderWidth = 10.0f;
 	// would be unreadable in dark mode.
 	[noteText addAttribute:NSForegroundColorAttributeName value:[UIColor labelColor] range:fullRange];
 
-	_listItemTextView.attributedText = noteText;
+	_listItemTextView.attributedText = ALUScaleNoteFonts(noteText, _noteFontScale);
+}
+
+- (CGFloat)noteReadingScale {
+    UITraitCollection *readingTraits = _listItemTextView.window ? _listItemTextView.traitCollection : self.traitCollection;
+    return [[UIFontMetrics metricsForTextStyle:UIFontTextStyleBody]
+            scaledValueForValue:17.0 compatibleWithTraitCollection:readingTraits] / 17.0;
+}
+
+- (void)updateNoteReadingSize {
+    if (!_listItemTextView) return;
+    if (@available(iOS 18.0, *)) {
+        if (_listItemTextView.isWritingToolsActive) return;
+    }
+    CGFloat nextScale = [self noteReadingScale];
+    CGFloat ratio = nextScale / MAX(_noteFontScale, 0.01);
+    if (fabs(ratio - 1.0) < 0.0001) return;
+    _noteFontScale = nextScale;
+    NSRange selection = _listItemTextView.selectedRange;
+    NSDictionary *typing = [_listItemTextView.typingAttributes copy];
+    if (_listItemTextView.attributedText.length) {
+        _listItemTextView.attributedText = ALUScaleNoteFonts(_listItemTextView.attributedText, ratio);
+        _listItemTextView.selectedRange = selection;
+    } else {
+        _listItemTextView.font = [_listItemTextView.font fontWithSize:_listItemTextView.font.pointSize * ratio];
+    }
+    NSMutableDictionary *scaledTyping = [typing mutableCopy];
+    UIFont *font = typing[NSFontAttributeName];
+    scaledTyping[NSFontAttributeName] = font ? [font fontWithSize:font.pointSize * ratio]
+                                          : [UIFont systemFontOfSize:_tempFontSize * nextScale];
+    _listItemTextView.typingAttributes = scaledTyping;
 }
 
 // Resize without flattening formatting. Assigning -font would collapse every bold/italic run to
 // one uniform font, so scale each run instead and keep its traits.
 - (void)applyNoteFontSize:(CGFloat)fontSize {
 	UITextView *textView = self.listItemTextView;
+	fontSize *= _noteFontScale;
 	UIFont *baseFont = [UIFont systemFontOfSize:fontSize];
 
 	if (textView.attributedText.length == 0) {
@@ -414,13 +463,18 @@ static CGFloat const borderWidth = 10.0f;
 
 - (UITextView *)listItemTextView {
 	if (!_listItemTextView) {
-		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectInset(self.view.bounds, borderWidth, 0.0f)];
+		// Loading self.view here would reenter this getter through viewDidLoad and create a second editor.
+		_listItemTextView = [[UITextView alloc] initWithFrame:CGRectZero];
 		_listItemTextView.tag = 17;
 		_listItemTextView.keyboardAppearance = UIKeyboardAppearanceDefault;
 		_listItemTextView.keyboardType = UIKeyboardTypeAlphabet;
 		_listItemTextView.tintColor = [NKFColor appColor];
 		_listItemTextView.clipsToBounds = NO;
 		_listItemTextView.delegate = self;
+		if (@available(iOS 17.0, *)) {
+			[_listItemTextView registerForTraitChanges:@[[UITraitPreferredContentSizeCategory class]]
+                                           withTarget:self action:@selector(updateNoteReadingSize)];
+		}
 		_listItemTextView.scrollIndicatorInsets = UIEdgeInsetsMake(0.0f, -borderWidth * 2.0f, 0.0f, -borderWidth);
 		
 		if (_currentFontSize == 0 || _tempFontSize == 0) {
@@ -438,13 +492,14 @@ static CGFloat const borderWidth = 10.0f;
 			}
 		}
 		
+		_noteFontScale = [self noteReadingScale];
 		UIFont *baseFont = [UIFont boldSystemFontOfSize:_tempFontSize];
-		[_listItemTextView setFont:baseFont];
+		[_listItemTextView setFont:[baseFont fontWithSize:baseFont.pointSize * _noteFontScale]];
 
 		// Rich text: users get Bold/Italic/Underline from the selection menu, and Writing Tools
 		// can hand back formatted results (such as lists).
 		_listItemTextView.allowsEditingTextAttributes = YES;
-		_listItemTextView.typingAttributes = @{NSFontAttributeName : baseFont,
+		_listItemTextView.typingAttributes = @{NSFontAttributeName : [baseFont fontWithSize:baseFont.pointSize * _noteFontScale],
 											   NSForegroundColorAttributeName : [UIColor labelColor]};
 
 		[self loadNoteTextWithBaseFont:baseFont];
@@ -821,6 +876,7 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)textViewWritingToolsDidEnd:(UITextView *)textView {
 	// The user has accepted or rejected the suggestion, so the text is settled — persist it.
+	[self updateNoteReadingSize];
 	[self saveList];
 
 	if ([[ALUDataManager sharedDataManager] listModeForListTitle:_detailItem]) {

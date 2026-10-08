@@ -1,4 +1,4 @@
-# AtoZ feature restoration — build 3013
+# AtoZ feature restoration — build 3014
 
 The authoritative shipping identity remains `com.nathanfennel.A2Z`, Apple ID 1016741170. The recovered 2015 `a2z-notes` repository and this repository's earlier UIKit implementations were compared against the SwiftUI library. Existing note bodies, RTFD images, icons, settings and manual reminder coordinates retain their original storage. This candidate is not uploaded or submitted.
 
@@ -31,6 +31,17 @@ Only the place query and search area go to Apple Maps, never the note body. Sear
 
 Delivery depends on iOS permissions, Background App Refresh, connectivity and timing. This is not a promise of instantaneous alerts at every store. A real-device arrival/background/relaunch/tap test is required before claiming release readiness.
 
+## Editor accessibility follow-up (3014)
+
+The rich-text editor now follows Dynamic Type while preserving the user's stored font sizes, mixed bold/italic runs, links and inline media. Font scaling is for display; saving reverses the reading-size factor. Native trait observations update the open editor, and Writing Tools defers those changes until its accepted text is settled. Pinch sizing still uses the user's canonical font size.
+
+The lazy text-view getter previously read `self.view.bounds` before assigning its result. That loaded the controller and reentered the getter through `viewDidLoad`, producing two editors. Starting with `CGRectZero` lets the existing layout set its frame and keeps the displayed editor and the saved editor identical. Actual native typing and live text-size changes now affect the retained visible editor.
+
+- `python3 Tests/NoteFontChecks/run.py`: the actual production font transform, using native AppKit attributed strings, preserves distinct sizes, bold/italic/underline, links and attachments through 20 display/save round trips. This is not a UIKit rendering test.
+- Final build 3014 Release Simulator compilation and cold launch passed. On the dedicated iPhone, the note visibly shrank when changing the open editor from serve-sim Text Size 6 to 3. These are the largest standard size exposed by that control and its default, not the largest accessibility category.
+- Native typing appended a test character to the visible Target note and removed it before Done. All eight note bodies and metadata records remained equal; four attachment files and one icon remained byte-for-byte equal. All four stored RTFD bodies compared semantically equal, including canonical font runs and inline attachments.
+- Final native QA images are `atoz/qa3014-2026-10-08/editor-text-size6-final.png` and `editor-default-final.png` in the release audit. Earlier files in that directory are intermediate diagnosis, not qualified marketing captures. The test device's text size was restored to default. Sensors and nearby reminders stayed off.
+
 ## Verification
 
 - Build 3012's final incremental Release Simulator compilation passed with no diagnostics. Build 3013's full build passed with the four existing external-display deprecations listed below. No visionOS Simulator was opened.
@@ -45,6 +56,6 @@ Delivery depends on iOS permissions, Background App Refresh, connectivity and ti
 - Build 3013 native Note Details showed automatic Costco matching with eight fictional shopping entries and no manually saved place. Global nearby reminders remained off; no sensor permissions changed. Proof: `app-store-audit/2026-09-27-release/atoz/discovery3013-native/costco-matching-place.png`.
 - Prior build 3012 native proof/fixture provenance: `/Users/nathan/Documents/GitHub/app-store-audit/2026-09-27-release/atoz/feature3012-native` and `feature3012-fixtures`.
 
-Pending: owner answer to sensor-test permission question; simulated location/notifications, microphone recording, camera hardware, document-provider/audio import, iPad layout, VoiceOver and physical background arrival/relaunch/tap checks. No full original-feature or App Store readiness claim should bypass these qualifications. Refresh privacy/support copy and every supported marketing gallery from this exact candidate before a subsequent release; existing uploaded build 3010 evidence must not be relabeled as build 3013.
+Pending: owner answer to sensor-test permission question; simulated location/notifications, microphone recording, camera hardware, document-provider/audio import, iPad layout, VoiceOver and physical background arrival/relaunch/tap checks. No full original-feature or App Store readiness claim should bypass these qualifications. Refresh privacy/support copy and every supported marketing gallery from this exact candidate before a subsequent release; existing uploaded build 3010 evidence must not be relabeled as build 3014.
 
 Automatic errand vocabulary currently covers English and Dutch. Explicit place queries support other languages through Maps. Places absent or incorrectly named/category-tagged in Apple Maps cannot be inferred reliably. No claim of guaranteed notification delivery or full location-runtime verification is made from the live search test.
