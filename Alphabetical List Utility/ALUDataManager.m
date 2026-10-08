@@ -179,8 +179,8 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 		NSString *settingsTitle = @"2. How to Modify a Note's Settings";
 		NSString *settingsNote = @"Open a note, then tap on its title at the top of the screen.\n\nThis opens that note's settings, where you can:\n\n• Rename the note\n• Turn on numbered list mode\n• Alphabetize the note's lines\n• Add a photo or use a web icon\n• Choose a color for the note\n• Attach a location-based reminder\n• Attach a contact\n• Insert an emoji or a drawing\n• Email the note\n\nTap outside the settings to close them.";
 
-		NSString *wandTitle = @"3. Polish with the Magic Wand";
-		NSString *wandNote = @"See the magic wand at the top of every note?\n\nTap it to polish the note you're reading: it can tidy up formatting, fix typos, or rewrite the note more clearly.\n\nThe built-in polisher uses Apple’s on-device model. If system Writing Tools are offered instead, their processing follows your Apple settings.\n\nYou'll always see what changed before anything is saved.";
+		NSString *wandTitle = @"3. Polish Your Notes";
+		NSString *wandNote = @"Choose Polish Note to tidy formatting or improve the note you're reading.\n\nRewriting requires Apple Intelligence. When it isn't available, Polish tidies formatting.\n\nThe built-in polisher uses Apple’s on-device model. If system Writing Tools are offered instead, their processing follows your Apple settings.\n\nPolished notes are saved automatically. Use Undo, or Cmd-Z with a keyboard, to restore the previous text.";
 
 		NSString *deleteTitle = @"4. How to Delete a Note";
 		NSString *goToListInstruction = isiPhone ? @"Tap ⌄ to return to your stack of notes." : @"Tap \"My Notes\" to see a list of all your notes.";
