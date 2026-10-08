@@ -75,7 +75,7 @@ public final class ALUNoteDetailsStore: NSObject {
         if !record.textDigest.isEmpty || record.created != nil { record.edited = Date() }
         record.textDigest = digest
         records[title] = record
-        persist()
+        if persist() { NotificationCenter.default.post(name: .init("ALULibraryChanged"), object: nil) }
     }
 
     @objc(renameNote:to:)

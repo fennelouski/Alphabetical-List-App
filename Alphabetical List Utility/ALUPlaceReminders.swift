@@ -26,6 +26,7 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
     private var searching = false
     private var requestedAlways = false
     private var revision = 0
+    private var searchedIntents = Set<String>()
     private var notifiedThisVisit = Set<String>()
     private let prefix = "AtoZNearby:"
 
@@ -52,6 +53,7 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
         UserDefaults.standard.set(value, forKey: "ALUNearbyRemindersEnabled")
         revision += 1
         if value {
+            lastSearchDate = .distantPast
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in
                 DispatchQueue.main.async { self.resume() }
             }
@@ -87,13 +89,21 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
     }
 
     @objc private func notesChanged() {
-        revision += 1
+        let changed = intentSignature() != searchedIntents
+        if changed { revision += 1 }
         // Remove stale fences immediately. A background callback must also recheck the note.
         let titles = Set((loadNotes?() ?? []).compactMap { $0["title"] })
         cached.removeAll { !titles.contains($0.title) || intent(for: $0.title)?.query != $0.query }
         saveCache()
         installRegions()
-        if enabled { lastSearchDate = .distantPast; manager.requestLocation() }
+        if enabled && changed { lastSearchDate = .distantPast; manager.requestLocation() }
+    }
+
+    private func intentSignature() -> Set<String> {
+        Set((loadNotes?() ?? []).compactMap { note in
+            guard let title = note["title"], let intent = intent(for: title) else { return nil }
+            return title + "\u{0}" + intent.query
+        })
     }
 
     private func intent(for title: String) -> NotePlaceIntent? {
@@ -121,6 +131,7 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
     }
 
     private func search(near location: CLLocation) {
+        searchedIntents = intentSignature()
         let notes = (loadNotes?() ?? []).compactMap { note -> (String, NotePlaceIntent)? in
             guard let title = note["title"], let intent = intent(for: title) else { return nil }
             return (title, intent)
