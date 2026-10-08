@@ -138,7 +138,7 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
         }
         guard !notes.isEmpty else {
             cached = []; saveCache(); installRegions()
-            status = "Name a shopping note for a store, or choose a place in Note Details."
+            status = "Name a note for a business or place with unfinished errands, or choose a place in Note Details."
             return
         }
         searching = true
@@ -156,22 +156,19 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
                     CLLocation(latitude: $1.latitude, longitude: $1.longitude).distance(from: location)
                 }
                 saveCache(); installRegions()
-                status = cached.isEmpty ? "No matching stores nearby. AtoZ will look again as you move." : "\(places.count) nearby places monitored."
+                status = cached.isEmpty ? "No matching places nearby. AtoZ will look again as you move." : "\(places.count) nearby places monitored."
                 return
             }
             let query = queries[position]
-            let request = MKLocalSearch.Request()
-            request.naturalLanguageQuery = query
-            request.resultTypes = .pointOfInterest
-            request.region = MKCoordinateRegion(center: location.coordinate, latitudinalMeters: 40000, longitudinalMeters: 40000)
+            let request = NotePlaceIntent.searchRequest(query: query, near: location)
             MKLocalSearch(request: request).start { response, error in
                 DispatchQueue.main.async {
                     if let response {
                         for item in response.mapItems {
-                            let coordinate = item.placemark.coordinate
-                            let distance = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude).distance(from: location)
-                            guard CLLocationCoordinate2DIsValid(coordinate), distance <= 20000 else { continue }
-                            for (title, intent) in notes where intent.query == query && intent.matchesPlaceName(item.name ?? "") {
+                            let coordinate: CLLocationCoordinate2D
+                            if #available(iOS 26.0, *) { coordinate = item.location.coordinate }
+                            else { coordinate = item.placemark.coordinate }
+                            for (title, intent) in notes where intent.query == query && intent.matches(item, near: location) {
                                 let noteID = ALUNoteDetailsStore.shared.identifier(forTitle: title)
                                 let identifier = self.prefix + noteID + String(format: ":%.5f:%.5f", coordinate.latitude, coordinate.longitude)
                                 if !results.contains(where: { $0.identifier == identifier }) {
@@ -181,7 +178,10 @@ public final class ALUPlaceReminders: NSObject, CLLocationManagerDelegate, Obser
                         }
                     } else if error != nil {
                         // Keep still-valid cached stores during an offline search.
-                        results.append(contentsOf: self.cached.filter { $0.query == query && self.intent(for: $0.title)?.query == query })
+                        results.append(contentsOf: self.cached.filter {
+                            $0.query == query && self.intent(for: $0.title)?.query == query &&
+                            CLLocation(latitude: $0.latitude, longitude: $0.longitude).distance(from: location) <= 20000
+                        })
                     }
                     next(position + 1)
                 }

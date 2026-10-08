@@ -1,4 +1,5 @@
 import Foundation
+import MapKit
 
 let root = FileManager.default.temporaryDirectory.appendingPathComponent("AtoZDetailsChecks-" + UUID().uuidString)
 defer { try? FileManager.default.removeItem(at: root) }
@@ -39,6 +40,30 @@ assert(!inferred!.matchesPlaceName("Target Field") && !inferred!.matchesPlaceNam
 assert(NotePlaceIntent.infer(title: "Target Practice", text: "Buy paper targets", details: NoteDetails()) == nil)
 assert(NotePlaceIntent.infer(title: "Target", text: "Quarterly sales target", details: NoteDetails()) == nil)
 assert(NotePlaceIntent.infer(title: "Target", text: "- [x] Milk\n✓ Batteries", details: NoteDetails()) == nil)
+let costco = NotePlaceIntent.infer(title: "Costco", text: "Milk\nCoffee", details: NoteDetails())!
+assert(costco.matchesPlaceName("Costco Wholesale") && costco.matchesPlaceName("Costco Business Center"))
+assert(!costco.matchesPlaceName("Costco Gas Station") && !costco.matchesPlaceName("Costco Tire Center"))
+assert(NotePlaceIntent.infer(title: "Trader Joe’s shopping list", text: "Bread\nEggs", details: NoteDetails())!.matchesPlaceName("Trader Joe's"))
+assert(NotePlaceIntent.infer(title: "Starbucks", text: "Pick up coffee", details: NoteDetails())!.matchesPlaceName("Starbucks Coffee Company"))
+assert(NotePlaceIntent.infer(title: "Philz Coffee", text: "Buy coffee beans", details: NoteDetails())!.matchesPlaceName("Philz Coffee"), "Businesses outside a fixed chain list must work")
+assert(NotePlaceIntent.infer(title: "Shopping at Village music shop", text: "Guitar strings", details: NoteDetails()) != nil)
+assert(NotePlaceIntent.infer(title: "Costco", text: "* [X] Milk\n• [x] Coffee", details: NoteDetails()) == nil)
+assert(NotePlaceIntent.infer(title: "https://private.example", text: "Buy milk", details: NoteDetails()) == nil)
+let nearby = CLLocation(latitude: 37.323, longitude: -122.0322)
+func place(_ name: String, _ category: MKPointOfInterestCategory, _ coordinate: CLLocationCoordinate2D) -> MKMapItem {
+    let item = MKMapItem(location: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), address: nil)
+    item.name = name; item.pointOfInterestCategory = category
+    return item
+}
+let library = NotePlaceIntent.infer(title: "Library", text: "Return books", details: NoteDetails())!
+assert(library.matches(place("Cupertino Library", .library, nearby.coordinate), near: nearby))
+assert(!library.matches(place("Library Cafe", .cafe, nearby.coordinate), near: nearby))
+assert(!costco.matches(place("Costco Wholesale", .foodMarket, CLLocationCoordinate2D(latitude: 34.1, longitude: -118.1)), near: nearby), "Far-away branches must not be monitored")
+let grocery = NotePlaceIntent.infer(title: "Grocery store", text: "Bread\nEggs", details: NoteDetails())!
+assert(grocery.matches(place("Safeway", .foodMarket, nearby.coordinate), near: nearby))
+assert(!grocery.matches(place("Grocery Cafe", .restaurant, nearby.coordinate), near: nearby))
+assert(NotePlaceIntent.searchRequest(query: library.query, near: nearby).pointOfInterestFilter!.includes(.library))
+assert(!NotePlaceIntent.searchRequest(query: library.query, near: nearby).pointOfInterestFilter!.includes(.cafe))
 var optedOut = NoteDetails(); optedOut.nearbyDisabled = true
 assert(NotePlaceIntent.infer(title: "Target", text: "Milk", details: optedOut) == nil)
 var custom = NoteDetails(); custom.placeQuery = "Village music shop"

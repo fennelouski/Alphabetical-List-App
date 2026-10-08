@@ -159,36 +159,3 @@ public final class ALUNoteDetailsStore: NSObject {
         } catch { errorMessage = "Note details could not be saved. " + error.localizedDescription; return false }
     }
 }
-
-struct NotePlaceIntent: Equatable {
-    let query: String
-    let automatic: Bool
-
-    static func infer(title: String, text: String, details: NoteDetails) -> NotePlaceIntent? {
-        guard !details.nearbyDisabled else { return nil }
-        if let query = details.placeQuery?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty {
-            return NotePlaceIntent(query: query, automatic: false)
-        }
-        let normalized = title.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let stores = ["target": "Target", "walmart": "Walmart", "costco": "Costco", "ikea": "IKEA", "aldi": "ALDI", "lidl": "Lidl", "home depot": "The Home Depot", "the home depot": "The Home Depot", "trader joe's": "Trader Joe's", "whole foods": "Whole Foods Market", "walgreens": "Walgreens", "cvs": "CVS", "best buy": "Best Buy", "albert heijn": "Albert Heijn", "jumbo": "Jumbo", "tesco": "Tesco", "sainsbury's": "Sainsbury's"]
-        for (name, query) in stores {
-            let allowed = [name, name + " shopping", name + " shopping list", name + " list", "shopping at " + name, "shopping - " + name]
-            guard allowed.contains(normalized) else { continue }
-            let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-            let active = lines.filter { !$0.isEmpty && !$0.hasPrefix("[x]") && !$0.hasPrefix("- [x]") && !$0.hasPrefix("✓") && !$0.hasPrefix("☑") }
-            let products = Set("milk bread eggs cheese yogurt butter coffee tea rice pasta cereal fruit apple banana vegetables tomato potato onion lettuce chicken fish meat groceries batteries charger toothpaste shampoo soap detergent towels paper toilet socks shoes shirt clothing nappies diapers wipes medicine vitamins paint screws wood furniture lamp desk pillow towels curtains notebook pencils printer headphones television buy purchase pick collect shopping groceries melk brood eieren kaas koffie rijst boodschappen zeep batterijen".split(separator: " ").map(String.init))
-            let tokens = active.joined(separator: " ").components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
-            let words = Set(tokens + tokens.filter { $0.count > 3 && $0.hasSuffix("s") }.map { String($0.dropLast()) })
-            if !active.isEmpty && !products.isDisjoint(with: words) { return NotePlaceIntent(query: query, automatic: true) }
-        }
-        return nil
-    }
-
-    func matchesPlaceName(_ name: String) -> Bool {
-        guard automatic else { return true }
-        let name = name.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
-        let query = query.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
-        return name == query || name == query.replacingOccurrences(of: "the ", with: "") ||
-            [" store", " superstore", " supercenter", " grocery", " market", " pharmacy", " express"].contains { name == query + $0 }
-    }
-}

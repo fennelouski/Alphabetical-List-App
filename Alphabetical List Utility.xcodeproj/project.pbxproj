@@ -85,6 +85,7 @@
 		A02610080000000000000002 /* ALUNoteDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02610080000000000000001; };
 		A02610080000000000000102 /* ALUPlaceReminders.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02610080000000000000101; };
 		A02610080000000000000202 /* ALUNoteAttachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02610080000000000000201; };
+		A02610080000000000000302 /* ALUPlaceDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A02610080000000000000301; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -236,6 +237,7 @@
 		A02610080000000000000001 /* ALUNoteDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Alphabetical List Utility/ALUNoteDetails.swift"; sourceTree = SOURCE_ROOT; };
 		A02610080000000000000101 /* ALUPlaceReminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Alphabetical List Utility/ALUPlaceReminders.swift"; sourceTree = SOURCE_ROOT; };
 		A02610080000000000000201 /* ALUNoteAttachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Alphabetical List Utility/ALUNoteAttachments.swift"; sourceTree = SOURCE_ROOT; };
+		A02610080000000000000301 /* ALUPlaceDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ALUPlaceDiscovery.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -296,6 +298,7 @@
 				A11CA0E12E2F00070000C0DE /* ALUIconEditorViewController.swift */,
 				A02609270000000000000091 /* ALULibraryView.swift */,
 				A02610080000000000000201 /* ALUNoteAttachments.swift */,
+				A02610080000000000000301 /* ALUPlaceDiscovery.swift */,
 				A02610080000000000000101 /* ALUPlaceReminders.swift */,
 				A02610080000000000000001 /* ALUNoteDetails.swift */,
 				803127941B77E80400033031 /* View Controllers */,
@@ -651,6 +654,7 @@
 				A11CA0E02E2F00060000C0DE /* ALUIconEditorViewController.swift in Sources */,
 				A02609270000000000000092 /* ALULibraryView.swift in Sources */,
 				A02610080000000000000202 /* ALUNoteAttachments.swift in Sources */,
+				A02610080000000000000302 /* ALUPlaceDiscovery.swift in Sources */,
 				A02610080000000000000102 /* ALUPlaceReminders.swift in Sources */,
 				A02610080000000000000002 /* ALUNoteDetails.swift in Sources */,
 				27E6D82C1B5D9ED000D7CC19 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
@@ -858,7 +862,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3012;
+				CURRENT_PROJECT_VERSION = 3013;
 			};
 			name = Debug;
 		};
@@ -896,7 +900,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				MARKETING_VERSION = 3.0.0;
-				CURRENT_PROJECT_VERSION = 3012;
+				CURRENT_PROJECT_VERSION = 3013;
 			};
 			name = Release;
 		};

@@ -27,10 +27,10 @@ struct NearbyRemindersView: View {
                     Toggle("Nearby note reminders", isOn: Binding(get: { reminders.enabled }, set: reminders.setEnabled))
                     Text(reminders.status).foregroundStyle(.secondary)
                 } footer: {
-                    Text("A shopping note named Target, Costco or another recognized store can remind you when you arrive. Other places can be chosen in Note Details. Allow notifications and Always location access for reminders while AtoZ is closed.")
+                    Text("Notes named Target, Costco or another business can match real nearby branches when they contain unfinished shopping or errands. Notes named Library, Gym or another common place match that type of place. You can also choose a place in Note Details. Allow notifications and Always location access for reminders while AtoZ is closed.")
                 }
                 Section("Privacy") {
-                    Text("Matching happens on your device. Apple Maps receives the place query and search area, never the note body. Location reminders depend on system permissions, connectivity, Background App Refresh and iOS delivery timing.")
+                    Text("Matching happens on your device. Apple Maps receives the business or place name derived from your note title and the search area, never the note body. Location reminders depend on system permissions, connectivity, Background App Refresh and iOS delivery timing.")
                     Button("Open system settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                     }
@@ -107,7 +107,7 @@ private struct NoteDetailsView: View {
                     }
                     NavigationLink("Nearby reminder permissions") { NearbyRemindersView() }
                 } header: { Text("Nearby recommendations") }
-                  footer: { Text("Automatic matching uses recognized store titles and unfinished shopping content. A chosen place overrides matching. Notifications require Nearby Reminders to be enabled.") }
+                  footer: { Text("Automatic matching uses the note title and unfinished shopping or errands. Apple Maps must find a matching business or place nearby. A chosen place overrides matching. Notifications require Nearby Reminders to be enabled.") }
                 Section("Attachments") {
                     if record.attachments.isEmpty { Text("Add a drawing, photo, recording, video or file.").foregroundStyle(.secondary) }
                     ForEach(record.attachments) { item in
