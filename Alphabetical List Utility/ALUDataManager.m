@@ -110,6 +110,9 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 		}
 		
 		[self addDefaultList];
+		for (NSString *title in _lists) {
+			[[ALUNoteDetailsStore shared] noteSaved:title text:[self listWithTitle:title] ?: @""];
+		}
 		
 		[self addDailyBibleLinksIfNeeded];
         [self checkIfIcloudIsAvailable];
@@ -123,20 +126,9 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
 
-        // Authorization was never requested, so the manager stayed at "notDetermined" and
-        // region-entry events were never delivered — the reminder feature was inert.
-        // Geofencing needs Always, which iOS only grants as an escalation from When-In-Use.
-        if (_locationManager.authorizationStatus == kCLAuthorizationStatusNotDetermined) {
-            [_locationManager requestWhenInUseAuthorization];
-        } else if (_locationManager.authorizationStatus == kCLAuthorizationStatusAuthorizedWhenInUse) {
-            [_locationManager requestAlwaysAuthorization];
-        }
-
-        [_locationManager startUpdatingLocation];
-		
 		NSSet *monitoredRegions = [NSSet setWithSet:_locationManager.monitoredRegions];
 		for (CLRegion *region in monitoredRegions) {
-			if (![self listWithTitle:region.identifier]) {
+			if (![region.identifier hasPrefix:@"AtoZNearby:"] && ![self listWithTitle:region.identifier]) {
 				[_locationManager stopMonitoringForRegion:region];
 				DLog(@"List is no longer recognized");
 			}
@@ -201,6 +193,7 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
     NSString *cleanedTitle = [listTitle stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     
 	if (![_lists containsObject:cleanedTitle]) {
+		[[ALUNoteDetailsStore shared] noteCreated:cleanedTitle];
 		[_lists addObject:cleanedTitle];
 		[self saveList:@"" withTitle:cleanedTitle];
 		[self updateListsInStorage];
@@ -223,6 +216,8 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults removeObjectForKey:listTitle];
 	[self removeRichTextForListTitle:listTitle];
+	[self removeReminderForListTitle:listTitle];
+	[[ALUNoteDetailsStore shared] removeNote:listTitle];
 	[self updateListsInStorage];
 	DLog(@"All List titles:\t%@", _lists);
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -245,6 +240,39 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 	
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults setObject:list forKey:cleanedTitle];
+	[[ALUNoteDetailsStore shared] noteSaved:cleanedTitle text:list];
+}
+
+static NSString *ALURichTextKeyForTitle(NSString *title) {
+	return [NSString stringWithFormat:@"ALURichText::%@", title];
+}
+
+- (BOOL)renameList:(NSString *)title toTitle:(NSString *)newTitle {
+    NSString *cleaned = [newTitle stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if ([title isEqualToString:cleaned]) return YES;
+    if (!cleaned.length || ![_lists containsObject:title] || [_lists containsObject:cleaned]) return NO;
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    NSAttributedString *body = [self attributedListWithTitle:title];
+    NSData *richText = [defaults dataForKey:ALURichTextKeyForTitle(title)];
+    ALUPointAnnotation *place = [self geolocationReminderExistsForTitle:title] ? [self annotationForTitle:title] : nil;
+    UIImage *icon = [self imageSavedLocallyForCompanyName:title] ? [self imageForCompanyName:title] : nil;
+    if (![[ALUNoteDetailsStore shared] renameNote:title to:cleaned]) return NO;
+    [_lists addObject:cleaned];
+    for (NSString *suffix in @[@"listModeEnabled", @"alphabetizeEnabled", @"showImageInList", @"useWebIcon", @"cardStyle", @"cardStyleListIntensity", @"cardStyleEditorIntensity"]) {
+        id value = [defaults objectForKey:[title stringByAppendingString:suffix]];
+        if (value) [defaults setObject:value forKey:[cleaned stringByAppendingString:suffix]];
+        [defaults removeObjectForKey:[title stringByAppendingString:suffix]];
+    }
+    [self saveAttributedList:body ?: [[NSAttributedString alloc] initWithString:@""] withTitle:cleaned];
+    if (richText) [defaults setObject:richText forKey:ALURichTextKeyForTitle(cleaned)];
+    if (icon) [self saveImage:icon forCompanyName:cleaned];
+    [self removeReminderForListTitle:title];
+    if (place) [self setCoordinate:place.coordinate radius:place.radius forListTitle:cleaned];
+    [_lists removeObject:title]; [_dictionaryOfLists removeObjectForKey:title];
+    [defaults removeObjectForKey:title]; [self removeRichTextForListTitle:title];
+    [_listModes removeAllObjects]; [_showListImages removeAllObjects]; [_useWebIcon removeAllObjects];
+    [self updateListsInStorage];
+    return YES;
 }
 
 #pragma mark - Rich Text
@@ -253,9 +281,6 @@ static NSString * const adjustedFontSizeKey = @"This is my font size Key for cha
 // value. Two reasons: the plain text stays the source of truth for everything that needs a
 // string (sharing, email, reminder bodies, the master list), and a note written by an older
 // build — or one whose RTF fails to decode — still opens correctly.
-static NSString *ALURichTextKeyForTitle(NSString *title) {
-	return [NSString stringWithFormat:@"ALURichText::%@", title];
-}
 
 - (void)saveAttributedList:(NSAttributedString *)attributedList withTitle:(NSString *)title {
 	if (!attributedList || title.length == 0) {
@@ -696,27 +721,13 @@ static NSString *ALURichTextKeyForTitle(NSString *title) {
     if ([_lists containsObject:title]) {
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         [defaults setBool:listMode forKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
-        [_listModes setObject:@(listMode) forKey:title];
     } else {
         DLog(@"setAlphabetize: List is not recognized and cannot be set: \"%@\"\n\nAll Lists: %@", title, _lists);
     }
 }
 
 - (BOOL)alphabetizeForListTitle:(NSString *)title {
-    if ([_lists containsObject:title]) {
-        if ([_listModes objectForKey:title]) {
-            return [[_listModes objectForKey:title] boolValue];
-        } else {
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            BOOL listModeEnabled = [defaults boolForKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
-            [_listModes setObject:@(listModeEnabled) forKey:title];
-            return listModeEnabled;
-        }
-    } else {
-        DLog(@"alphabetizeForListTitle: List is not recognized: \"%@\"\n\nAll Lists: %@", title, _lists);
-    }
-    
-    return NO;
+    return [_lists containsObject:title] && [[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"%@alphabetizeEnabled", title]];
 }
 
 #pragma mark - Image in List
@@ -953,7 +964,7 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 #pragma mark - Geolocation Reminders
 
 - (void)setCoordinate:(CLLocationCoordinate2D)coordinate radius:(double)radiusInMeters forListTitle:(NSString *)listTitle {
-    NSString *formattedListTitle = [self formattedListTitle:listTitle];
+    NSString *formattedListTitle = listTitle;
     
     ALUPointAnnotation *annotation = [_geolocationReminders objectForKey:formattedListTitle];
     
@@ -964,8 +975,13 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
     annotation.coordinate = coordinate;
     annotation.radius = radiusInMeters;
     annotation.title = listTitle;
+    annotation.notifyOnEntry = YES;
+    annotation.notificationEnabled = YES;
     
     [annotation save];
+    CLLocationManager *manager = self.locationManager;
+    if (manager.authorizationStatus == kCLAuthorizationStatusNotDetermined) [manager requestWhenInUseAuthorization];
+    else if (manager.authorizationStatus == kCLAuthorizationStatusAuthorizedWhenInUse) [manager requestAlwaysAuthorization];
 	
 	
 	// Register the reminder category and ask for notification permission here — this is the
@@ -988,13 +1004,21 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 							  }
 						  }];
 
+    if ([self locationManager].monitoredRegions.count >= 20) {
+        for (CLRegion *region in [self locationManager].monitoredRegions) {
+            if ([region.identifier hasPrefix:@"AtoZNearby:"]) {
+                [[self locationManager] stopMonitoringForRegion:region];
+                break;
+            }
+        }
+    }
 	// iOS monitors at most 20 regions per app; past that startMonitoringForRegion: fails
 	// silently, so surface it rather than pretending the reminder was set.
 	if ([self locationManager].monitoredRegions.count >= 20 &&
 		![self geolocationReminderExistsForTitle:listTitle]) {
 		DLog(@"Region monitoring limit (20) reached — not monitoring \"%@\"", listTitle);
 	} else {
-		CLCircularRegion *region = [[CLCircularRegion alloc] initWithCenter:coordinate radius:radiusInMeters identifier:listTitle];
+		CLCircularRegion *region = [[CLCircularRegion alloc] initWithCenter:coordinate radius:MIN(MAX(radiusInMeters, 100), [self locationManager].maximumRegionMonitoringDistance) identifier:listTitle];
 		region.notifyOnEntry = YES;
 		region.notifyOnExit = NO;
 		[[self locationManager] startMonitoringForRegion:region];
@@ -1005,49 +1029,25 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 }
 
 - (void)setRadius:(double)radiusInMeters forListTitle:(NSString *)listTitle {
-    NSString *formattedListTitle = [self formattedListTitle:listTitle];
-    
-    ALUPointAnnotation *annotation = [_geolocationReminders objectForKey:formattedListTitle];
-    
-    if (!annotation) {
-        annotation = [[ALUPointAnnotation alloc] init];
-    }
-    
-    annotation.radius = radiusInMeters;
-	
-	for (CLRegion *region in [self locationManager].monitoredRegions) {
-		if ([region.identifier isEqualToString:listTitle]) {
-			[[self locationManager] stopMonitoringForRegion:region];
-			CLCircularRegion *circularRegion = [[CLCircularRegion alloc] initWithCenter:annotation.coordinate radius:radiusInMeters identifier:listTitle];
-			[[self locationManager] startMonitoringForRegion:circularRegion];
-		}
-	}
+    ALUPointAnnotation *annotation = [self annotationForTitle:listTitle];
+    if (annotation.radius <= 0) return;
+    [self setCoordinate:annotation.coordinate radius:radiusInMeters forListTitle:listTitle];
 }
 
 - (BOOL)geolocationReminderExistsForTitle:(NSString *)listTitle {
-    NSString *formattedListTitle = [self formattedListTitle:listTitle];
-    
-    if ([_geolocationExists objectForKey:formattedListTitle]) {
-        return [[_geolocationExists objectForKey:formattedListTitle] boolValue];
-    }
-    
-    [self annotationForTitle:listTitle];
-    if ([_geolocationReminders objectForKey:[self formattedListTitle:listTitle]]) {
-        return YES;
-    }
-	
-    return NO;
+    ALUPointAnnotation *annotation = [self annotationForTitle:listTitle];
+    return annotation.radius > 0 && CLLocationCoordinate2DIsValid(annotation.coordinate);
 }
 
-- (MKPointAnnotation *)annotationForTitle:(NSString *)listTitle {
-    if (![_geolocationReminders objectForKey:listTitle]) {
+- (ALUPointAnnotation *)annotationForTitle:(NSString *)listTitle {
+    NSString *key = listTitle;
+    if (!_geolocationReminders[key]) {
         ALUPointAnnotation *annotation = [[ALUPointAnnotation alloc] init];
         annotation.title = listTitle;
         [annotation load];
-        [_geolocationReminders setObject:annotation forKey:[self formattedListTitle:listTitle]];
+        _geolocationReminders[key] = annotation;
     }
-    
-    return [_geolocationReminders objectForKey:[self formattedListTitle:listTitle]];
+    return _geolocationReminders[key];
 }
 
 - (NSString *)geolocationNameForTitle:(NSString *)listTitle {
@@ -1056,9 +1056,9 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 }
 
 - (void)removeReminderForListTitle:(NSString *)listTitle {
-    NSString *formattedListTitle = [self formattedListTitle:listTitle];
+    NSString *formattedListTitle = listTitle;
 	
-	ALUPointAnnotation *annotation = [_geolocationReminders objectForKey:[self formattedListTitle:listTitle]];
+	ALUPointAnnotation *annotation = [_geolocationReminders objectForKey:listTitle];
 	
 	if (annotation) {
 		[annotation remove];
@@ -1087,18 +1087,22 @@ NSString * const ALUNoteIconDidLoadNotification = @"ALUNoteIconDidLoadNotificati
 - (void)locationManagerDidChangeAuthorization:(CLLocationManager *)manager {
 	switch (manager.authorizationStatus) {
 		case kCLAuthorizationStatusAuthorizedWhenInUse:
-			[manager requestAlwaysAuthorization];
-			[manager startUpdatingLocation];
+            if (manager.monitoredRegions.count) [manager requestAlwaysAuthorization];
+			[manager requestLocation];
 			break;
 
 		case kCLAuthorizationStatusAuthorizedAlways:
-			[manager startUpdatingLocation];
+			[manager requestLocation];
 			break;
 
 		default:
 			DLog(@"Location access not granted; location reminders are unavailable.");
 			break;
 	}
+}
+
+- (void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region {
+    [[ALUPlaceReminders shared] handleRegionWithIdentifier:region.identifier];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {

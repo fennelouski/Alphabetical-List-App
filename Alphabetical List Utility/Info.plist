@@ -26,14 +26,16 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>A2Z Notes would like to access your camera to add photos to your notes.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>AtoZ uses the microphone only when you record audio or video for a note.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>A2Z Notes can integrate with your contacts to enhance your note-taking experience.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>A2Z Notes needs access to your location to trigger reminders when you arrive at or leave specific locations.</string>
+	<string>AtoZ uses your location to remind you at chosen places and find stores matching shopping notes, including while the app is closed.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>A2Z Notes would like to use your location. Your location will never be shared and only be used to send you notifications that you create.</string>
+	<string>AtoZ finds nearby places for your notes. Apple Maps receives the search area and place query, never your note body.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>A2Z Notes uses your location to set up location-based reminders for your notes.</string>
+	<string>AtoZ uses your location to choose reminder places and find nearby stores for shopping notes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>A2Z Notes would like to access your photo library to add images to your notes.</string>
 	<key>UILaunchStoryboardName</key>

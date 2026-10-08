@@ -91,9 +91,15 @@ static CGFloat const borderWidth = 10.0f;
 	
 	self.navigationItem.rightBarButtonItems = @[self.overflowButton];
 
+    UIColor *noteColor = [NKFColor colorForCompanyName:_detailItem];
+    ALUApplyNavigationBarColor(self.navigationController.navigationBar, noteColor, [(NKFColor *)noteColor oppositeBlackOrWhite]);
 	[self.navigationItem setTitleView:self.titleViewButton];
 	[self.titleViewButton setTitleColor:[[NKFColor colorForCompanyName:_detailItem] oppositeBlackOrWhite] forState:UIControlStateNormal];
 	[self.titleViewButton setTitle:_detailItem forState:UIControlStateNormal];
+    [self.titleViewButton sizeToFit];
+    self.titleViewButton.frame = CGRectMake(0, 0, MIN(self.titleViewButton.bounds.size.width + 24, self.view.bounds.size.width - 112), 44);
+    self.titleViewButton.titleLabel.adjustsFontSizeToFitWidth = YES;
+    self.titleViewButton.titleLabel.minimumScaleFactor = 0.75;
 	self.navigationController.title = @"";
 
 	// Fires on every detailItem change — including iPad split view and the card
@@ -146,7 +152,6 @@ static CGFloat const borderWidth = 10.0f;
 	[self findTextView];
 
 	[self checkForActionButtonAbility];
-    [self cameraWarning];
 	[self applyCardStyleToEditor];
 }
 
@@ -304,8 +309,9 @@ static CGFloat const borderWidth = 10.0f;
 
 - (void)resetNavBarColors {
     DLog(@"Resetting nav bar colors");
-    ALUApplyNavigationBarColor(self.navigationController.navigationBar, [NKFColor appColor], [NKFColor whiteColor]);
-    ALUApplyNavigationBarColor(self.navigationController.navigationController.navigationBar, [NKFColor appColor], [NKFColor whiteColor]);
+    NKFColor *color = [NKFColor colorForCompanyName:_detailItem ?: @""];
+    ALUApplyNavigationBarColor(self.navigationController.navigationBar, color, [color oppositeBlackOrWhite]);
+    ALUApplyNavigationBarColor(self.navigationController.navigationController.navigationBar, color, [color oppositeBlackOrWhite]);
 }
 
 - (void)orientationChanged:(NSNotification *)notification{
@@ -525,6 +531,16 @@ static CGFloat const borderWidth = 10.0f;
 				[strongSelf renameList];
 			}];
 			[noteActions addObject:renameAction];
+            [noteActions addObject:[UIAction actionWithTitle:@"Attachments & Note Details" image:[UIImage systemImageNamed:@"paperclip"] identifier:nil handler:^(UIAction *action) {
+                [strongSelf saveList];
+                [strongSelf.listItemTextView resignFirstResponder];
+                UIViewController *details = [ALUNoteAttachmentsBuilder makeControllerForTitle:strongSelf.detailItem text:strongSelf.listItemTextView.text ?: @""];
+                [strongSelf presentViewController:details animated:YES completion:nil];
+            }]];
+            [noteActions addObject:[UIAction actionWithTitle:@"Attach Contact" image:[UIImage systemImageNamed:@"person.crop.circle"] identifier:nil handler:^(UIAction *action) {
+                [strongSelf selectContact];
+            }]];
+
 
 			if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
 				UIAction *insertPhotoAction = [UIAction actionWithTitle:NSLocalizedString(@"Insert Photo", nil)
@@ -869,36 +885,18 @@ static CGFloat const borderWidth = 10.0f;
 	[titleController addAction:cancelAction];
 	
 	UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Change Name", nil)
-													   style:UIAlertActionStyleDestructive
-													 handler:^(UIAlertAction * __nonnull action) {
-														 if (_alertTextField.text.length > 0) {
-															 if ([[ALUDataManager sharedDataManager] addList:_alertTextField.text]) {
-																 NSString *textFieldText = _alertTextField.text;
-																 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-																	 [self listAlreadyExistsWarning:textFieldText];
-																 });
-															 } else {
-																 if ([[ALUDataManager sharedDataManager] geolocationReminderExistsForTitle:_detailItem]) {
-																	 ALUPointAnnotation *annotation = [[ALUDataManager sharedDataManager] annotationForTitle:_detailItem];
-																	 [[ALUDataManager sharedDataManager] removeReminderForListTitle:_detailItem];
-																	 [[ALUDataManager sharedDataManager] setCoordinate:annotation.coordinate
-																												radius:annotation.radius
-																										  forListTitle:[_alertTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-																 }
-																 
-																 [[ALUDataManager sharedDataManager] removeList:_detailItem];
-																 _detailItem = [_alertTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-																 [[ALUDataManager sharedDataManager] saveList:self.listItemTextView.text
-																									withTitle:_detailItem];
-																 [self configureView];
-																 
-																 if ([self.delegate respondsToSelector:@selector(reloadList)]) {
-																	 [self.delegate reloadList];
-																 }
-															 }
-														 }
-													 }];
-	[titleController addAction:okAction];
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [self saveList];
+            NSString *newTitle = [_alertTextField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+            if (![[ALUDataManager sharedDataManager] renameList:_detailItem toTitle:newTitle]) {
+                dispatch_async(dispatch_get_main_queue(), ^{ [self listAlreadyExistsWarning:newTitle]; });
+                return;
+            }
+            _detailItem = newTitle;
+            [self configureView];
+            if ([self.delegate respondsToSelector:@selector(reloadList)]) [self.delegate reloadList];
+        }];
+    [titleController addAction:okAction];
 	
 	[self presentViewController:titleController animated:YES completion:^{
 		
@@ -1430,21 +1428,9 @@ static CGFloat const borderWidth = 10.0f;
 }
 
 - (void)selectContact {
-    DLog(@"Select Contact");
-
-    CNContactStore *contactStore = [[CNContactStore alloc] init];
-
-    [contactStore requestAccessForEntityType:CNEntityTypeContacts completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        if (granted) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                CNContactPickerViewController *contactPickerViewController = [[CNContactPickerViewController alloc] init];
-                contactPickerViewController.delegate = self;
-                [self presentViewController:contactPickerViewController animated:YES completion:nil];
-            });
-        } else {
-            DLog(@"Contact access denied: %@", error);
-        }
-    }];
+    CNContactPickerViewController *picker = [[CNContactPickerViewController alloc] init];
+    picker.delegate = self;
+    [self presentViewController:picker animated:YES completion:nil];
 }
 
 - (void)editIcon {
@@ -1548,7 +1534,16 @@ static CGFloat const borderWidth = 10.0f;
 #pragma mark - Contact Delegate
 
 - (void)contactPicker:(CNContactPickerViewController *)picker didSelectContact:(CNContact *)contact {
-    DLog(@"Got a person %@", [self formattedNameForContact:contact]);
+    NSMutableArray *lines = [NSMutableArray array];
+    NSString *name = [CNContactFormatter stringFromContact:contact style:CNContactFormatterStyleFullName];
+    if (name.length) [lines addObject:name];
+    for (CNLabeledValue<CNPhoneNumber *> *phone in contact.phoneNumbers) [lines addObject:phone.value.stringValue];
+    for (CNLabeledValue<NSString *> *email in contact.emailAddresses) [lines addObject:email.value];
+    NSMutableAttributedString *body = [self.listItemTextView.attributedText mutableCopy];
+    NSString *text = [NSString stringWithFormat:@"\n%@\n", [lines componentsJoinedByString:@"\n"]];
+    [body insertAttributedString:[[NSAttributedString alloc] initWithString:text attributes:self.listItemTextView.typingAttributes] atIndex:MIN(self.listItemTextView.selectedRange.location, body.length)];
+    self.listItemTextView.attributedText = body;
+    [self saveList];
 }
 
 - (void)contactPickerDidCancel:(CNContactPickerViewController *)picker {

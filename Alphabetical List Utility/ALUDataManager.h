@@ -24,6 +24,7 @@
 - (BOOL)addList:(NSString *)listTitle;
 
 - (void)removeList:(NSString *)listTitle;
+- (BOOL)renameList:(NSString *)title toTitle:(NSString *)newTitle;
 
 - (NSArray *)lists;
 

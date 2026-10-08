@@ -1,8 +1,10 @@
 # A2Z Notes — iOS 26 Modernization
 
-**Status:** App Store ready. Clean Debug *and* Release builds — **0 warnings, 0 errors**.
-**Deployment target:** iOS 16.0 (raised from 12.0). **Version:** 3.0.0 (3000).
-**Last updated:** 2026-07-21
+**Status:** Build 3012 feature restoration is implemented and locally compiled; sensor/device qualification and release preparation remain. The July readiness claims below are historical, not current approval.
+**Deployment target:** iOS 16.0. **Current candidate:** 3.0.0 (3012).
+**Last updated:** 2026-10-08
+
+See [FEATURE_PARITY_2026-10-08.md](FEATURE_PARITY_2026-10-08.md) for restored features, data preservation, verified checks and outstanding device tests.
 
 See [APP_STORE_CONNECT.md](APP_STORE_CONNECT.md) for the submission guide, listing copy and the
 remaining human steps (signing, iCloud entitlement, support/privacy URLs).

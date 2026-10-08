@@ -11,6 +11,8 @@
 #import "ALUDataManager.h"
 #import "ALUExternalDisplayController.h"
 #import "UIColor+AppColors.h"
+#import "NKFColor+Companies.h"
+#import "ALUNoteCardView.h"
 #import "Alphabetical_List_Utility-Swift.h"
 
 @interface AppDelegate () <UISplitViewControllerDelegate, DetailViewControllerDelegate>
@@ -43,11 +45,22 @@
 	[[ALUExternalDisplayController sharedController] start];
 
     __weak AppDelegate *weakSelf = self;
-    self.window.rootViewController = [ALULibraryBuilder makeControllerWithNotes:^NSArray<NSDictionary<NSString *, NSString *> *> * {
+    self.window.rootViewController = [ALULibraryBuilder makeControllerWithNotes:^NSArray<NSDictionary<NSString *, id> *> * {
         ALUDataManager *data = [ALUDataManager sharedDataManager];
         NSMutableArray *notes = [NSMutableArray array];
         for (NSString *title in [data lists]) {
-            [notes addObject:@{@"title": title, @"text": [data listWithTitle:title] ?: @""}];
+            NSMutableDictionary *item = [@{@"title": title, @"text": [data listWithTitle:title] ?: @"",
+                @"id": [[ALUNoteDetailsStore shared] identifierForTitle:title],
+                @"summary": [[ALUNoteDetailsStore shared] summaryForTitle:title],
+                @"color": ALUAdaptiveColor([NKFColor colorForCompanyName:title]),
+                @"styledTitle": ALUAdaptiveAttributedString([NKFColor attributedStringForCompanyName:title])} mutableCopy];
+            if ([data showImageForListTitle:title]) {
+                UIImage *icon = [data imageForCompanyName:title];
+                if (icon) item[@"icon"] = icon;
+            }
+            UIColor *styleColor = [ALUNoteCardView backgroundColorForStyle:[data cardStyleForListTitle:title]];
+            if (styleColor) { item[@"styleColor"] = styleColor; item[@"styleIntensity"] = @([data cardStyleListIntensityForListTitle:title]); }
+            [notes addObject:item];
         }
         return notes;
     } create:^BOOL(NSString *title) {
@@ -67,6 +80,13 @@
         }
     } cards:^UIViewController * {
         return splitViewController;
+    }];
+
+    [[ALUPlaceReminders shared] startWithNotes:^NSArray<NSDictionary<NSString *, NSString *> *> * {
+        ALUDataManager *data = [ALUDataManager sharedDataManager];
+        NSMutableArray *notes = [NSMutableArray array];
+        for (NSString *title in data.lists) [notes addObject:@{@"title": title, @"text": [data listWithTitle:title] ?: @""}];
+        return notes;
     }];
 
 
@@ -96,7 +116,7 @@
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-	// Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    [[ALUPlaceReminders shared] resume];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -156,6 +176,11 @@
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
 didReceiveNotificationResponse:(UNNotificationResponse *)response
 		 withCompletionHandler:(void (^)(void))completionHandler {
+    NSString *noteID = response.notification.request.content.userInfo[@"noteID"];
+    NSString *title = response.notification.request.content.userInfo[@"noteTitle"] ?: response.notification.request.content.title;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ALUOpenNote" object:nil userInfo:@{@"title": title ?: @"", @"id": noteID ?: @""}];
+    });
 	completionHandler();
 }
 
@@ -167,74 +192,8 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 	}
 }
 
-- (void)locationManager:(CLLocationManager *)manager didExitRegion:(CLRegion *)region {
-	if ([region isKindOfClass:[CLCircularRegion class]]) {
-		[self handleRegionEvent:region];
-	}
-}
-
 - (void)handleRegionEvent:(CLRegion *)region {
-	// Always deliver through UserNotifications. The old foreground branch built a
-	// UIAlertController and never presented it, so nothing was shown while the app was
-	// open; -willPresentNotification: below now surfaces it as a banner instead.
-		NSMutableString *alertBody = [[NSMutableString alloc] init];
-
-		NSString *noteInfo = [[ALUDataManager sharedDataManager] listWithTitle:[region identifier]];
-		if (noteInfo) {
-			// remove extra white space between lines and limits the number of lines to 5
-			NSArray *lines = [noteInfo componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-
-			if (lines.count > 1) {
-				int maxNumberOfLines = 5;
-				int blankLines = 0;
-				NSMutableString *formattedNoteInfo = [[NSMutableString alloc] initWithString:[lines firstObject]];
-
-				for (int i = 1; i < lines.count && i < maxNumberOfLines + blankLines; i++) {
-					NSString *line = [[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-
-					if (line.length > 0) {
-						[formattedNoteInfo appendFormat:@"\n%@", line];
-					} else {
-						blankLines++;
-					}
-				}
-			}
-
-			[alertBody appendString:noteInfo];
-		} else {
-			[self.locationManager stopMonitoringForRegion:region];
-			return;
-		}
-
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSString *lastNotificationDateKey = [NSString stringWithFormat:@"Last Notification Date K£Y%@", [region identifier]];
-        NSDate *lastNotificationDate = [defaults objectForKey:lastNotificationDateKey];
-        NSTimeInterval minimumWaitTime = -600.0f;
-        if (lastNotificationDate && [lastNotificationDate timeIntervalSinceNow] > minimumWaitTime) {
-            return;
-        }
-
-        [defaults setObject:[NSDate date] forKey:lastNotificationDateKey];
-
-		// Use modern UserNotifications framework
-		UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
-		content.title = [region identifier];
-		content.body = alertBody;
-		content.sound = [UNNotificationSound defaultSound];
-		content.categoryIdentifier = @"showNoteNotificationCategory";
-
-		UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString]
-																			  content:content
-																			  trigger:nil]; // nil trigger means immediate delivery
-
-		UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-		[center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
-			if (error) {
-				NSLog(@"Error scheduling notification: %@", error);
-			} else {
-				NSLog(@"Notification scheduled successfully");
-			}
-		}];
+    [[ALUPlaceReminders shared] handleRegionWithIdentifier:region.identifier];
 }
 
 @end
